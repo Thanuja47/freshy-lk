@@ -1,0 +1,474 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AdminRole {
+  OWNER
+  STAFF
+}
+
+enum StorageType {
+  FRESH
+  FROZEN
+  AMBIENT
+}
+
+enum FeeType {
+  FLAT
+  PER_KG
+}
+
+enum DeliveryMethod {
+  COURIER
+  OWN_RIDER
+}
+
+enum CustomerType {
+  INDIVIDUAL
+  BUSINESS
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PLACED
+  CONFIRMED
+  PACKED
+  DISPATCHED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum PaymentMethod {
+  CARD_ONLINE
+  BANK_TRANSFER
+  COD
+}
+
+enum PaymentStatus {
+  UNPAID
+  PENDING_REVIEW
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum SlipStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum VatMode {
+  NONE
+  INCLUSIVE
+  EXCLUSIVE
+}
+
+enum EnquiryStatus {
+  NEW
+  CONTACTED
+  QUOTED
+  WON
+  LOST
+}
+
+enum NotifyChannel {
+  SMS
+  EMAIL
+}
+
+enum NotifyStatus {
+  QUEUED
+  SENT
+  FAILED
+}
+
+model AdminUser {
+  id         String    @id @default(uuid())
+  authUserId String    @unique
+  email      String    @unique
+  name       String
+  role       AdminRole @default(STAFF)
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+
+  priceChanges PriceHistory[]
+  statusEvents OrderStatusEvent[]
+  auditLogs    AuditLog[]
+}
+
+model Category {
+  id          String       @id @default(uuid())
+  slug        String       @unique
+  name        String
+  description String?
+  imageUrl    String?
+  sortOrder   Int          @default(0)
+  isActive    Boolean      @default(true)
+  products    Product[]
+  prepOptions PrepOption[]
+}
+
+model Product {
+  id             String      @id @default(uuid())
+  categoryId     String
+  category       Category    @relation(fields: [categoryId], references: [id])
+  slug           String      @unique
+  name           String
+  localName      String?
+  shortDesc      String?
+  description    String?
+  tips           String?
+  catchType      String?
+  origin         String?
+  storageType    StorageType @default(FRESH)
+
+  pricePerKgCents Int
+  priceUpdatedAt  DateTime    @default(now())
+  priceVersion    Int         @default(1)
+
+  trackStock     Boolean     @default(false)
+  stockGrams     Int         @default(0)
+  isAvailable    Boolean     @default(true)
+  isActive       Boolean     @default(true)
+  isFeatured     Boolean     @default(false)
+  sortOrder      Int         @default(0)
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  images   ProductImage[]
+  packs    ProductPack[]
+  tiers    PriceTier[]
+  preps    ProductPrepOption[]
+  history  PriceHistory[]
+  items    OrderItem[]
+
+  @@index([categoryId, isActive, sortOrder])
+}
+
+model ProductImage {
+  id          String  @id @default(uuid())
+  productId   String
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url         String
+  alt         String
+  width       Int?
+  height      Int?
+  blurDataUrl String?
+  sortOrder   Int     @default(0)
+}
+
+model ProductPack {
+  id          String  @id @default(uuid())
+  productId   String
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  weightGrams Int
+  label       String
+  isActive    Boolean @default(true)
+  sortOrder   Int     @default(0)
+
+  @@unique([productId, weightGrams])
+}
+
+model PriceTier {
+  id              String  @id @default(uuid())
+  productId       String
+  product         Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  minWeightGrams  Int
+  pricePerKgCents Int
+  label           String?
+
+  @@unique([productId, minWeightGrams])
+}
+
+model PriceHistory {
+  id                 String     @id @default(uuid())
+  productId          String
+  product            Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  oldPricePerKgCents Int
+  newPricePerKgCents Int
+  changedById        String?
+  changedBy          AdminUser? @relation(fields: [changedById], references: [id])
+  createdAt          DateTime   @default(now())
+
+  @@index([productId, createdAt])
+}
+
+model PrepOption {
+  id          String   @id @default(uuid())
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  name        String
+  description String?
+  feeType     FeeType  @default(FLAT)
+  feeCents    Int      @default(0)
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+
+  products ProductPrepOption[]
+}
+
+model ProductPrepOption {
+  productId        String
+  prepOptionId     String
+  feeOverrideCents Int?
+  product          Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  prepOption       PrepOption @relation(fields: [prepOptionId], references: [id], onDelete: Cascade)
+
+  @@id([productId, prepOptionId])
+}
+
+model DeliveryZone {
+  id               String         @id @default(uuid())
+  name             String
+  districts        String[]
+  method           DeliveryMethod @default(COURIER)
+  courierName      String?
+  baseFeeCents     Int
+  perKgFeeCents    Int            @default(0)
+  freeOverCents    Int?
+  minOrderCents    Int            @default(0)
+  leadDays         Int            @default(1)
+  cutoffTime       String         @default("15:00")
+  deliveryWeekdays Int[]          @default([1, 2, 3, 4, 5, 6])
+  allowedStorage   StorageType[]  @default([FRESH, FROZEN, AMBIENT])
+  freshnessLabel   String?
+  etaMinDays       Int            @default(1)
+  etaMaxDays       Int            @default(2)
+  notes            String?
+  isActive         Boolean        @default(true)
+  sortOrder        Int            @default(0)
+
+  slots  DeliverySlot[]
+  orders Order[]
+}
+
+model DeliverySlot {
+  id        String       @id @default(uuid())
+  zoneId    String
+  zone      DeliveryZone @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  label     String
+  startTime String
+  endTime   String
+  maxOrders Int?
+  isActive  Boolean      @default(true)
+  orders    Order[]
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  phone     String   @unique
+  name      String
+  email     String?
+  company   String?
+  createdAt DateTime @default(now())
+  orders    Order[]
+}
+
+model Order {
+  id                 String       @id @default(uuid())
+  orderNo            String       @unique
+  trackingToken      String       @unique
+  idempotencyKey     String       @unique
+  status             OrderStatus  @default(PENDING_PAYMENT)
+
+  customerId         String?
+  customer           Customer?    @relation(fields: [customerId], references: [id])
+  customerType       CustomerType @default(INDIVIDUAL)
+  customerName       String
+  phone              String
+  email              String?
+  companyName        String?
+  brNumber           String?
+  vatNumber          String?
+
+  addressLine1       String
+  addressLine2       String?
+  city               String
+  district           String
+  postalCode         String?
+  deliveryNote       String?
+
+  zoneId             String
+  zone               DeliveryZone @relation(fields: [zoneId], references: [id])
+  slotId             String?
+  slot               DeliverySlot? @relation(fields: [slotId], references: [id])
+  deliveryDate       DateTime     @db.Date
+  courierName        String?
+  courierTrackingNo  String?
+  courierTrackingUrl String?
+
+  paymentMethod      PaymentMethod
+  paymentStatus      PaymentStatus @default(UNPAID)
+
+  subtotalCents      Int
+  prepTotalCents     Int          @default(0)
+  discountCents      Int          @default(0)
+  deliveryFeeCents   Int
+  taxCents           Int          @default(0)
+  totalCents         Int
+  currency           String       @default("LKR")
+  vatMode            VatMode      @default(NONE)
+  vatRateBp          Int          @default(0)
+
+  expiresAt          DateTime?
+  internalNote       String?
+  source             String       @default("web")
+  placedAt           DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  items         OrderItem[]
+  events        OrderStatusEvent[]
+  payments      Payment[]
+  slips         BankSlip[]
+  invoice       Invoice?
+  notifications Notification[]
+
+  @@index([status, createdAt])
+  @@index([phone])
+  @@index([deliveryDate, zoneId])
+}
+
+model OrderItem {
+  id              String   @id @default(uuid())
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId       String?
+  product         Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  productName     String
+  localName       String?
+  packLabel       String
+  packWeightGrams Int
+  quantity        Int
+  pricePerKgCents Int
+  tierLabel       String?
+  prepName        String?
+  prepFeeCents    Int      @default(0)
+  lineTotalCents  Int
+}
+
+model OrderStatusEvent {
+  id         String      @id @default(uuid())
+  orderId    String
+  order      Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  fromStatus OrderStatus?
+  toStatus   OrderStatus
+  note       String?
+  byAdminId  String?
+  byAdmin    AdminUser?  @relation(fields: [byAdminId], references: [id])
+  createdAt  DateTime    @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  orderId           String
+  order             Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider          String
+  providerPaymentId String?
+  amountCents       Int
+  currency          String        @default("LKR")
+  status            PaymentStatus
+  statusCode        Int?
+  method            String?
+  rawPayload        Json?
+  note              String?
+  createdAt         DateTime      @default(now())
+
+  @@unique([provider, providerPaymentId])
+  @@index([orderId])
+}
+
+model BankSlip {
+  id           String     @id @default(uuid())
+  orderId      String
+  order        Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  storagePath  String
+  mimeType     String
+  sizeBytes    Int
+  status       SlipStatus @default(PENDING)
+  reviewNote   String?
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime   @default(now())
+}
+
+model Invoice {
+  id        String   @id @default(uuid())
+  orderId   String   @unique
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  invoiceNo String   @unique
+  issuedAt  DateTime @default(now())
+  pdfPath   String?
+  snapshot  Json
+}
+
+model InvoiceCounter {
+  year       Int @id
+  lastNumber Int @default(0)
+}
+
+model OrderCounter {
+  day        String @id
+  lastNumber Int    @default(0)
+}
+
+model WholesaleEnquiry {
+  id                 String        @id @default(uuid())
+  companyName        String
+  contactName        String
+  phone              String
+  email              String?
+  businessType       String?
+  district           String?
+  message            String
+  estimatedKgPerWeek Int?
+  status             EnquiryStatus @default(NEW)
+  adminNote          String?
+  createdAt          DateTime      @default(now())
+}
+
+model Notification {
+  id          String        @id @default(uuid())
+  orderId     String?
+  order       Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  channel     NotifyChannel
+  toAddress   String
+  template    String
+  body        String
+  status      NotifyStatus  @default(QUEUED)
+  providerRef String?
+  error       String?
+  createdAt   DateTime      @default(now())
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String     @id @default(uuid())
+  adminId   String?
+  admin     AdminUser? @relation(fields: [adminId], references: [id])
+  action    String
+  entity    String
+  entityId  String?
+  diff      Json?
+  createdAt DateTime   @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
