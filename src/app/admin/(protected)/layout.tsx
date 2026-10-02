@@ -1,96 +1,102 @@
 import Link from "next/link";
-import { LayoutDashboard, Tag, ShoppingCart, Package, MapPin, Settings, FileText, Shield, LogOut } from "lucide-react";
+import { requireAdmin } from "@/lib/auth";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminProtectedLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const admin = await requireAdmin();
+
   return (
-    <div className="min-h-screen flex bg-gray-100 font-sans text-gray-900">
-      {/* Sidebar for Desktop */}
-      <aside className="hidden md:flex md:w-64 bg-[#0B1F2A] text-white flex-col justify-between p-4 flex-shrink-0">
-        <div>
-          <div className="flex items-center space-x-2 font-serif text-xl font-bold mb-8 px-2">
-            <span className="text-[#FF6A4D]">Freshy.lk</span>
-            <span className="text-xs bg-[#1F6F78] px-2 py-0.5 rounded text-white font-sans font-normal">
-              Admin
-            </span>
-          </div>
-
-          <nav className="space-y-1">
-            <Link href="/admin" className="flex items-center space-x-3 px-3 py-2.5 rounded-md hover:bg-[#1F6F78] text-sm font-medium">
-              <LayoutDashboard className="h-5 w-5" />
-              <span>Dashboard</span>
-            </Link>
-            <Link href="/admin/prices" className="flex items-center space-x-3 px-3 py-2.5 rounded-md hover:bg-[#1F6F78] text-sm font-medium bg-[#1F6F78]/50">
-              <Tag className="h-5 w-5 text-[#FF6A4D]" />
-              <span className="font-semibold">Today&apos;s Prices</span>
-            </Link>
-            <Link href="/admin/orders" className="flex items-center space-x-3 px-3 py-2.5 rounded-md hover:bg-[#1F6F78] text-sm font-medium">
-              <ShoppingCart className="h-5 w-5" />
-              <span>Orders</span>
-            </Link>
-            <Link href="/admin/products" className="flex items-center space-x-3 px-3 py-2.5 rounded-md hover:bg-[#1F6F78] text-sm font-medium">
-              <Package className="h-5 w-5" />
-              <span>Products</span>
-            </Link>
-            <Link href="/admin/zones" className="flex items-center space-x-3 px-3 py-2.5 rounded-md hover:bg-[#1F6F78] text-sm font-medium">
-              <MapPin className="h-5 w-5" />
-              <span>Zones & Fees</span>
-            </Link>
-            <Link href="/admin/enquiries" className="flex items-center space-x-3 px-3 py-2.5 rounded-md hover:bg-[#1F6F78] text-sm font-medium">
-              <FileText className="h-5 w-5" />
-              <span>Wholesale</span>
-            </Link>
-            <Link href="/admin/settings" className="flex items-center space-x-3 px-3 py-2.5 rounded-md hover:bg-[#1F6F78] text-sm font-medium">
-              <Settings className="h-5 w-5" />
-              <span>Settings</span>
-            </Link>
-            <Link href="/admin/audit" className="flex items-center space-x-3 px-3 py-2.5 rounded-md hover:bg-[#1F6F78] text-sm font-medium">
-              <Shield className="h-5 w-5" />
-              <span>Audit Logs</span>
-            </Link>
-          </nav>
+    <div className="min-h-screen bg-ice flex flex-col md:flex-row">
+      {/* Desktop Sidebar */}
+      <aside className="w-64 bg-sea-ink text-white hidden md:flex flex-col border-r border-sand/20">
+        <div className="p-6 border-b border-sand/10">
+          <Link href="/admin" className="font-serif text-2xl font-bold text-sea-glass">
+            Freshy<span className="text-coral">.lk</span>
+          </Link>
+          <div className="text-xs text-sand/60 mt-1">Admin Portal</div>
         </div>
 
-        <div className="border-t border-gray-700 pt-4 px-2 flex items-center justify-between text-xs text-gray-400">
-          <div>
-            <p className="font-semibold text-white">Staff Member</p>
-            <p>staff@freshy.lk</p>
-          </div>
-          <button className="p-1 hover:text-white" title="Sign Out">
-            <LogOut className="h-4 w-4" />
-          </button>
+        <nav className="flex-1 p-4 space-y-1 text-sm font-medium">
+          <Link
+            href="/admin"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sand/80 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            <span>📊</span> Dashboard
+          </Link>
+          <Link
+            href="/admin/prices"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white font-bold bg-tide/80 hover:bg-tide transition-colors shadow-sm"
+          >
+            <span>🏷️</span> Today&apos;s Prices & Stock
+          </Link>
+          <Link
+            href="/admin/orders"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sand/80 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            <span>📦</span> Orders
+          </Link>
+          <Link
+            href="/admin/products"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sand/80 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            <span>🐟</span> Products & Packs
+          </Link>
+          <Link
+            href="/admin/categories"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sand/80 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            <span>📁</span> Categories
+          </Link>
+          {admin.role === "OWNER" && (
+            <Link
+              href="/admin/audit"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sand/80 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <span>📜</span> Audit Log
+            </Link>
+          )}
+        </nav>
+
+        <div className="p-4 border-t border-sand/10 text-xs text-sand/70">
+          <div className="font-semibold text-white truncate">{admin.name}</div>
+          <div className="text-tide uppercase text-[10px] tracking-wider mt-0.5">{admin.role}</div>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-grow flex flex-col min-w-0 pb-16 md:pb-0">
-        <header className="bg-white border-b border-gray-200 h-14 px-6 flex items-center justify-between md:hidden">
-          <span className="font-serif font-bold text-lg text-[#0B1F2A]">Freshy.lk Admin</span>
-          <span className="text-xs bg-[#FF6A4D] text-white px-2 py-0.5 rounded font-semibold">Mobile</span>
+      <main className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0">
+        <header className="bg-white border-b border-sand px-6 py-4 flex items-center justify-between md:hidden">
+          <Link href="/admin" className="font-serif text-xl font-bold text-sea-ink">
+            Freshy<span className="text-coral">.lk</span> Admin
+          </Link>
+          <span className="text-xs bg-tide/10 text-tide font-bold px-2.5 py-1 rounded-full uppercase">
+            {admin.role}
+          </span>
         </header>
-        <main className="p-4 md:p-8 flex-grow">{children}</main>
-      </div>
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0B1F2A] text-white h-16 border-t border-[#1F6F78] flex items-center justify-around z-50">
-        <Link href="/admin" className="flex flex-col items-center py-1 text-xs">
-          <LayoutDashboard className="h-5 w-5" />
-          <span>Home</span>
+        <div className="p-4 sm:p-6 lg:p-8 flex-1">{children}</div>
+      </main>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-sea-ink border-t border-sand/20 flex justify-around p-2 text-white text-center text-xs md:hidden z-40">
+        <Link href="/admin" className="p-1 flex flex-col items-center">
+          <span className="text-lg">📊</span>
+          <span className="text-[10px]">Dashboard</span>
         </Link>
-        <Link href="/admin/prices" className="flex flex-col items-center py-1 text-xs text-[#FF6A4D]">
-          <Tag className="h-5 w-5" />
-          <span className="font-bold">Prices</span>
+        <Link href="/admin/prices" className="p-1 flex flex-col items-center text-coral font-bold">
+          <span className="text-lg">🏷️</span>
+          <span className="text-[10px]">Prices</span>
         </Link>
-        <Link href="/admin/orders" className="flex flex-col items-center py-1 text-xs">
-          <ShoppingCart className="h-5 w-5" />
-          <span>Orders</span>
+        <Link href="/admin/orders" className="p-1 flex flex-col items-center">
+          <span className="text-lg">📦</span>
+          <span className="text-[10px]">Orders</span>
         </Link>
-        <Link href="/admin/products" className="flex flex-col items-center py-1 text-xs">
-          <Package className="h-5 w-5" />
-          <span>Products</span>
-        </Link>
-        <Link href="/admin/settings" className="flex flex-col items-center py-1 text-xs">
-          <Settings className="h-5 w-5" />
-          <span>Settings</span>
+        <Link href="/admin/products" className="p-1 flex flex-col items-center">
+          <span className="text-lg">🐟</span>
+          <span className="text-[10px]">Products</span>
         </Link>
       </nav>
     </div>
