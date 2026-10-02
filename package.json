@@ -1,0 +1,40 @@
+{
+  "name": "freshy-lk",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "next": "16.3.8",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^26.6.4",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^5.0.3",
+    "clsx": "^2.1.1",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.3.8",
+    "eslint-config-prettier": "^10.1.8",
+    "framer-motion": "^14.0.0",
+    "lucide-react": "^1.50.0",
+    "playwright": "^1.63.0",
+    "prettier": "^3.9.9",
+    "tailwind-merge": "^3.7.0",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3",
+    "zod": "^4.6.5"
+  }
+}
