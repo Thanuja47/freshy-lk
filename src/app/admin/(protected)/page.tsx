@@ -8,42 +8,54 @@ export default async function AdminDashboardPage() {
   const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  // Queries for today's stats
-  const [
-    totalProducts,
-    staleProductsCount,
-    lowStockProducts,
-    todayOrdersCount,
-    todayRevenueResult,
-  ] = await Promise.all([
-    db.product.count({ where: { isActive: true } }),
-    db.product.count({
-      where: {
-        isActive: true,
-        priceUpdatedAt: { lt: startOfDay },
-      },
-    }),
-    db.product.findMany({
-      where: {
-        trackStock: true,
-        stockGrams: { lte: 2000 }, // Under 2 kg
-      },
-      select: { id: true, name: true, stockGrams: true },
-      take: 5,
-    }),
-    db.order.count({
-      where: { createdAt: { gte: startOfDay } },
-    }),
-    db.order.aggregate({
-      where: {
-        createdAt: { gte: startOfDay },
-        paymentStatus: "PAID",
-      },
-      _sum: { totalCents: true },
-    }),
-  ]);
+  let totalProducts = 0;
+  let staleProductsCount = 0;
+  let lowStockProducts: { id: string; name: string; stockGrams: number }[] = [];
+  let todayOrdersCount = 0;
+  let todayRevenueCents = 0;
 
-  const todayRevenueCents = todayRevenueResult._sum.totalCents || 0;
+  try {
+    const [
+      tProducts,
+      sProductsCount,
+      lStock,
+      tOrdersCount,
+      tRevenueResult,
+    ] = await Promise.all([
+      db.product.count({ where: { isActive: true } }),
+      db.product.count({
+        where: {
+          isActive: true,
+          priceUpdatedAt: { lt: startOfDay },
+        },
+      }),
+      db.product.findMany({
+        where: {
+          trackStock: true,
+          stockGrams: { lte: 2000 },
+        },
+        select: { id: true, name: true, stockGrams: true },
+        take: 5,
+      }),
+      db.order.count({
+        where: { createdAt: { gte: startOfDay } },
+      }),
+      db.order.aggregate({
+        where: {
+          createdAt: { gte: startOfDay },
+          paymentStatus: "PAID",
+        },
+        _sum: { totalCents: true },
+      }),
+    ]);
+    totalProducts = tProducts;
+    staleProductsCount = sProductsCount;
+    lowStockProducts = lStock;
+    todayOrdersCount = tOrdersCount;
+    todayRevenueCents = tRevenueResult._sum.totalCents || 0;
+  } catch (err) {
+    console.warn("DB offline or unconfigured in AdminDashboardPage fallback:", err);
+  }
 
   return (
     <div className="space-y-6">

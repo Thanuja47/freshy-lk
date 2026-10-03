@@ -6,13 +6,26 @@ export const dynamic = "force-dynamic";
 export default async function AdminAuditPage() {
   await requireOwner();
 
-  const logs = await db.auditLog.findMany({
-    take: 50,
-    orderBy: { createdAt: "desc" },
-    include: {
-      admin: { select: { name: true, email: true } },
-    },
-  });
+  let logs: Array<{
+    id: string;
+    action: string;
+    entity: string;
+    diff: unknown;
+    createdAt: Date;
+    admin: { name: string; email: string } | null;
+  }> = [];
+
+  try {
+    logs = await db.auditLog.findMany({
+      take: 50,
+      orderBy: { createdAt: "desc" },
+      include: {
+        admin: { select: { name: true, email: true } },
+      },
+    });
+  } catch (err) {
+    console.warn("DB offline in AdminAuditPage fallback:", err);
+  }
 
   return (
     <div className="space-y-6">

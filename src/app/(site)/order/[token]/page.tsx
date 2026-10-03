@@ -12,16 +12,22 @@ export const dynamic = "force-dynamic";
 export default async function OrderTokenPage({ params }: OrderPageProps) {
   const { token } = await params;
 
-  const order = await db.order.findUnique({
-    where: { trackingToken: token },
-    include: {
-      items: true,
-      zone: true,
-      events: {
-        orderBy: { createdAt: "asc" },
+  let order = null;
+
+  try {
+    order = await db.order.findUnique({
+      where: { trackingToken: token },
+      include: {
+        items: true,
+        zone: true,
+        events: {
+          orderBy: { createdAt: "asc" },
+        },
       },
-    },
-  });
+    });
+  } catch (err) {
+    console.warn("DB offline in OrderTokenPage fallback:", err);
+  }
 
   if (!order) {
     notFound();

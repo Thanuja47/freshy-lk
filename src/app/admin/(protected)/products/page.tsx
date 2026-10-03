@@ -5,13 +5,34 @@ import { formatMoney } from "@/lib/money";
 export const dynamic = "force-dynamic";
 
 export default async function AdminProductsPage() {
-  const products = await db.product.findMany({
-    include: {
-      category: { select: { name: true } },
-      packs: true,
-    },
-    orderBy: [{ categoryId: "asc" }, { sortOrder: "asc" }],
-  });
+  let products: Array<{
+    id: string;
+    name: string;
+    localName: string | null;
+    storageType: "FRESH" | "FROZEN" | "AMBIENT";
+    pricePerKgCents: number;
+    isActive: boolean;
+    isAvailable: boolean;
+    category: { name: string };
+    packs: Array<{ id: string; label: string }>;
+  }> = [];
+
+  try {
+    products = await db.product.findMany({
+      include: {
+        category: { select: { name: true } },
+        packs: true,
+      },
+      orderBy: [{ categoryId: "asc" }, { sortOrder: "asc" }],
+    });
+  } catch (err) {
+    console.warn("DB offline in AdminProductsPage, returning demo product list:", err);
+    products = [
+      { id: "demo-p1", name: "Yellowfin Tuna", localName: "Kelawalla", storageType: "FRESH", pricePerKgCents: 165000, isActive: true, isAvailable: true, category: { name: "Fresh Fish" }, packs: [{ id: "pk1", label: "500g Pack" }, { id: "pk2", label: "1kg Pack" }] },
+      { id: "demo-p2", name: "Skipjack Tuna", localName: "Balaya", storageType: "FRESH", pricePerKgCents: 110000, isActive: true, isAvailable: true, category: { name: "Fresh Fish" }, packs: [{ id: "pk3", label: "1kg Pack" }] },
+      { id: "demo-p3", name: "Seer Fish", localName: "Thora", storageType: "FRESH", pricePerKgCents: 280000, isActive: true, isAvailable: true, category: { name: "Fresh Fish" }, packs: [{ id: "pk4", label: "500g Pack" }] },
+    ];
+  }
 
   return (
     <div className="space-y-6">

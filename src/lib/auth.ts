@@ -18,32 +18,40 @@ export interface CurrentAdminUser {
  * Redirects to /admin/login if unauthenticated.
  */
 export async function requireAdmin(): Promise<CurrentAdminUser> {
-  const supabase = await createClient();
+  try {
+    const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (user && user.email) {
-    const admin = await db.adminUser.findUnique({
-      where: { email: user.email },
-      select: { id: true, email: true, name: true, role: true, isActive: true },
-    });
+    if (user && user.email) {
+      const admin = await db.adminUser.findUnique({
+        where: { email: user.email },
+        select: { id: true, email: true, name: true, role: true, isActive: true },
+      });
 
-    if (admin && admin.isActive) {
-      return admin;
+      if (admin && admin.isActive) {
+        return admin;
+      }
     }
+  } catch (err) {
+    console.warn("Supabase auth check skipped:", err);
   }
 
-  // Fallback for DEV / DEMO mode when Supabase Auth keys are not yet configured
+  // Fallback for DEV / DEMO mode when Supabase Auth keys or DB are not yet configured
   if (process.env.DEMO_MODE === "true" || process.env.NODE_ENV === "development") {
-    const firstAdmin = await db.adminUser.findFirst({
-      where: { isActive: true },
-      select: { id: true, email: true, name: true, role: true, isActive: true },
-    });
+    try {
+      const firstAdmin = await db.adminUser.findFirst({
+        where: { isActive: true },
+        select: { id: true, email: true, name: true, role: true, isActive: true },
+      });
 
-    if (firstAdmin) {
-      return firstAdmin;
+      if (firstAdmin) {
+        return firstAdmin;
+      }
+    } catch (err) {
+      console.warn("DB connection error in requireAdmin fallback:", err);
     }
 
     // Default Owner Admin fallback
