@@ -28,6 +28,9 @@ export default async function AdminOrdersPage() {
       },
     });
   } catch (err) {
+    if (process.env.DEMO_MODE !== "true") {
+      throw err;
+    }
     console.warn("DB offline in AdminOrdersPage fallback:", err);
   }
 

@@ -19,6 +19,9 @@ export default async function AdminCategoriesPage() {
       orderBy: { sortOrder: "asc" },
     });
   } catch (err) {
+    if (process.env.DEMO_MODE !== "true") {
+      throw err;
+    }
     console.warn("DB offline in AdminCategoriesPage fallback:", err);
     categories = [
       { id: "demo-c1", slug: "fresh-fish", name: "Fresh Fish", description: "Wild caught sea fish direct from Sri Lankan landings.", _count: { products: 8 } },

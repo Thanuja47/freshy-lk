@@ -26,6 +26,9 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
       },
     });
   } catch (err) {
+    if (process.env.DEMO_MODE !== "true") {
+      throw err;
+    }
     console.warn("DB offline in OrderTokenPage fallback:", err);
   }
 

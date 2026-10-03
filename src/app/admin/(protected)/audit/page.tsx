@@ -24,6 +24,9 @@ export default async function AdminAuditPage() {
       },
     });
   } catch (err) {
+    if (process.env.DEMO_MODE !== "true") {
+      throw err;
+    }
     console.warn("DB offline in AdminAuditPage fallback:", err);
   }
 

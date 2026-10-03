@@ -26,6 +26,9 @@ export default async function AdminProductsPage() {
       orderBy: [{ categoryId: "asc" }, { sortOrder: "asc" }],
     });
   } catch (err) {
+    if (process.env.DEMO_MODE !== "true") {
+      throw err;
+    }
     console.warn("DB offline in AdminProductsPage, returning demo product list:", err);
     products = [
       { id: "demo-p1", name: "Yellowfin Tuna", localName: "Kelawalla", storageType: "FRESH", pricePerKgCents: 165000, isActive: true, isAvailable: true, category: { name: "Fresh Fish" }, packs: [{ id: "pk1", label: "500g Pack" }, { id: "pk2", label: "1kg Pack" }] },

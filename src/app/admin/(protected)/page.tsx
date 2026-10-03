@@ -54,6 +54,9 @@ export default async function AdminDashboardPage() {
     todayOrdersCount = tOrdersCount;
     todayRevenueCents = tRevenueResult._sum.totalCents || 0;
   } catch (err) {
+    if (process.env.DEMO_MODE !== "true") {
+      throw err;
+    }
     console.warn("DB offline or unconfigured in AdminDashboardPage fallback:", err);
   }
 

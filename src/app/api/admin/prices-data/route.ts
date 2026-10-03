@@ -28,7 +28,14 @@ export async function GET() {
       return NextResponse.json({ products: items });
     }
   } catch (err: unknown) {
+    if (process.env.DEMO_MODE !== "true") {
+      return NextResponse.json({ error: "Database unavailable" }, { status: 500 });
+    }
     console.error("Prices data endpoint DB error, using fallback demo products:", err);
+  }
+
+  if (process.env.DEMO_MODE !== "true") {
+    return NextResponse.json({ products: [] });
   }
 
   // Fallback demo products for DEMO_MODE / local dev

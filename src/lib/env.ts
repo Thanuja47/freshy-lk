@@ -4,7 +4,8 @@ export const envSchema = z.object({
   // App
   NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000"),
   NEXT_PUBLIC_APP_ENV: z.enum(["development", "preview", "production"]).default("development"),
-  DEMO_MODE: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(true),
+  DEMO_MODE: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
+  DEMO_ADMIN_PASSCODE: z.string().optional().or(z.literal("")),
   TZ: z.string().default("Asia/Colombo"),
 
   // Supabase
@@ -54,6 +55,7 @@ export const env = envSchema.parse({
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
   DEMO_MODE: process.env.DEMO_MODE,
+  DEMO_ADMIN_PASSCODE: process.env.DEMO_ADMIN_PASSCODE,
   TZ: process.env.TZ,
 
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -91,3 +93,8 @@ export const env = envSchema.parse({
 
   CRON_SECRET: process.env.CRON_SECRET,
 });
+
+if (env.DEMO_MODE && env.NEXT_PUBLIC_APP_ENV === "production") {
+  throw new Error("SECURITY RISK: DEMO_MODE cannot be enabled in production environment.");
+}
+
