@@ -58,6 +58,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_APP_ENV=development
 DEMO_MODE=false
 DEMO_ADMIN_PASSCODE=your-secure-demo-passcode
+DEMO_HMAC_SECRET=your-32-character-random-hmac-secret-key
 TZ=Asia/Colombo
 
 # Supabase Staging Credentials
@@ -76,13 +77,20 @@ SEED_ADMIN_PASSWORD=ChangeMe123!
 
 ---
 
-## Step 4: Push Prisma Schema to Supabase
+## Step 4: Run Prisma Database Migrations
 
-Run the following command in PowerShell to apply the Prisma schema directly to your staging Supabase Postgres instance:
+Apply migration files to staging database (includes table creation + Row Level Security enablement):
 
 ```powershell
-npx prisma db push
+# For Staging / Production deployment:
+pnpm prisma migrate deploy
+
+# For Local Development schema changes:
+pnpm prisma migrate dev
 ```
+
+> [!NOTE]
+> `prisma db push` is disabled in favor of versioned migrations in `prisma/migrations/`.
 
 ---
 
@@ -96,7 +104,28 @@ npx prisma db seed
 
 ---
 
-## Step 6: Verify Database Connection
+## Step 6: Confirm RLS Status in Supabase Dashboard
+
+To verify that Row Level Security (RLS) is active on every database table:
+
+1. Open your project in the **Supabase Dashboard** (https://supabase.com/dashboard).
+2. Click **Table Editor** (or **Database -> Tables**) in the left sidebar navigation.
+3. Review the table list:
+   - Every single table (`AdminUser`, `Order`, `Product`, `Customer`, etc.) must display a green **"RLS Enabled"** badge.
+   - Click on any table and select **RLS Policies**. Confirm that the policy count shows **0 policies** (Deny-All Defense).
+4. Verify via SQL Editor:
+   - Navigate to **SQL Editor** -> **New query**.
+   - Run:
+     ```sql
+     SELECT tablename, rowsecurity 
+     FROM pg_tables 
+     WHERE schemaname = 'public';
+     ```
+   - Confirm that `rowsecurity` is `true` for all 24 public tables.
+
+---
+
+## Step 7: Verify Database Connection & Launch
 
 Start the Next.js development server:
 
