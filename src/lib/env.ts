@@ -6,6 +6,7 @@ export const envSchema = z.object({
   NEXT_PUBLIC_APP_ENV: z.enum(["development", "preview", "production"]).default("development"),
   DEMO_MODE: z.preprocess((val) => val === "true" || val === true, z.boolean()).default(false),
   DEMO_ADMIN_PASSCODE: z.string().optional().or(z.literal("")),
+  DEMO_HMAC_SECRET: z.string().optional().or(z.literal("")),
   TZ: z.string().default("Asia/Colombo"),
 
   // Supabase
@@ -56,6 +57,7 @@ export const env = envSchema.parse({
   NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
   DEMO_MODE: process.env.DEMO_MODE,
   DEMO_ADMIN_PASSCODE: process.env.DEMO_ADMIN_PASSCODE,
+  DEMO_HMAC_SECRET: process.env.DEMO_HMAC_SECRET,
   TZ: process.env.TZ,
 
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
