@@ -21,7 +21,7 @@ This document presents an honest acceptance audit of Phases 0 through 4 for **Fr
 ### Phase 0: System Foundation
 - [x] Next.js 16 App Router configuration with TypeScript strict mode.
 - [x] Color palette: Sea Ink (`#0F172A`), Tide (`#0284C7`), Coral (`#F97316`), Ice (`#F8FAFC`), Sand (`#E2E8F0`).
-- [x] Unit test setup with Vitest (`pnpm test` passing 24/24 tests).
+- [x] Unit test setup with Vitest (`pnpm test` passing 32/32 tests).
 
 ### Phase 1: Storefront & Catalogue
 - [x] Product listing page with responsive grid and storage type badges.
@@ -49,18 +49,18 @@ This document presents an honest acceptance audit of Phases 0 through 4 for **Fr
 
 ## Technical Spec Deviations & Known Gaps
 
-1. **Prisma Migrations vs. DB Push:**
-   - *Status:* Schema applied via `npx prisma db push`.
-   - *Impact:* No SQL migration files exist in `prisma/migrations/`. For production zero-downtime deployments, formal migrations should be generated.
+1. **Prisma Migrations Versioning (RESOLVED):**
+   - *Status:* Versioned SQL migration `20261004000000_init_schema_and_rls` generated and checked into `prisma/migrations/`.
+   - *Execution:* Deployed via `pnpm prisma migrate deploy`. Includes full schema DDL and Row Level Security (`ALTER TABLE ... ENABLE ROW LEVEL SECURITY`) on all 24 database tables.
 
-2. **PayHere Merchant Sandbox Mode:**
+2. **PayHere Merchant Live Credentials:**
    - *Status:* Configured for sandbox test environment (`PAYHERE_MODE=sandbox`).
-   - *Impact:* Live payments require setting `PAYHERE_MERCHANT_ID` and `PAYHERE_MERCHANT_SECRET` in environment variables.
+   - *Resolution Plan:* Provide live `PAYHERE_MERCHANT_ID` and `PAYHERE_MERCHANT_SECRET` during Phase 5 production deployment setup.
 
-3. **Notify.lk SMS Provider Stub:**
-   - *Status:* SMS dispatch function logs to console when `NOTIFYLK_API_KEY` is omitted.
-   - *Impact:* Live SMS dispatch requires Notify.lk account credentials in `.env.local`.
+3. **Notify.lk SMS Provider Live Credentials:**
+   - *Status:* SMS dispatch function logs to console when `NOTIFYLK_API_KEY` is omitted in development.
+   - *Resolution Plan:* Provide live Notify.lk user credentials in production `.env` during Phase 5 deployment setup.
 
-4. **Upstash Redis Rate Limiting Fallback:**
-   - *Status:* Rate limiter degrades gracefully to in-memory check if Upstash Redis credentials are absent.
-   - *Impact:* Distributed multi-instance rate limiting requires setting Upstash REST API keys.
+4. **Upstash Redis Rate Limiting Credentials:**
+   - *Status:* Rate limiter uses sliding window in-memory protection when Upstash Redis credentials are absent.
+   - *Resolution Plan:* Configure `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` in production environment variables during Phase 5.
