@@ -25,3 +25,15 @@ This log records major technical and architectural decisions made during the dev
 - **Status:** Approved
 - **Context:** Preventing public data leakage from Supabase anonymous client calls.
 - **Decision:** RLS is enabled on all tables with 0 public policies. All DB reads/writes occur exclusively via Prisma on the server.
+
+---
+
+### Decision 004: Secrets Audit & Repository Visibility Verification
+- **Date:** 2026-10-03
+- **Status:** Verified & Passed
+- **Context:** Auditing git history to ensure no production secrets, tokens, or credentials were ever committed to source control, and verifying repository privacy.
+- **Audit Findings:**
+  1. `.env` and `.env.local` files: Verified 0 commits in git history (`git log --all --full-history -- '*.env' '*.env.local'`). `.gitignore` has properly ignored them since initial commit.
+  2. Diffs & Commit History: Scanned all commit diffs for token formats (`eyJ...`, API key prefixes, merchant secrets). 0 live secrets found; only placeholder values exist in `.env.example`.
+  3. GitHub Repository Privacy: Confirmed via `gh repo view Thanuja47/freshy-lk` that the repository is set to **Private** (`isPrivate: true`).
+
