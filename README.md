@@ -4,6 +4,7 @@ Freshy.lk is an online store for Sri Lankan fresh seafood, servicing both indivi
 
 ## Tech Stack
 - **Framework:** Next.js (App Router, React 19, TypeScript strict)
+- **Package Manager:** pnpm
 - **Styling:** Tailwind CSS + custom design tokens
 - **Database:** Supabase Postgres + Prisma ORM
 - **Auth:** Supabase Auth (`@supabase/ssr`)
@@ -13,7 +14,7 @@ Freshy.lk is an online store for Sri Lankan fresh seafood, servicing both indivi
 
 1. **Install dependencies:**
    ```bash
-   npm install --legacy-peer-deps
+   pnpm install
    ```
 
 2. **Configure Environment Variables:**
@@ -23,14 +24,14 @@ Freshy.lk is an online store for Sri Lankan fresh seafood, servicing both indivi
 
 3. **Start Development Server:**
    ```bash
-   npm run dev
+   pnpm run dev
    ```
    Open `http://localhost:3000` in your browser.
 
 4. **Run Verification Commands:**
    ```bash
-   npm run lint
-   npx tsc --noEmit
-   npm test
-   npm run build
+   pnpm run lint
+   pnpm run typecheck
+   pnpm test
+   pnpm run build
    ```
