@@ -7,6 +7,7 @@ import { useCartStore, type CartItem } from "@/store/cart";
 import { formatMoney } from "@/lib/money";
 import { SRI_LANKA_DISTRICTS } from "@/lib/constants";
 import { calculatePackPriceCents, calculatePrepFeeCents } from "@/lib/pricing";
+import { findZoneForDistrict, calculateDeliveryFee } from "@/lib/delivery";
 import { createOrder, type CheckoutInput } from "@/actions/checkout";
 
 interface SavedCustomerDetails {
@@ -128,8 +129,30 @@ export default function CheckoutPage() {
     );
   }, 0);
 
-  // Simple estimated delivery fee (Rs. 350 base fee)
-  const estimatedDeliveryFeeCents = district === "Colombo" ? 35000 : 50000;
+  const totalCartWeightGrams = items.reduce(
+    (acc, item) => acc + item.weightGrams * item.quantity,
+    0
+  );
+
+  // Dynamic delivery fee calculation from matching DeliveryZone
+  const [zones, setZones] = useState<import("@/lib/delivery").DeliveryZoneLike[]>([]);
+
+  // Fetch active zones
+  useState(() => {
+    fetch("/api/delivery-zones")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data.zones)) setZones(data.zones);
+      })
+      .catch(() => {});
+  });
+
+  const activeZone = findZoneForDistrict(zones, district);
+  const estimatedDeliveryFeeCents = activeZone
+    ? calculateDeliveryFee(activeZone, totalCartWeightGrams, subtotalCents)
+    : district === "Colombo"
+    ? 35000
+    : 50000;
   const estimatedTotalCents = subtotalCents + prepTotalCents + estimatedDeliveryFeeCents;
 
   if (items.length === 0) {
