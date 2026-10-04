@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { formatMoney } from "@/lib/money";
+import { getLowStockThresholdGrams } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
   const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const lowStockThresholdGrams = await getLowStockThresholdGrams();
 
   let totalProducts = 0;
   let staleProductsCount = 0;
@@ -32,7 +34,7 @@ export default async function AdminDashboardPage() {
       db.product.findMany({
         where: {
           trackStock: true,
-          stockGrams: { lte: 2000 },
+          stockGrams: { lte: lowStockThresholdGrams },
         },
         select: { id: true, name: true, stockGrams: true },
         take: 5,
@@ -127,7 +129,7 @@ export default async function AdminDashboardPage() {
       {lowStockProducts.length > 0 && (
         <div className="bg-white border border-sand p-6 rounded-xl shadow-sm space-y-4">
           <h3 className="font-serif text-lg font-bold text-sea-ink border-b border-sand pb-2">
-            Low Stock Alerts (&lt; 2 kg remaining)
+            Low Stock Alerts (&lt; {(lowStockThresholdGrams / 1000).toFixed(1)} kg remaining)
           </h3>
           <div className="divide-y divide-sand/50">
             {lowStockProducts.map((p) => (
