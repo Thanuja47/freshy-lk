@@ -1,21 +1,28 @@
 import type { Metadata } from "next";
-import { Manrope, Instrument_Serif } from "next/font/google";
+import { Manrope, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
 const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
 });
 
-const instrumentSerif = Instrument_Serif({
-  weight: "400",
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-serif",
+  variable: "--font-heading",
+  weight: ["600", "700", "800"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Freshy.lk | Premium Fresh Seafood Sri Lanka",
-  description: "Fresh fish and seafood delivered straight to your door across Sri Lanka.",
+  title: "Freshy.lk | Fresh Seafood, Fish, Fruits & Vegetables — Sri Lanka",
+  description:
+    "Order fresh fish, seafood, fruits and vegetables online. Direct from Sri Lankan coastal landings, custom prepped and delivered cold to your door.",
+  icons: {
+    icon: "/brand/logo.svg",
+    shortcut: "/brand/logo.svg",
+  },
 };
 
 export default function RootLayout({
@@ -24,8 +31,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${manrope.variable} ${instrumentSerif.variable}`}>
-      <body className="min-h-screen flex flex-col bg-[#F6FAF9] text-[#0B1F2A]">
+    <html lang="en" className={`${manrope.variable} ${plusJakarta.variable}`}>
+      <body className="min-h-screen flex flex-col bg-[#F0F7FF] text-[#0D2137]">
         {children}
       </body>
     </html>

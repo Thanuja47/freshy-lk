@@ -1,28 +1,136 @@
 @import "tailwindcss";
 
+/* ─── Design Tokens (sampled from home-reference.png) ─── */
 @layer base {
   :root {
-    --background: #F6FAF9;
-    --foreground: #0B1F2A;
-    --surface: #DCEBE6;
-    --tide: #1F6F78;
-    --primary: #FF6A4D;
-    --primary-hover: #E5593F;
-    --sand: #E9E2D3;
-    --border: #DCEBE6;
-    --radius: 0.5rem;
+    /* Primary colours */
+    --primary:       #1B9AE4; /* Ocean blue  — search btn, cart btn, nav active */
+    --primary-dark:  #1478BB; /* Darker blue on hover */
+    --navy:          #0D2137; /* Deep navy   — headings, "Shop Now" button */
+    --green-fresh:   #27A04E; /* Fresh green — hero 2nd line, produce accents */
+    --flame:         #FF5722; /* Flame orange — "Daily Deals" label */
+    --coral:         #FF6A4D; /* Coral — mobile CTA, kept for compat */
+    --coral-hover:   #E5593F;
+
+    /* Backgrounds */
+    --bg:            #F0F7FF; /* Sky-tint page background */
+    --surface:       #FFFFFF;
+    --hero-from:     #E8F4FE;
+    --hero-to:       #FFFFFF;
+
+    /* Borders */
+    --border:        #DDE8F0;
+
+    /* Pastel card backgrounds */
+    --card-blue:     #EAF5FE;
+    --card-pink:     #FFF0F5;
+    --card-cream:    #FFF8EE;
+    --card-green:    #F0FAF2;
+
+    /* Legacy compat */
+    --sea-glass:     #DCEBE6;
+    --frost-aqua:    #BFE3EA;
+    --ink:           #0D2137;
+    --tide:          #1F6F78;
+    --sand:          #E9E2D3;
+
+    --radius:        0.75rem;
   }
 }
 
+/* ─── Base styles ─── */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background-color: var(--background);
-  color: var(--foreground);
+  background-color: var(--bg);
+  color: var(--navy);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   margin: 0;
   padding: 0;
+  font-size: 16px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, .font-serif {
-  font-family: var(--font-serif), Georgia, serif;
+h1, h2, h3, h4, h5 {
+  font-family: var(--font-heading, var(--font-sans)), system-ui, sans-serif;
+  letter-spacing: 0em;
+  line-height: 1.2;
+}
+
+.font-heading {
+  font-family: var(--font-heading, var(--font-sans)), system-ui, sans-serif;
+}
+
+/* ─── Hero wave divider ─── */
+.hero-wave {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 80'%3E%3Cpath fill='%23F0F7FF' d='M0,40L60,45C120,50,240,60,360,58C480,56,600,42,720,38C840,34,960,40,1080,44C1200,48,1320,50,1380,51L1440,52L1440,80L1380,80C1320,80,1200,80,1080,80C960,80,840,80,720,80C600,80,480,80,360,80C240,80,120,80,60,80L0,80Z'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: bottom;
+  height: 80px;
+  margin-top: -1px;
+}
+
+/* ─── Animations ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes popBadge {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes skeletonShimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0;  }
+}
+
+.animate-fade-up   { animation: fadeUp 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-fade-in   { animation: fadeIn 180ms ease forwards; }
+.animate-pop       { animation: popBadge 250ms ease-out; }
+.animate-slide-in  { animation: slideInRight 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+.skeleton {
+  background: linear-gradient(90deg, #e8f0f8 25%, #f4f8fc 50%, #e8f0f8 75%);
+  background-size: 400px 100%;
+  animation: skeletonShimmer 1.4s ease infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up, .animate-fade-in, .animate-pop,
+  .animate-slide-in, .skeleton {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ─── Scrollbar hide for horizontal scroll rows ─── */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* ─── Focus ring ─── */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─── Bottom safe area for mobile nav ─── */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
