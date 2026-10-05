@@ -8,7 +8,7 @@ export async function GET() {
       orderBy: { sortOrder: "asc" },
     });
     return NextResponse.json({ zones });
-  } catch (err: unknown) {
+  } catch {
     if (process.env.DEMO_MODE !== "true") {
       return NextResponse.json({ error: "Database error" }, { status: 500 });
     }

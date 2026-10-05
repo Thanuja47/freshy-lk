@@ -1,6 +1,6 @@
 // tests/unit/invoice.test.ts — Unit tests for Invoice generation and FR-YYYY-NNNNNN numbering
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { generateInvoice } from "../../src/lib/invoices";
 
 describe("Invoice Numbering (FR-YYYY-NNNNNN)", () => {
@@ -43,7 +43,7 @@ describe("Invoice Numbering (FR-YYYY-NNNNNN)", () => {
       },
     };
 
-    const invoice1 = await generateInvoice("ord-100", mockTx as any);
+    const invoice1 = await generateInvoice("ord-100", mockTx as unknown as Parameters<typeof generateInvoice>[1]);
     expect(invoice1.invoiceNo).toBe(`FR-${year}-000001`);
     expect(invoice1.invoiceNo).toMatch(/^FR-\d{4}-\d{6}$/);
 
@@ -51,7 +51,7 @@ describe("Invoice Numbering (FR-YYYY-NNNNNN)", () => {
     mockTx.invoice.findUnique.mockResolvedValue(null);
     mockTx.order.findUnique.mockResolvedValue({ ...mockOrder, id: "ord-101" });
 
-    const invoice2 = await generateInvoice("ord-101", mockTx as any);
+    const invoice2 = await generateInvoice("ord-101", mockTx as unknown as Parameters<typeof generateInvoice>[1]);
     expect(invoice2.invoiceNo).toBe(`FR-${year}-000002`);
   });
 
@@ -74,7 +74,7 @@ describe("Invoice Numbering (FR-YYYY-NNNNNN)", () => {
       },
     };
 
-    const invoice = await generateInvoice("ord-100", mockTx as any);
+    const invoice = await generateInvoice("ord-100", mockTx as unknown as Parameters<typeof generateInvoice>[1]);
     expect(invoice).toBe(existingInvoice);
     expect(mockTx.invoiceCounter.upsert).not.toHaveBeenCalled();
   });
