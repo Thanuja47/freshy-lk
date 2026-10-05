@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 64" fill="none" role="img" aria-label="Freshy.lk – Fresh from the Ocean and Farm">
+  <!-- Fish body -->
+  <ellipse cx="34" cy="28" rx="18" ry="11" fill="#1B9AE4"/>
+  <!-- Fish tail -->
+  <path d="M16 28 L6 18 L6 38 Z" fill="#1B9AE4"/>
+  <!-- Tail highlight -->
+  <path d="M16 28 L8 21 L8 28 Z" fill="#1478BB" opacity="0.6"/>
+  <!-- Fish eye -->
+  <circle cx="44" cy="25" r="2.5" fill="white"/>
+  <circle cx="44.8" cy="24.5" r="1.1" fill="#0D2137"/>
+  <!-- Fin on top -->
+  <path d="M28 17 Q32 10 38 14 Q36 17 28 17Z" fill="#1478BB"/>
+  <!-- Green leaf accent on back (top fin area) -->
+  <ellipse cx="23" cy="16" rx="5" ry="3" fill="#27A04E" transform="rotate(-30 23 16)"/>
+  <ellipse cx="20" cy="14" rx="4" ry="2.5" fill="#27A04E" transform="rotate(-45 20 14)"/>
+  <!-- Scales subtle -->
+  <path d="M32 24 Q30 21 34 20" stroke="white" stroke-width="0.8" opacity="0.4" fill="none"/>
+  <path d="M26 26 Q24 23 28 22" stroke="white" stroke-width="0.8" opacity="0.4" fill="none"/>
+  <!-- Water ripple lines under fish -->
+  <path d="M6 40 Q15 37 24 40 Q33 43 42 40 Q51 37 56 39" stroke="#1B9AE4" stroke-width="1.5" fill="none" opacity="0.3" stroke-linecap="round"/>
+
+  <!-- Brand text -->
+  <text x="66" y="33" font-family="'Plus Jakarta Sans', 'Poppins', Arial, sans-serif" font-size="22" font-weight="800" fill="#0D2137" letter-spacing="0">freshy</text>
+  <text x="143" y="33" font-family="'Plus Jakarta Sans', 'Poppins', Arial, sans-serif" font-size="22" font-weight="800" fill="#1B9AE4" letter-spacing="0">.lk</text>
+
+  <!-- Tagline -->
+  <text x="67" y="48" font-family="'Plus Jakarta Sans', 'Poppins', Arial, sans-serif" font-size="9.5" font-weight="500" fill="#6B7A8D" letter-spacing="0.3">Fresh from the Ocean &amp; Farm</text>
+</svg>
