@@ -133,6 +133,9 @@ model Product {
   priceUpdatedAt  DateTime    @default(now())
   priceVersion    Int         @default(1)
 
+  offerPercent   Int?        // 1–50; null means no offer
+  offerEndsAt    DateTime?   // null means offer doesn't expire (only active when offerPercent is set)
+
   trackStock     Boolean     @default(false)
   stockGrams     Int         @default(0)
   isAvailable    Boolean     @default(true)
@@ -345,16 +348,17 @@ model OrderItem {
   productId       String?
   product         Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
-  productName     String
-  localName       String?
-  packLabel       String
-  packWeightGrams Int
-  quantity        Int
-  pricePerKgCents Int
-  tierLabel       String?
-  prepName        String?
-  prepFeeCents    Int      @default(0)
-  lineTotalCents  Int
+  productName          String
+  localName            String?
+  packLabel            String
+  packWeightGrams      Int
+  quantity             Int
+  pricePerKgCents      Int
+  offerPricePerKgCents Int?    // snapshotted offer price at time of order; null if no offer applied
+  tierLabel            String?
+  prepName             String?
+  prepFeeCents         Int      @default(0)
+  lineTotalCents       Int
 }
 
 model OrderStatusEvent {
