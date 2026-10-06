@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { calculatePackPriceCents, getEffectivePricePerKgCents, calculatePrepFeeCents } from "@/lib/pricing";
-import { findZoneForDistrict, calculateDeliveryFee, validateStorageCompatibility } from "@/lib/delivery";
+import { findZoneForDistrict, calculateDeliveryFee, validateStorageCompatibility, getEarliestDeliveryDate, formatDateYYYYMMDD } from "@/lib/delivery";
 import { reserveStock } from "@/lib/stock";
 import type { StorageType, PaymentMethod, CustomerType } from "@prisma/client";
 
@@ -49,6 +49,11 @@ export type CheckoutActionResult =
       status: "SUCCESS";
       orderNo: string;
       trackingToken: string;
+    }
+  | {
+      status: "DELIVERY_DATE_CHANGED";
+      message: string;
+      newEarliestDate: string;
     }
   | {
       status: "PRICE_CHANGED";
@@ -106,6 +111,20 @@ export async function createOrder(input: CheckoutInput): Promise<CheckoutActionR
       return {
         status: "ERROR",
         message: `Delivery is not available in ${parsed.district} district.`,
+      };
+    }
+
+    // 3b. Validate Delivery Date Cutoff
+    const selectedDate = new Date(parsed.deliveryDate);
+    const earliestAllowedDate = getEarliestDeliveryDate(zone, new Date());
+    const selectedYMD = formatDateYYYYMMDD(selectedDate);
+    const earliestYMD = formatDateYYYYMMDD(earliestAllowedDate);
+
+    if (selectedYMD < earliestYMD) {
+      return {
+        status: "DELIVERY_DATE_CHANGED",
+        message: `The 12:00 PM cut-off for today's delivery has passed. Your new earliest delivery date is ${earliestYMD}. Please confirm to proceed.`,
+        newEarliestDate: earliestYMD,
       };
     }
 
@@ -180,7 +199,6 @@ interface ValidatedItem {
         };
       }
 
-      // Check valid pack
       const pack = product.packs.find((p) => p.weightGrams === item.packWeightGrams && p.isActive);
       if (!pack) {
         return {
@@ -189,7 +207,6 @@ interface ValidatedItem {
         };
       }
 
-      // Compute tier price per kg
       const totalGrams = productTotalGrams.get(item.productId) ?? 0;
       const { pricePerKgCents: freshPricePerKgCents, tierLabel } = getEffectivePricePerKgCents(
         product.pricePerKgCents,
@@ -197,16 +214,13 @@ interface ValidatedItem {
         totalGrams
       );
 
-      // Detect price change vs cart price sent by browser
       if (freshPricePerKgCents !== item.cartPricePerKgCents) {
         hasPriceChange = true;
       }
 
-      // Compute pack price & line totals
       const freshPackPriceCents = calculatePackPriceCents(freshPricePerKgCents, item.packWeightGrams);
       const lineGoodsTotalCents = freshPackPriceCents * item.quantity;
 
-      // Compute prep fee if selected
       let prepName: string | undefined;
       let prepFeeCents = 0;
       if (item.prepOptionId) {
@@ -242,10 +256,8 @@ interface ValidatedItem {
       });
     }
 
-    // Calculate delivery fee
     const deliveryFeeCents = calculateDeliveryFee(zone, totalCartWeightGrams, freshSubtotalCents);
 
-    // Minimum order check
     if (zone.minOrderCents > 0 && freshSubtotalCents < zone.minOrderCents) {
       return {
         status: "ERROR",
@@ -255,7 +267,6 @@ interface ValidatedItem {
 
     const freshTotalCents = freshSubtotalCents + freshPrepTotalCents + deliveryFeeCents;
 
-    // Return PRICE_CHANGED if DB price updated after item was added to cart
     if (hasPriceChange) {
       return {
         status: "PRICE_CHANGED",
@@ -267,7 +278,6 @@ interface ValidatedItem {
 
     // 8. Execute Order Creation inside DB Transaction
     const result = await db.$transaction(async (tx) => {
-      // a. Upsert customer
       const customer = await tx.customer.upsert({
         where: { phone: normalizedPhone },
         update: {
@@ -283,7 +293,6 @@ interface ValidatedItem {
         },
       });
 
-      // b. Reserve stock
       const stockReservationItems = validatedItems.map((it) => ({
         productId: it.productId,
         grams: it.packWeightGrams * it.quantity,
@@ -294,15 +303,13 @@ interface ValidatedItem {
         throw new Error(`STOCK_OUT:${stockResult.failedProductName}`);
       }
 
-      // c. Order Number Generation (FRS-YYMMDD-XXXX)
       const now = new Date();
-      // Format YYMMDD in Asia/Colombo
       const colomboDateStr = now.toLocaleDateString("en-US", {
         timeZone: "Asia/Colombo",
         year: "2-digit",
         month: "2-digit",
         day: "2-digit",
-      }); // "MM/DD/YY"
+      });
       const [m, d, y] = colomboDateStr.split("/");
       const dayKey = `${y}${m}${d}`;
 
@@ -315,18 +322,13 @@ interface ValidatedItem {
       const orderNo = `FRS-${dayKey}-${counter.lastNumber.toString().padStart(4, "0")}`;
       const trackingToken = generateTrackingToken();
 
-      // Card orders hold stock for 15 mins
       const isCardOrder = parsed.paymentMethod === "CARD_ONLINE";
       const isDemoMode = process.env.DEMO_MODE === "true";
       const expiresAt = isCardOrder && !isDemoMode ? new Date(Date.now() + 15 * 60 * 1000) : null;
 
-      // Status: DEMO card/COD or bank transfer
-      // For bank transfer, initial status is PENDING_PAYMENT
-      // For DEMO_MODE card, mark as PLACED directly
       const initialStatus = isDemoMode && isCardOrder ? "PLACED" : "PENDING_PAYMENT";
       const initialPaymentStatus = isDemoMode && isCardOrder ? "PAID" : "UNPAID";
 
-      // d. Create Order
       const newOrder = await tx.order.create({
         data: {
           orderNo,
@@ -368,6 +370,14 @@ interface ValidatedItem {
           },
         },
       });
+
+      // Increment currentSameDayOrders if same-day order
+      if (zone.sameDayAvailable !== false && zone.leadDays === 0) {
+        await tx.deliveryZone.update({
+          where: { id: zone.id },
+          data: { currentSameDayOrders: { increment: 1 } },
+        });
+      }
 
       return {
         orderNo: newOrder.orderNo,

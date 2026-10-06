@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useId } from "react";
+import { useState, useId, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCartStore, type CartItem } from "@/store/cart";
 import { formatMoney } from "@/lib/money";
 import { SRI_LANKA_DISTRICTS } from "@/lib/constants";
 import { calculatePackPriceCents, calculatePrepFeeCents } from "@/lib/pricing";
-import { findZoneForDistrict, calculateDeliveryFee } from "@/lib/delivery";
+import { findZoneForDistrict, calculateDeliveryFee, getCutoffCountdown, getDeliveryCutoffMessage, getEarliestDeliveryDate, formatDateYYYYMMDD } from "@/lib/delivery";
 import { createOrder, type CheckoutInput } from "@/actions/checkout";
-import { Lock, ArrowRight } from "lucide-react";
+import { Lock, ArrowRight, Clock, Calendar } from "lucide-react";
 
 interface SavedCustomerDetails {
   customerName: string;
@@ -85,8 +85,11 @@ export default function CheckoutPage() {
     newSubtotalCents: number;
     newTotalCents: number;
   } | null>(null);
+  const [deliveryDateChangedNotice, setDeliveryDateChangedNotice] = useState<{
+    message: string;
+    newEarliestDate: string;
+  } | null>(null);
 
-  // Lazy load saved customer details
   const [savedDetails] = useState(loadSavedCustomerDetails);
 
   // Form Fields State
@@ -135,20 +138,35 @@ export default function CheckoutPage() {
     0
   );
 
-  // Dynamic delivery fee calculation from matching DeliveryZone
+  // Dynamic delivery fee calculation & zones lookup
   const [zones, setZones] = useState<import("@/lib/delivery").DeliveryZoneLike[]>([]);
 
-  // Fetch active zones
-  useState(() => {
+  useEffect(() => {
     fetch("/api/delivery-zones")
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data.zones)) setZones(data.zones);
       })
       .catch(() => {});
-  });
+  }, []);
 
   const activeZone = findZoneForDistrict(zones, district);
+  const earliestDate = activeZone ? getEarliestDeliveryDate(activeZone) : new Date();
+  // Derive delivery date directly from zone (no setState in effect needed)
+  const earliestDateYMD = formatDateYYYYMMDD(earliestDate);
+
+  // Sync delivery date when zone changes (using ref comparison to avoid re-render loop)
+  useEffect(() => {
+    if (activeZone && deliveryDate !== earliestDateYMD) {
+      requestAnimationFrame(() => setDeliveryDate(earliestDateYMD));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [earliestDateYMD]);
+
+  // Live countdown check
+  const countdown = activeZone ? getCutoffCountdown(activeZone.cutoffTime || "12:00") : null;
+  const cutoffRuleMessage = getDeliveryCutoffMessage(activeZone, earliestDate);
+
   const estimatedDeliveryFeeCents = activeZone
     ? calculateDeliveryFee(activeZone, totalCartWeightGrams, subtotalCents)
     : district === "Colombo"
@@ -179,6 +197,7 @@ export default function CheckoutPage() {
     e.preventDefault();
     setErrorMessage(null);
     setPriceChangeNotice(null);
+    setDeliveryDateChangedNotice(null);
     setIsSubmitting(true);
 
     try {
@@ -229,6 +248,12 @@ export default function CheckoutPage() {
 
         clearCart();
         router.push(`/order/${result.trackingToken}`);
+      } else if (result.status === "DELIVERY_DATE_CHANGED") {
+        setDeliveryDateChangedNotice({
+          message: result.message,
+          newEarliestDate: result.newEarliestDate,
+        });
+        setDeliveryDate(result.newEarliestDate);
       } else if (result.status === "PRICE_CHANGED") {
         setPriceChangeNotice({
           newSubtotalCents: result.newSubtotalCents,
@@ -269,6 +294,26 @@ export default function CheckoutPage() {
           <span className="hidden sm:inline">Payment Method</span>
         </div>
       </div>
+
+      {/* Delivery Date Change Notice Banner (Point 8.e) */}
+      {deliveryDateChangedNotice && (
+        <div className="p-5 bg-blue-50 border border-blue-200 text-[#0D2137] rounded-2xl space-y-3 shadow-xs">
+          <div className="flex items-center space-x-2 text-[#1B9AE4] font-bold">
+            <Calendar className="h-5 w-5" />
+            <span>Delivery Cut-Off Passed Notice</span>
+          </div>
+          <p className="text-xs text-[#0D2137]/80 leading-relaxed">
+            {deliveryDateChangedNotice.message}
+          </p>
+          <button
+            type="button"
+            onClick={() => setDeliveryDateChangedNotice(null)}
+            className="px-5 py-2.5 bg-[#0D2137] hover:bg-[#1B9AE4] text-white rounded-xl text-xs font-bold transition-colors"
+          >
+            Confirm New Delivery Date ({deliveryDateChangedNotice.newEarliestDate}) &amp; Place Order
+          </button>
+        </div>
+      )}
 
       {errorMessage && (
         <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-start gap-3 text-sm">
@@ -422,7 +467,7 @@ export default function CheckoutPage() {
               <span className="w-7 h-7 bg-[#E8F4FE] text-[#1B9AE4] text-sm rounded-xl flex items-center justify-center font-extrabold">
                 2
               </span>
-              Delivery Address &amp; Date
+              Delivery Address &amp; Cut-off Rule
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -460,6 +505,25 @@ export default function CheckoutPage() {
               </div>
             </div>
 
+            {/* Live Cutoff Rule Banner & Countdown (Point 8.d) */}
+            <div className="bg-[#E8F4FE]/60 border border-[#1B9AE4]/20 p-4 rounded-xl space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-[#0D2137]">{cutoffRuleMessage.headline}</span>
+                <span className="text-[10px] bg-white border border-[#1B9AE4]/20 text-[#1B9AE4] font-bold px-2 py-0.5 rounded-full">
+                  {district} Zone
+                </span>
+              </div>
+              <p className="text-[#0D2137]/70 text-[11px]">{cutoffRuleMessage.subtext}</p>
+
+              {/* Live Countdown if < 2 hours remaining */}
+              {countdown?.formattedText && (
+                <div className="inline-flex items-center space-x-1.5 bg-[#FF5722] text-white font-bold text-[11px] px-2.5 py-1 rounded-lg animate-pulse mt-1">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>{countdown.formattedText}</span>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-1.5">
               <label htmlFor={`${formId}-addressLine1`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
                 Street Address *
@@ -492,12 +556,13 @@ export default function CheckoutPage() {
 
               <div className="space-y-1.5">
                 <label htmlFor={`${formId}-deliveryDate`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
-                  Preferred Delivery Date *
+                  Earliest Delivery Date *
                 </label>
                 <input
                   id={`${formId}-deliveryDate`}
                   type="date"
                   required
+                  min={earliestDateYMD}
                   value={deliveryDate}
                   onChange={(e) => setDeliveryDate(e.target.value)}
                   className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-bold"

@@ -239,9 +239,12 @@ model DeliveryZone {
   perKgFeeCents    Int            @default(0)
   freeOverCents    Int?
   minOrderCents    Int            @default(0)
-  leadDays         Int            @default(1)
-  cutoffTime       String         @default("15:00")
-  deliveryWeekdays Int[]          @default([1, 2, 3, 4, 5, 6])
+  leadDays             Int            @default(1)
+  cutoffTime           String         @default("12:00")
+  sameDayAvailable     Boolean        @default(true)
+  maxSameDayOrders     Int?
+  currentSameDayOrders Int            @default(0)
+  deliveryWeekdays     Int[]          @default([1, 2, 3, 4, 5, 6])
   allowedStorage   StorageType[]  @default([FRESH, FROZEN, AMBIENT])
   freshnessLabel   String?
   etaMinDays       Int            @default(1)

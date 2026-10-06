@@ -2,21 +2,22 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { formatMoney } from "@/lib/money";
 import { calculatePackPriceCents, calculatePrepFeeCents, getEffectivePricePerKgCents } from "@/lib/pricing";
 import { useCartStore, type CartStore } from "@/store/cart";
-import { ShoppingBag, CheckCircle, Sparkles } from "lucide-react";
+import { ShoppingBag, CheckCircle, Sparkles, Sun, Moon, Truck } from "lucide-react";
 
 const SAMPLE_PRODUCT_DATA = {
   id: "prod-tuna-1",
   slug: "yellowfin-tuna",
   name: "Yellowfin Tuna",
   localName: "Kelawalla",
-  shortDesc: "Wild-caught premium yellowfin tuna landed daily in Negombo.",
-  description: "Dense, firm flesh ideal for steaks, curry, or sashimi. Chilled immediately upon catch to maintain peak freshness.",
-  tips: "Wipe clean with cold paper towel. Cut against the grain for best tenderness in curry or grilled steaks.",
+  shortDesc: "Wild-caught yellowfin tuna landed in local Sri Lankan harbors.",
+  description: "Firm flesh suitable for steaks, curry, or grilling. Cleaned and prepped to order.",
+  tips: "Wipe clean with paper towel. Cut against the grain for tender pieces.",
   catchType: "Wild caught",
-  origin: "Negombo Harbor",
+  origin: "Sri Lankan Coastal Waters",
   storageType: "FRESH" as const,
   pricePerKgCents: 165000,
   offerPercent: 15,
@@ -115,24 +116,27 @@ export default function ProductDetailPage() {
               </span>
             )}
             <span className="absolute top-4 right-4 bg-white/90 backdrop-blur-xs text-[#1B9AE4] border border-[#1B9AE4]/20 text-xs font-bold px-3 py-1 rounded-full uppercase shadow-xs">
-              {product.storageType === "FRESH" ? "Fresh / Landed Today" : "Frozen"}
+              {product.storageType === "FRESH" ? "Fresh Chilled" : "Frozen"}
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 bg-white border border-[#DDE8F0] rounded-2xl p-4 text-xs text-[#0D2137]">
-            <div>
-              <span className="text-[10px] uppercase font-bold text-[#0D2137]/50 block">Catch Origin</span>
-              <span className="font-bold text-[#0D2137]">{product.origin}</span>
+          {/* Product facts (only rendered if present) */}
+          {(product.origin || product.catchType) && (
+            <div className="grid grid-cols-2 gap-3 bg-white border border-[#DDE8F0] rounded-2xl p-4 text-xs text-[#0D2137]">
+              {product.origin && (
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-[#0D2137]/50 block">Origin</span>
+                  <span className="font-bold text-[#0D2137]">{product.origin}</span>
+                </div>
+              )}
+              {product.catchType && (
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-[#0D2137]/50 block">Catch Type</span>
+                  <span className="font-bold text-[#0D2137]">{product.catchType}</span>
+                </div>
+              )}
             </div>
-            <div>
-              <span className="text-[10px] uppercase font-bold text-[#0D2137]/50 block">Catch Type</span>
-              <span className="font-bold text-[#0D2137]">{product.catchType}</span>
-            </div>
-            <div>
-              <span className="text-[10px] uppercase font-bold text-[#0D2137]/50 block">Landings</span>
-              <span className="text-[#27A04E] font-bold">5 AM Today</span>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Right Column: Product Details & Selection */}
@@ -140,7 +144,7 @@ export default function ProductDetailPage() {
           <div>
             <div className="inline-flex items-center space-x-1.5 bg-[#1B9AE4]/10 border border-[#1B9AE4]/20 px-3 py-1 rounded-full text-xs font-bold text-[#1B9AE4] mb-2">
               <Sparkles className="h-3.5 w-3.5" />
-              <span>Wild Caught Morning Landings</span>
+              <span>Morning Harbor Catch</span>
             </div>
             <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-[#0D2137]">{product.name}</h1>
             <p className="text-[#1B9AE4] font-bold text-base mt-0.5">{product.localName}</p>
@@ -172,6 +176,35 @@ export default function ProductDetailPage() {
                 {tierLabel} Applied
               </span>
             )}
+          </div>
+
+          {/* 12 PM Delivery Cut-off Rule Banner under Price (Point 8.c) */}
+          <div className="bg-white border border-[#DDE8F0] p-3.5 rounded-2xl flex items-center justify-between gap-3 text-xs text-[#0D2137] shadow-xs">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-full bg-[#E8F4FE] text-[#1B9AE4] flex items-center justify-center shrink-0">
+                <Truck className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2 font-bold">
+                  <span className="flex items-center text-[#27A04E] space-x-1">
+                    <Sun className="h-3.5 w-3.5" />
+                    <span>Before 12 PM: same-day</span>
+                  </span>
+                  <span className="text-[#0D2137]/40">|</span>
+                  <span className="flex items-center text-[#0D2137]/70 space-x-1">
+                    <Moon className="h-3.5 w-3.5 text-[#1B9AE4]" />
+                    <span>After 12 PM: next-day</span>
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#0D2137]/60 mt-0.5">
+                  Chilled courier dispatch to your location
+                </p>
+              </div>
+            </div>
+
+            <Link href="/delivery" className="text-[11px] font-bold text-[#1B9AE4] hover:underline shrink-0">
+              Details →
+            </Link>
           </div>
 
           {/* 1. Pack Picker */}
