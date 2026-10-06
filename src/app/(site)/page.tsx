@@ -191,17 +191,18 @@ export default function HomePage() {
           FULL-WIDTH HERO with ocean photo background
           ════════════════════════════════════════════ */}
       <section className="relative w-full overflow-hidden bg-gradient-to-b from-[#DFF1FB] to-[#BEE3F8]" style={{ minHeight: 400 }}>
-        {/* Background ocean image with filter for vividness */}
+        {/* Background ocean image with full high-resolution rendering */}
         <Image
           src="/hero/seafood-hero.jpg"
           alt="Fresh seafood on display"
           fill
           priority
+          quality={100}
           sizes="100vw"
-          className="object-cover object-center saturate-[1.1] contrast-[1.05]"
+          className="object-cover object-center saturate-[1.12] contrast-[1.06] brightness-[1.02]"
         />
-        {/* Sky-blue gradient overlay behind text on far left (fading to transparent by 55% width) */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#DFF1FB] via-[#DFF1FB]/90 via-45% to-transparent pointer-events-none" />
+        {/* Soft sky-blue gradient overlay behind text on left */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#DFF1FB] via-[#DFF1FB]/85 via-35% to-transparent pointer-events-none" />
 
         {/* Hero content */}
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 py-14 sm:py-20">
