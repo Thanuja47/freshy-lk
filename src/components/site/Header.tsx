@@ -8,8 +8,7 @@ import { useCartStore } from "@/store/cart";
 import {
   Search,
   ShoppingCart,
-  Heart,
-  User,
+  MapPin,
   Truck,
   MessageCircle,
   Home,
@@ -180,24 +179,14 @@ export default function Header() {
               {searchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
             </button>
 
-            {/* Account */}
+            {/* Track Order */}
             <Link
-              href="/account"
+              href="/track"
               className="hidden sm:flex flex-col items-center text-[#0D2137] hover:text-[#1B9AE4] transition-colors p-1"
-              aria-label="Account"
+              aria-label="Track Order"
             >
-              <User className="h-5 w-5" />
-              <span className="text-[10px] font-semibold mt-0.5">Account</span>
-            </Link>
-
-            {/* Wishlist */}
-            <Link
-              href="/wishlist"
-              className="hidden sm:flex flex-col items-center text-[#0D2137] hover:text-[#1B9AE4] transition-colors p-1"
-              aria-label="Wishlist"
-            >
-              <Heart className="h-5 w-5" />
-              <span className="text-[10px] font-semibold mt-0.5">Wishlist</span>
+              <MapPin className="h-5 w-5" />
+              <span className="text-[10px] font-semibold mt-0.5">Track Order</span>
             </Link>
 
             {/* Cart */}

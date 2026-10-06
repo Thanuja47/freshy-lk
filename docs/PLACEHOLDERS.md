@@ -27,3 +27,7 @@ Per Round 2 directives, unverified promotional claims have been removed and repl
 | "100% Wild Caught" | Replaced | "Fresh Catch" (Catch type shown only if in DB record) |
 | "100% Fresh Landings" | Replaced | "Fresh Daily" |
 | "Sourced directly from trusted harbor boats" | Replaced | "Island-wide courier" |
+| "24/7 Support" | Replaced | "WhatsApp Support" (Quick assistance) |
+| "Morning market rates" | Replaced | "Prices updated daily" |
+| "Vacuum Prepped" | Replaced | "Fresh Chilled & Frozen Delivery" |
+

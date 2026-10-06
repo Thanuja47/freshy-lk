@@ -14,7 +14,7 @@ const ZONES = [
     cutoff: "12:00 PM",
     leadDays: "0 Days (Same-Day)",
     baseFee: "Rs. 350",
-    storage: "Fresh Chilled, Vacuum Prepped & Frozen",
+    storage: "Fresh Chilled & Frozen Delivery",
   },
   {
     name: "Western & Southern Outstation",
