@@ -235,9 +235,6 @@ export default function HomePage() {
               />
             </div>
 
-            {/* 3. Sky-blue text-backing gradient overlay (solid light sky blue #DFF1FB fading out by 55%) */}
-            <div className="absolute inset-0 z-10 bg-gradient-to-r from-[#DFF1FB]/95 via-[#DFF1FB]/85 via-45% to-transparent pointer-events-none" />
-
             {/* 4. Blue bottom wave band */}
             <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
               <svg viewBox="0 0 800 48" className="w-full block" fill="none" xmlns="http://www.w3.org/2000/svg">
