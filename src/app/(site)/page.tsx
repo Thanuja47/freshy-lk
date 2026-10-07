@@ -321,34 +321,38 @@ export default function HomePage() {
                 <Link
                   key={cat.label}
                   href={cat.href}
-                  className="group relative rounded-2xl overflow-hidden flex flex-col justify-between border border-white/80 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
-                  style={{ backgroundColor: cat.bg, minHeight: 140 }}
+                  className="group relative rounded-2xl overflow-hidden border border-white/80 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md flex"
+                  style={{ backgroundColor: cat.bg, aspectRatio: "4/3" }}
                 >
-                  {/* Category image — fills bottom half with hover zoom */}
-                  <div className="absolute bottom-0 right-0 w-3/4 h-full pointer-events-none">
+                  {/* Left text zone (~50% width) */}
+                  <div className="relative z-10 w-1/2 p-3.5 sm:p-4 flex flex-col justify-between h-full">
+                    <div>
+                      <h3 className="font-heading font-bold text-[#0D2542] text-base sm:text-lg leading-tight">
+                        {cat.label}
+                      </h3>
+                      <p className="text-xs text-[#0D2542]/80 font-medium leading-tight mt-1">
+                        {cat.sub}
+                      </p>
+                    </div>
+                    <div>
+                      <div
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-transform duration-200 group-hover:scale-110 shadow-2xs"
+                        style={{ backgroundColor: cat.accent }}
+                      >
+                        <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right image zone (~50% width) — transparent PNG cutout, no overlap with text */}
+                  <div className="relative w-1/2 h-full pointer-events-none overflow-hidden">
                     <Image
                       src={cat.image}
                       alt={cat.label}
                       fill
-                      className="object-contain object-bottom-right drop-shadow-sm transition-transform duration-300 group-hover:scale-105"
+                      className="object-contain object-bottom-right p-1.5 drop-shadow-md transition-transform duration-300 group-hover:scale-105"
                       sizes="220px"
                     />
-                  </div>
-
-                  {/* Text and arrow */}
-                  <div className="relative z-10 p-4 flex flex-col justify-between h-full">
-                    <div>
-                      <h3 className="font-heading font-bold text-[#0D2542] text-base leading-tight">{cat.label}</h3>
-                      <p className="text-[11px] font-medium text-[#0D2542]/65 mt-0.5">{cat.sub}</p>
-                    </div>
-                    <div className="mt-3">
-                      <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center transition-transform duration-200 group-hover:scale-110 shadow-2xs"
-                        style={{ backgroundColor: cat.accent }}
-                      >
-                        <ArrowRight className="h-3.5 w-3.5 text-white" />
-                      </div>
-                    </div>
                   </div>
                 </Link>
               ))}
@@ -544,11 +548,11 @@ export default function HomePage() {
               className="object-cover object-right"
               sizes="360px"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0B3C6F]/90 via-[#0D47A1]/70 via-55% to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0B3C6F]/95 via-[#0D47A1]/85 via-60% to-transparent" />
             <div className="relative z-10 p-4 flex flex-col justify-center h-full min-h-[110px] text-white">
               <p className="text-xs font-semibold leading-snug">
-                Sustainable Fishing<br />
-                <span className="font-extrabold text-sm">for a Better Tomorrow</span>
+                <span className="font-extrabold text-sm block">Fresh from the ocean</span>
+                <span className="text-white/90">to your table</span>
               </p>
             </div>
           </div>
