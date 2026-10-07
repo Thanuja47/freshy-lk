@@ -208,13 +208,13 @@ export default function HomePage() {
 
           {/* ── HERO (inside main column) ── */}
           <section
-            className="relative rounded-2xl overflow-hidden"
-            style={{ height: "clamp(320px, 32vw, 420px)" }}
+            className="relative rounded-2xl overflow-hidden shadow-sm"
+            style={{ height: "clamp(340px, 32vw, 420px)" }}
           >
-            {/* Background photo */}
+            {/* 1. Background Ocean photo */}
             <Image
-              src="/hero/seafood-hero.jpg"
-              alt="Fresh seafood and ocean"
+              src="/hero/hero-ocean.jpg"
+              alt="Indian Ocean ocean background"
               fill
               priority
               quality={100}
@@ -222,11 +222,24 @@ export default function HomePage() {
               className="object-cover object-center"
             />
 
-            {/* Sky-blue text-backing gradient: solid left, transparent at 55% */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#DCEFFC]/95 via-[#DCEFFC]/80 via-30% to-transparent" />
+            {/* 2. Transparent Fish Cutout floating on right */}
+            <div className="absolute right-0 bottom-0 top-0 w-full sm:w-3/5 pointer-events-none z-10">
+              <Image
+                src="/hero/hero-fish.png"
+                alt="Fresh seafood selection"
+                fill
+                priority
+                quality={100}
+                sizes="(max-width:768px) 100vw, 60vw"
+                className="object-contain object-right-bottom drop-shadow-xl p-2 sm:p-4"
+              />
+            </div>
 
-            {/* Blue bottom wave band */}
-            <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none">
+            {/* 3. Sky-blue text-backing gradient overlay (solid light sky blue #DFF1FB fading out by 55%) */}
+            <div className="absolute inset-0 z-10 bg-gradient-to-r from-[#DFF1FB]/95 via-[#DFF1FB]/85 via-45% to-transparent pointer-events-none" />
+
+            {/* 4. Blue bottom wave band */}
+            <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
               <svg viewBox="0 0 800 48" className="w-full block" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                   d="M0 48L40 42C80 36 160 24 240 20C320 16 400 20 480 24C560 28 640 32 720 30C760 29 780 27 800 26V48H0Z"
@@ -240,53 +253,53 @@ export default function HomePage() {
               </svg>
             </div>
 
-            {/* Hero text content */}
-            <div className="relative z-10 h-full flex flex-col justify-center px-6 sm:px-8 max-w-lg">
+            {/* 5. Hero text content */}
+            <div className="relative z-20 h-full flex flex-col justify-center px-6 sm:px-8 max-w-lg">
               {/* Small-caps label */}
-              <p className="text-[#1E88E5] text-[10px] sm:text-xs font-bold uppercase tracking-[0.18em] mb-3">
+              <p className="text-[#1E88E5] text-[10px] sm:text-xs font-bold uppercase tracking-[0.18em] mb-2 sm:mb-3">
                 Premium Quality · Fresh &amp; Natural
               </p>
 
-              {/* 2-line headline — clamp ensures it reads 2 lines on desktop */}
-              <h1 className="font-heading font-extrabold leading-[1.08] mb-3 whitespace-nowrap"
-                style={{ fontSize: "clamp(1.75rem, 2.85vw, 3rem)" }}>
-                <span className="block text-[#0D2542]">Fresh Seafood</span>
-                <span className="block text-[#2E7D32]">Direct to Your Table</span>
+              {/* 2-line headline */}
+              <h1 className="font-heading font-extrabold leading-[1.08] mb-3"
+                style={{ fontSize: "clamp(1.75rem, 2.7vw, 2.85rem)" }}>
+                <span className="block text-[#0D2542]">Island Fresh Seafood,</span>
+                <span className="block text-[#2E7D32]">Delivered to Your Door.</span>
               </h1>
 
-              <p className="text-[#0D2542]/70 text-sm leading-snug mb-5 max-w-xs">
-                From the ocean to your kitchen —<br />
+              <p className="text-[#0D2542]/80 text-xs sm:text-sm leading-snug mb-5 max-w-xs font-medium">
+                From Sri Lankan waters to your kitchen —<br />
                 we bring you the freshest catch, every day.
               </p>
 
               {/* CTA */}
               <Link
                 href="/shop"
-                className="inline-flex items-center gap-2 bg-[#0D2542] hover:bg-[#1E88E5] text-white font-bold text-sm px-6 py-2.5 rounded-full shadow-md transition-all duration-200 w-fit"
+                className="inline-flex items-center gap-2 bg-[#0D2542] hover:bg-[#1E88E5] text-white font-bold text-sm px-6 py-2.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200 w-fit"
               >
                 Shop Now <ArrowRight className="h-4 w-4" />
               </Link>
 
               {/* Delivery cut-off row */}
               <div className="mt-4 flex items-center flex-wrap gap-3">
-                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[#0D2542]/75">
+                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[#0D2542]/85">
                   <Sun className="h-3.5 w-3.5 text-[#2E7D32] shrink-0" />
                   Before 12 PM → Same-day delivery
                 </span>
-                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[#0D2542]/75">
+                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[#0D2542]/85">
                   <Moon className="h-3.5 w-3.5 text-[#1E88E5] shrink-0" />
                   After 12 PM → Next-day delivery
                 </span>
               </div>
 
               {/* Three neutral badges */}
-              <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
+              <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
                 {[
                   { icon: Truck, text: "Chilled delivery" },
                   { icon: ShieldCheck, text: "Secure checkout" },
                   { icon: Leaf, text: "Prices updated daily" },
                 ].map(({ icon: Icon, text }) => (
-                  <span key={text} className="flex items-center gap-1.5 bg-white/70 backdrop-blur-sm border border-white/50 px-2.5 py-1 rounded-full font-semibold text-[#0D2542]/80">
+                  <span key={text} className="flex items-center gap-1.5 bg-white/80 backdrop-blur-sm border border-white/60 px-2.5 py-1 rounded-full font-semibold text-[#0D2542]/85 shadow-2xs">
                     <Icon className="h-3 w-3 text-[#1E88E5]" /> {text}
                   </span>
                 ))}
@@ -303,34 +316,34 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
               {CATEGORIES.map((cat) => (
                 <Link
                   key={cat.label}
                   href={cat.href}
-                  className="group relative rounded-xl overflow-hidden flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+                  className="group relative rounded-2xl overflow-hidden flex flex-col justify-between border border-white/80 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
                   style={{ backgroundColor: cat.bg, minHeight: 140 }}
                 >
-                  {/* Category image — fills bottom half */}
-                  <div className="absolute bottom-0 right-0 w-3/4 h-full">
+                  {/* Category image — fills bottom half with hover zoom */}
+                  <div className="absolute bottom-0 right-0 w-3/4 h-full pointer-events-none">
                     <Image
                       src={cat.image}
                       alt={cat.label}
                       fill
-                      className="object-contain object-bottom-right drop-shadow-sm"
-                      sizes="200px"
+                      className="object-contain object-bottom-right drop-shadow-sm transition-transform duration-300 group-hover:scale-105"
+                      sizes="220px"
                     />
                   </div>
 
                   {/* Text and arrow */}
-                  <div className="relative z-10 p-3.5 flex flex-col justify-between h-full">
+                  <div className="relative z-10 p-4 flex flex-col justify-between h-full">
                     <div>
                       <h3 className="font-heading font-bold text-[#0D2542] text-base leading-tight">{cat.label}</h3>
-                      <p className="text-[11px] text-[#0D2542]/60 mt-0.5">{cat.sub}</p>
+                      <p className="text-[11px] font-medium text-[#0D2542]/65 mt-0.5">{cat.sub}</p>
                     </div>
                     <div className="mt-3">
                       <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center transition-transform duration-200 group-hover:scale-110"
+                        className="w-7 h-7 rounded-full flex items-center justify-center transition-transform duration-200 group-hover:scale-110 shadow-2xs"
                         style={{ backgroundColor: cat.accent }}
                       >
                         <ArrowRight className="h-3.5 w-3.5 text-white" />

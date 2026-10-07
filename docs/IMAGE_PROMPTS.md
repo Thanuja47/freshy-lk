@@ -4,10 +4,11 @@ All prompts used for generating or recreating storefront visual assets matching 
 
 ---
 
-## 1. Hero Banner
+### `public/hero/hero-ocean.jpg` (3000x1200 px)
+> **Prompt**: Crisp, high-contrast, vivid saturated blue tropical ocean under a clear bright sunny sky with a few soft white clouds. A tiny white wooden fishing boat far in the distance on the horizon. Clean, bright photorealistic ocean water, blue sky, wide panoramic view. No blur, no haze, vibrant turquoise and navy blue waters.
 
-### `public/hero/seafood-hero.jpg` (2400x1000 px)
-> **Prompt**: Wide 2400x1000 banner photography. Bright blue ocean and clear sky with a small white fishing boat in the distant horizon. In the lower right corner, a dark slate tray arranged on crushed ice featuring whole red snapper, mackerel, jumbo tiger prawns, tuna steaks, salmon fillet, lemon slices, herbs, and fresh green leaves. The left 45% of the frame is open ocean water and soft sky (clean empty space for text overlay). Photorealistic daylight photography, crisp details, vivid natural colors. Absolutely no text, no logos, no signs, no prices, no watermarks, no people.
+### `public/hero/hero-fish.png` (1800x1200 px, Transparent Cutout PNG)
+> **Prompt**: An organic pile of fresh red snapper, whole mackerel, tiger prawns, and yellowfin tuna steaks on crushed ice with lemon slices and parsley. Clean isolation on a plain pure white background for easy transparent cutout. Photorealistic seafood food photography, vibrant colors, bright studio daylight, sharp details.
 
 ---
 
