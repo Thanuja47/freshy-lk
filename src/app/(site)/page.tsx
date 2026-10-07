@@ -222,8 +222,8 @@ export default function HomePage() {
               className="object-cover object-center"
             />
 
-            {/* 2. Transparent Fish Cutout floating on right */}
-            <div className="absolute right-0 bottom-0 top-0 w-full sm:w-3/5 pointer-events-none z-10">
+            {/* 2. Transparent Fish Cutout floating on right with gentle levitation animation */}
+            <div className="absolute right-0 bottom-0 top-0 w-full sm:w-3/5 pointer-events-none z-10 animate-float">
               <Image
                 src="/hero/hero-fish.png"
                 alt="Fresh seafood selection"
@@ -251,7 +251,7 @@ export default function HomePage() {
             </div>
 
             {/* 5. Hero text content */}
-            <div className="relative z-20 h-full flex flex-col justify-center px-4 sm:px-6 py-4">
+            <div className="relative z-20 h-full flex flex-col justify-center px-4 sm:px-6 py-4 animate-fade-up">
               <div className="bg-white/75 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/80 shadow-xs max-w-[460px]">
                 {/* Small-caps label */}
                 <p className="text-[#1E88E5] text-[10px] sm:text-xs font-bold uppercase tracking-[0.18em] mb-2">
@@ -273,9 +273,9 @@ export default function HomePage() {
                 {/* CTA */}
                 <Link
                   href="/shop"
-                  className="inline-flex items-center gap-2 bg-[#0D2542] hover:bg-[#1E88E5] text-white font-bold text-sm px-5 py-2 rounded-full shadow-md hover:shadow-lg transition-all duration-200 w-fit"
+                  className="inline-flex items-center gap-2 bg-[#0D2542] hover:bg-[#1E88E5] text-white font-bold text-sm px-5 py-2.5 rounded-full shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-300 w-fit group"
                 >
-                  Shop Now <ArrowRight className="h-4 w-4" />
+                  Shop Now <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </Link>
 
                 {/* Delivery cut-off row */}
@@ -297,7 +297,7 @@ export default function HomePage() {
                     { icon: ShieldCheck, text: "Secure checkout" },
                     { icon: Leaf, text: "Prices updated daily" },
                   ].map(({ icon: Icon, text }) => (
-                    <span key={text} className="flex items-center gap-1 bg-white/90 border border-white px-2 py-0.5 rounded-full font-bold text-[#0D2542]/90 shadow-2xs">
+                    <span key={text} className="flex items-center gap-1 bg-white/90 border border-white px-2 py-0.5 rounded-full font-bold text-[#0D2542]/90 shadow-2xs transition-transform duration-200 hover:scale-105">
                       <Icon className="h-3 w-3 text-[#1E88E5]" /> {text}
                     </span>
                   ))}
@@ -310,8 +310,8 @@ export default function HomePage() {
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-heading font-bold text-[#0D2542] text-xl sm:text-2xl">Shop by Category</h2>
-              <Link href="/shop" className="flex items-center gap-1 text-[#1E88E5] text-sm font-semibold hover:underline">
-                View All <ChevronRight className="h-4 w-4" />
+              <Link href="/shop" className="flex items-center gap-1 text-[#1E88E5] text-sm font-semibold hover:underline group">
+                View All <ChevronRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </Link>
             </div>
 
@@ -320,13 +320,13 @@ export default function HomePage() {
                 <Link
                   key={cat.label}
                   href={cat.href}
-                  className="group relative rounded-2xl overflow-hidden border border-white/80 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md flex"
+                  className="group relative rounded-2xl overflow-hidden border border-white/80 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg flex"
                   style={{ backgroundColor: cat.bg, aspectRatio: "4/3" }}
                 >
                   {/* Left text zone (~50% width) */}
                   <div className="relative z-10 w-1/2 p-3.5 sm:p-4 flex flex-col justify-between h-full">
                     <div>
-                      <h3 className="font-heading font-bold text-[#0D2542] text-base sm:text-lg leading-tight">
+                      <h3 className="font-heading font-bold text-[#0D2542] text-base sm:text-lg leading-tight transition-colors duration-200 group-hover:text-[#1E88E5]">
                         {cat.label}
                       </h3>
                       <p className="text-xs text-[#0D2542]/80 font-medium leading-tight mt-1">
@@ -335,21 +335,21 @@ export default function HomePage() {
                     </div>
                     <div>
                       <div
-                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-transform duration-200 group-hover:scale-110 shadow-2xs"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-115 group-hover:bg-[#0D2542] shadow-xs"
                         style={{ backgroundColor: cat.accent }}
                       >
-                        <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
+                        <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white transition-transform duration-200 group-hover:translate-x-0.5" />
                       </div>
                     </div>
                   </div>
 
-                  {/* Right image zone (~50% width) — transparent PNG cutout, no overlap with text */}
+                  {/* Right image zone (~50% width) — transparent PNG cutout with smooth zoom & tilt */}
                   <div className="relative w-1/2 h-full pointer-events-none overflow-hidden">
                     <Image
                       src={cat.image}
                       alt={cat.label}
                       fill
-                      className="object-contain object-bottom-right p-1.5 drop-shadow-md transition-transform duration-300 group-hover:scale-105"
+                      className="object-contain object-bottom-right p-1.5 drop-shadow-md transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-1"
                       sizes="220px"
                     />
                   </div>
