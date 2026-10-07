@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import ProductCard from "@/components/site/ProductCard";
 import { useCartStore } from "@/store/cart";
 import {
   Truck,
@@ -11,65 +10,65 @@ import {
   ArrowRight,
   Flame,
   ShoppingCart,
-  Sparkles,
   ChevronRight,
   Check,
   Sun,
   Moon,
-  Shield,
-  HeadphonesIcon,
+  ShieldCheck,
+  Headphones,
+  Leaf,
 } from "lucide-react";
 import { formatMoney } from "@/lib/money";
 
-/* ── Static sample data (swapped out for DB calls in production) ── */
+/* ─── Static sample data (replaced by DB calls in production) ─── */
 const SAMPLE_PRODUCTS = [
   {
     id: "1",
-    slug: "yellowfin-tuna",
-    name: "Yellowfin Tuna",
-    localName: "Kelawalla",
-    pricePerKgCents: 165000,
-    offerPercent: 15,
+    slug: "red-snapper",
+    name: "Red Snapper",
+    localName: "Rathu Hurulla",
+    pricePerKgCents: 125000,
+    offerPercent: null,
     storageType: "FRESH" as const,
     isAvailable: true,
-    imageUrl: "/placeholders/yellowfin-tuna.jpg",
+    imageUrl: "/products/red-snapper.jpg",
     category: "fish",
   },
   {
     id: "2",
-    slug: "seer-fish",
-    name: "Seer Fish",
-    localName: "Thora",
-    pricePerKgCents: 280000,
-    offerPercent: 10,
+    slug: "yellowfin-tuna",
+    name: "Tuna",
+    localName: "Kelawalla",
+    pricePerKgCents: 145000,
+    offerPercent: null,
     storageType: "FRESH" as const,
     isAvailable: true,
-    imageUrl: "/placeholders/seer-fish.jpg",
+    imageUrl: "/products/tuna.jpg",
     category: "fish",
   },
   {
     id: "3",
     slug: "tiger-prawns",
-    name: "Tiger Prawns",
+    name: "Prawns",
     localName: "Isso",
     pricePerKgCents: 220000,
     offerPercent: null,
     storageType: "FRESH" as const,
     isAvailable: true,
-    imageUrl: "/placeholders/tiger-prawns.jpg",
+    imageUrl: "/products/prawns.jpg",
     category: "seafood",
   },
   {
     id: "4",
-    slug: "mud-crab",
-    name: "Mud Crab",
-    localName: "Kakuluwo",
-    pricePerKgCents: 240000,
-    offerPercent: 12,
+    slug: "mackerel",
+    name: "Mackerel",
+    localName: "Kumbalawa",
+    pricePerKgCents: 98000,
+    offerPercent: null,
     storageType: "FRESH" as const,
     isAvailable: true,
-    imageUrl: "/placeholders/mud-crab.jpg",
-    category: "seafood",
+    imageUrl: "/products/mackerel.jpg",
+    category: "fish",
   },
 ];
 
@@ -82,27 +81,27 @@ const DAILY_DEALS = [
     originalPriceCents: 145000,
     discountPriceCents: 123250,
     offerPercent: 15,
-    imageUrl: "/placeholders/yellowfin-tuna.jpg",
+    imageUrl: "/products/deal-tuna.jpg",
   },
   {
     id: "2",
     name: "Organic Tomatoes",
     localName: "Thakkali",
-    slug: "seer-fish",
-    originalPriceCents: 20000,
+    slug: "tomatoes",
+    originalPriceCents: 26900,
     discountPriceCents: 18000,
     offerPercent: 10,
-    imageUrl: "/placeholders/seer-fish.jpg",
+    imageUrl: "/products/deal-tomatoes.jpg",
   },
   {
     id: "3",
     name: "Banana",
     localName: "Kesel",
-    slug: "mud-crab",
+    slug: "banana",
     originalPriceCents: 17000,
     discountPriceCents: 15000,
     offerPercent: 12,
-    imageUrl: "/placeholders/mud-crab.jpg",
+    imageUrl: "/products/deal-bananas.jpg",
   },
 ];
 
@@ -111,57 +110,46 @@ const CATEGORIES = [
     label: "Fresh Fish",
     sub: "Tuna, Seer, Trevally",
     href: "/shop?category=fish",
-    image: "/categories/fresh-fish.jpg",
-    bg: "#E6F4FE",
-    accent: "#1B9AE4",
-    badge: "Fresh Catch",
+    image: "/categories/fresh-fish.png",
+    bg: "#DCEFFC",
+    accent: "#1E88E5",
   },
   {
     label: "Seafood",
     sub: "Prawns, Crabs, Cuttlefish",
     href: "/shop?category=seafood",
-    image: "/categories/seafood.jpg",
-    bg: "#FFF0F3",
-    accent: "#FF5722",
-    badge: "Shellfish",
+    image: "/categories/seafood.png",
+    bg: "#FDE6E8",
+    accent: "#E53935",
   },
   {
     label: "Fruits",
     sub: "Local & Tropical",
     href: "/shop?category=fruits",
-    image: "/categories/fruits.jpg",
-    bg: "#FFFBEB",
-    accent: "#FF5722",
-    badge: "Island Harvest",
+    image: "/categories/fruits.png",
+    bg: "#FFF1D9",
+    accent: "#F57C00",
   },
   {
     label: "Vegetables",
     sub: "Organic Produce",
     href: "/shop?category=vegetables",
-    image: "/categories/vegetables.jpg",
-    bg: "#EAF8F0",
-    accent: "#27A04E",
-    badge: "Farm Fresh",
+    image: "/categories/vegetables.png",
+    bg: "#E4F4DD",
+    accent: "#2E7D32",
   },
 ];
 
 const TRUST_ITEMS = [
-  { icon: Truck, label: "Fast Delivery", sub: "Islandwide courier", color: "#1B9AE4" },
-  { icon: Shield, label: "Secure Payment", sub: "Bank or Card online", color: "#1B9AE4" },
-  { icon: Fish, label: "Fresh Daily", sub: "Prices updated daily", color: "#27A04E" },
-  { icon: HeadphonesIcon, label: "WhatsApp Support", sub: "Quick assistance", color: "#25D366" },
+  { icon: Truck, label: "Fast Delivery", sub: "Islandwide courier", color: "#1E88E5" },
+  { icon: ShieldCheck, label: "Secure Payment", sub: "Safe checkout", color: "#1E88E5" },
+  { icon: Fish, label: "Fresh Daily", sub: "Prices updated daily", color: "#2E7D32" },
+  { icon: Headphones, label: "WhatsApp Support", sub: "Quick assistance", color: "#25D366" },
 ];
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState<"all" | "fish" | "seafood" | "deals">("all");
-  const [addedDealId, setAddedDealId] = useState<string | null>(null);
+  const [addedId, setAddedId] = useState<string | null>(null);
   const addItem = useCartStore((s) => s.addItem);
-
-  const filteredProducts = SAMPLE_PRODUCTS.filter((p) => {
-    if (activeTab === "all") return true;
-    if (activeTab === "deals") return p.offerPercent !== null;
-    return p.category === activeTab;
-  });
 
   const handleAddDealToCart = (deal: (typeof DAILY_DEALS)[0]) => {
     addItem({
@@ -181,381 +169,373 @@ export default function HomePage() {
       prepFeeCents: 0,
       prepFeeType: "FLAT",
     });
-    setAddedDealId(deal.id);
-    setTimeout(() => setAddedDealId(null), 1500);
+    setAddedId(deal.id);
+    setTimeout(() => setAddedId(null), 1500);
+  };
+
+  const handleAddProductToCart = (product: (typeof SAMPLE_PRODUCTS)[0]) => {
+    addItem({
+      productId: product.id,
+      productSlug: product.slug,
+      productName: product.name,
+      localName: product.localName,
+      imageUrl: product.imageUrl,
+      storageType: product.storageType,
+      pricePerKgCents: product.pricePerKgCents,
+      priceVersion: 1,
+      weightGrams: 500,
+      packLabel: "500 g",
+      quantity: 1,
+      prepOptionId: null,
+      prepName: "Whole / Uncleaned",
+      prepFeeCents: 0,
+      prepFeeType: "FLAT",
+    });
+    setAddedId(`p-${product.id}`);
+    setTimeout(() => setAddedId(null), 1500);
   };
 
   return (
-    <div className="pb-24 md:pb-12 bg-white">
-      {/* ════════════════════════════════════════════
-          FULL-WIDTH HERO with ocean photo background
-          ════════════════════════════════════════════ */}
-      <section className="relative w-full overflow-hidden bg-gradient-to-b from-[#DFF1FB] to-[#BEE3F8]" style={{ minHeight: 400 }}>
-        {/* Background ocean image with full high-resolution rendering */}
-        <Image
-          src="/hero/seafood-hero.jpg"
-          alt="Fresh seafood on display"
-          fill
-          priority
-          quality={100}
-          sizes="100vw"
-          className="object-cover object-center saturate-[1.12] contrast-[1.06] brightness-[1.02]"
-        />
-        {/* Soft sky-blue gradient overlay behind text on left */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#DFF1FB] via-[#DFF1FB]/85 via-35% to-transparent pointer-events-none" />
+    <div className="bg-[#F4F8FC] pb-24 md:pb-6 min-h-screen">
+      {/* ══════════════════════════════════════════
+          PAGE WRAPPER: max 1400 px, 24 px gap,
+          Two-column grid: main 1fr + rail 360px
+          ══════════════════════════════════════════ */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-5 py-4 xl:grid xl:grid-cols-[1fr_360px] xl:gap-6 xl:items-start">
 
-        {/* Hero content */}
-        <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 py-14 sm:py-20">
-          <div className="max-w-xl animate-fade-up">
-            {/* Eyebrow */}
-            <div className="inline-flex items-center space-x-2 bg-[#E8F4FE] border border-[#1B9AE4]/30 px-3.5 py-1.5 rounded-full text-xs font-bold text-[#1B9AE4] mb-4 shadow-xs">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>PREMIUM QUALITY • FRESH &amp; NATURAL</span>
-            </div>
+        {/* ══════════════ MAIN COLUMN ══════════════ */}
+        <div className="space-y-5">
 
-            {/* Headline — exactly 2 lines on desktop */}
-            <h1 className="font-heading font-extrabold leading-tight mb-3">
-              <span className="block text-[#0D2137]" style={{ fontSize: "clamp(2.2rem, 4.5vw, 3.2rem)" }}>
-                Fresh Seafood
-              </span>
-              <span className="block text-[#27A04E]" style={{ fontSize: "clamp(2.2rem, 4.5vw, 3.2rem)" }}>
-                Direct to Your Table
-              </span>
-            </h1>
-
-            <p className="text-[#0D2137]/80 text-sm sm:text-base leading-relaxed mb-6 font-medium">
-              From the ocean to your kitchen —{" "}
-              <span className="font-bold text-[#0D2137]">we bring you the freshest catch, every day.</span>
-            </p>
-
-            {/* CTA */}
-            <Link
-              href="/shop"
-              className="inline-flex items-center space-x-2 bg-[#0D2137] hover:bg-[#1B9AE4] text-white px-7 py-3 rounded-xl font-bold text-sm shadow-md hover:shadow-lg transition-all duration-200"
-            >
-              <span>Shop Now</span>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-
-            {/* Delivery cut-off rule */}
-            <div className="mt-5 flex flex-wrap items-center gap-4 text-xs font-bold text-[#0D2137]">
-              <span className="flex items-center space-x-1.5 bg-white/70 backdrop-blur px-3 py-1.5 rounded-lg border border-white/60">
-                <Sun className="h-4 w-4 text-[#27A04E]" />
-                <span>Before 12 PM → Same-day delivery</span>
-              </span>
-              <span className="flex items-center space-x-1.5 bg-white/70 backdrop-blur px-3 py-1.5 rounded-lg border border-white/60">
-                <Moon className="h-4 w-4 text-[#1B9AE4]" />
-                <span>After 12 PM → Next-day delivery</span>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Wave edge at bottom filled with #EAF5FE (next section color) */}
-        <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
-          <svg viewBox="0 0 1440 56" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full block">
-            <path
-              d="M0 56L60 49C120 42 240 28 360 24.5C480 21 600 28 720 33.2C840 38.5 960 42 1080 39.7C1200 37.3 1320 28 1380 23.3L1440 19V56H1380C1320 56 1200 56 1080 56C960 56 840 56 720 56C600 56 480 56 360 56C240 56 120 56 60 56H0Z"
-              fill="#EAF5FE"
+          {/* ── HERO (inside main column) ── */}
+          <section
+            className="relative rounded-2xl overflow-hidden"
+            style={{ height: "clamp(320px, 32vw, 420px)" }}
+          >
+            {/* Background photo */}
+            <Image
+              src="/hero/seafood-hero.jpg"
+              alt="Fresh seafood and ocean"
+              fill
+              priority
+              quality={100}
+              sizes="(max-width:1280px) 100vw, calc(100vw - 400px)"
+              className="object-cover object-center"
             />
-          </svg>
-        </div>
-      </section>
 
-      {/* ════════════════════════════════════════════
-          TWO-COLUMN LAYOUT: Main left + Right rail
-          ════════════════════════════════════════════ */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 pt-2 space-y-6 xl:space-y-0 xl:grid xl:grid-cols-[1fr_340px] xl:gap-6">
+            {/* Sky-blue text-backing gradient: solid left, transparent at 55% */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#DCEFFC]/95 via-[#DCEFFC]/80 via-30% to-transparent" />
 
-        {/* ── LEFT COLUMN ── */}
-        <div className="space-y-8 min-w-0">
+            {/* Blue bottom wave band */}
+            <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none">
+              <svg viewBox="0 0 800 48" className="w-full block" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M0 48L40 42C80 36 160 24 240 20C320 16 400 20 480 24C560 28 640 32 720 30C760 29 780 27 800 26V48H0Z"
+                  fill="#1E88E5"
+                  opacity="0.18"
+                />
+                <path
+                  d="M0 48L40 44C80 40 160 32 240 28C320 24 400 28 480 32C560 36 640 40 720 38C760 37 780 36 800 35V48H0Z"
+                  fill="#F4F8FC"
+                />
+              </svg>
+            </div>
 
-          {/* Trust Row / Value Props (Pastel Blue #EAF5FE background band) */}
-          <section className="bg-[#EAF5FE] rounded-2xl p-4 sm:p-5 border border-[#1B9AE4]/20 shadow-xs">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {TRUST_ITEMS.map(({ icon: Icon, label, sub, color }) => (
-                <div key={label} className="flex items-center space-x-3 bg-white/90 backdrop-blur p-3 rounded-xl border border-white/80 shadow-2xs">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: `${color}18`, color }}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-xs text-[#0D2137]">{label}</p>
-                    <p className="text-[11px] text-[#0D2137]/65">{sub}</p>
-                  </div>
-                </div>
-              ))}
+            {/* Hero text content */}
+            <div className="relative z-10 h-full flex flex-col justify-center px-6 sm:px-8 max-w-lg">
+              {/* Small-caps label */}
+              <p className="text-[#1E88E5] text-[10px] sm:text-xs font-bold uppercase tracking-[0.18em] mb-3">
+                Premium Quality · Fresh &amp; Natural
+              </p>
+
+              {/* 2-line headline — clamp ensures it reads 2 lines on desktop */}
+              <h1 className="font-heading font-extrabold leading-[1.08] mb-3 whitespace-nowrap"
+                style={{ fontSize: "clamp(1.75rem, 2.85vw, 3rem)" }}>
+                <span className="block text-[#0D2542]">Fresh Seafood</span>
+                <span className="block text-[#2E7D32]">Direct to Your Table</span>
+              </h1>
+
+              <p className="text-[#0D2542]/70 text-sm leading-snug mb-5 max-w-xs">
+                From the ocean to your kitchen —<br />
+                we bring you the freshest catch, every day.
+              </p>
+
+              {/* CTA */}
+              <Link
+                href="/shop"
+                className="inline-flex items-center gap-2 bg-[#0D2542] hover:bg-[#1E88E5] text-white font-bold text-sm px-6 py-2.5 rounded-full shadow-md transition-all duration-200 w-fit"
+              >
+                Shop Now <ArrowRight className="h-4 w-4" />
+              </Link>
+
+              {/* Delivery cut-off row */}
+              <div className="mt-4 flex items-center flex-wrap gap-3">
+                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[#0D2542]/75">
+                  <Sun className="h-3.5 w-3.5 text-[#2E7D32] shrink-0" />
+                  Before 12 PM → Same-day delivery
+                </span>
+                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[#0D2542]/75">
+                  <Moon className="h-3.5 w-3.5 text-[#1E88E5] shrink-0" />
+                  After 12 PM → Next-day delivery
+                </span>
+              </div>
+
+              {/* Three neutral badges */}
+              <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
+                {[
+                  { icon: Truck, text: "Chilled delivery" },
+                  { icon: ShieldCheck, text: "Secure checkout" },
+                  { icon: Leaf, text: "Prices updated daily" },
+                ].map(({ icon: Icon, text }) => (
+                  <span key={text} className="flex items-center gap-1.5 bg-white/70 backdrop-blur-sm border border-white/50 px-2.5 py-1 rounded-full font-semibold text-[#0D2542]/80">
+                    <Icon className="h-3 w-3 text-[#1E88E5]" /> {text}
+                  </span>
+                ))}
+              </div>
             </div>
           </section>
 
-          {/* Shop by Category (Pale Sea-Green #F0FAF2 background section) */}
-          <section className="bg-[#F0FAF2] rounded-3xl p-5 sm:p-6 border border-[#27A04E]/20 space-y-5 shadow-xs">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-heading text-2xl font-bold text-[#0D2137]">Shop by Category</h2>
-                <p className="text-xs text-[#0D2137]/60 mt-0.5">Explore our daily fresh selections</p>
-              </div>
-              <Link
-                href="/shop"
-                className="text-xs font-bold text-[#27A04E] hover:text-[#1F823E] inline-flex items-center space-x-1 bg-white px-3 py-1.5 rounded-full border border-[#27A04E]/30 shadow-2xs"
-              >
-                <span>View All</span>
-                <ChevronRight className="h-4 w-4" />
+          {/* ── SHOP BY CATEGORY ── */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-heading font-bold text-[#0D2542] text-xl sm:text-2xl">Shop by Category</h2>
+              <Link href="/shop" className="flex items-center gap-1 text-[#1E88E5] text-sm font-semibold hover:underline">
+                View All <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {CATEGORIES.map((cat) => (
                 <Link
                   key={cat.label}
                   href={cat.href}
-                  className="group relative rounded-2xl p-4 flex flex-col justify-between h-48 overflow-hidden transition-all shadow-xs hover:shadow-md hover:-translate-y-0.5 border border-white/60"
-                  style={{ backgroundColor: cat.bg }}
+                  className="group relative rounded-xl overflow-hidden flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+                  style={{ backgroundColor: cat.bg, minHeight: 140 }}
                 >
-                  {/* Badge & Text */}
-                  <div className="z-10">
-                    <span
-                      className="text-[10px] font-extrabold uppercase tracking-wider bg-white/90 px-2 py-0.5 rounded-full shadow-2xs"
-                      style={{ color: cat.accent }}
-                    >
-                      {cat.badge}
-                    </span>
-                    <h3 className="font-heading font-bold text-lg text-[#0D2137] mt-2 leading-tight">
-                      {cat.label}
-                    </h3>
-                    <p className="text-xs text-[#0D2137]/60 mt-0.5">{cat.sub}</p>
-                  </div>
-
-                  {/* Arrow button */}
-                  <div className="z-10 flex justify-end">
-                    <div
-                      className="w-8 h-8 rounded-full bg-white flex items-center justify-center transition-all shadow-xs group-hover:scale-110"
-                      style={{ color: cat.accent }}
-                    >
-                      <ArrowRight className="h-4 w-4" />
-                    </div>
-                  </div>
-
-                  {/* Circular product image bottom-right */}
-                  <div className="absolute -bottom-3 -right-3 w-28 h-28 opacity-95 transition-transform group-hover:scale-105">
+                  {/* Category image — fills bottom half */}
+                  <div className="absolute bottom-0 right-0 w-3/4 h-full">
                     <Image
                       src={cat.image}
                       alt={cat.label}
                       fill
-                      className="object-cover rounded-full border-2 border-white shadow-sm"
-                      sizes="112px"
+                      className="object-contain object-bottom-right drop-shadow-sm"
+                      sizes="200px"
                     />
+                  </div>
+
+                  {/* Text and arrow */}
+                  <div className="relative z-10 p-3.5 flex flex-col justify-between h-full">
+                    <div>
+                      <h3 className="font-heading font-bold text-[#0D2542] text-base leading-tight">{cat.label}</h3>
+                      <p className="text-[11px] text-[#0D2542]/60 mt-0.5">{cat.sub}</p>
+                    </div>
+                    <div className="mt-3">
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center transition-transform duration-200 group-hover:scale-110"
+                        style={{ backgroundColor: cat.accent }}
+                      >
+                        <ArrowRight className="h-3.5 w-3.5 text-white" />
+                      </div>
+                    </div>
                   </div>
                 </Link>
               ))}
             </div>
           </section>
 
-          {/* Featured Products (Pale Sky Blue #EAF5FE background band) */}
-          <section className="bg-[#EAF5FE] rounded-3xl p-5 sm:p-6 border border-[#1B9AE4]/20 space-y-5 shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1B9AE4]/15 pb-4">
-              <div>
-                <h2 className="font-heading text-2xl font-bold text-[#0D2137]">Featured Products</h2>
-                <p className="text-xs text-[#0D2137]/60">Fresh landings &amp; daily harvests</p>
-              </div>
-
-              {/* Filter chips */}
-              <div className="flex items-center space-x-1.5 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
-                {(["all", "fish", "seafood", "deals"] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors whitespace-nowrap ${
-                      activeTab === tab
-                        ? tab === "deals"
-                          ? "bg-[#FF5722] text-white shadow-xs"
-                          : "bg-[#1B9AE4] text-white shadow-xs"
-                        : tab === "deals"
-                        ? "bg-white text-[#FF5722] hover:bg-orange-50 border border-[#FF5722]/30"
-                        : "bg-white text-[#0D2137]/70 hover:bg-gray-100 border border-[#DDE8F0]"
-                    }`}
-                  >
-                    {tab === "all" ? "All Items" : tab === "fish" ? "Fresh Fish" : tab === "seafood" ? "Seafood" : "🔥 Deals"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-
-            <div className="text-center pt-2">
-              <Link
-                href="/shop"
-                className="inline-flex items-center space-x-2 bg-white border border-[#1B9AE4] text-[#1B9AE4] hover:bg-[#1B9AE4] hover:text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-2xs"
-              >
-                <span>View All Products</span>
-                <ArrowRight className="h-4 w-4" />
+          {/* ── FEATURED PRODUCTS ── */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-heading font-bold text-[#0D2542] text-xl sm:text-2xl">Featured Products</h2>
+              <Link href="/shop" className="flex items-center gap-1 text-[#1E88E5] text-sm font-semibold hover:underline">
+                View All <ChevronRight className="h-4 w-4" />
               </Link>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {SAMPLE_PRODUCTS.map((product) => {
+                const productAdded = addedId === `p-${product.id}`;
+                return (
+                  <div
+                    key={product.id}
+                    className="bg-white rounded-xl overflow-hidden border border-[#DDE8F0] shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
+                  >
+                    {/* 3:2 product image */}
+                    <Link href={`/product/${product.slug}`} className="block relative" style={{ paddingBottom: "66.67%" }}>
+                      <Image
+                        src={product.imageUrl}
+                        alt={product.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        sizes="(max-width:640px) 50vw, 300px"
+                      />
+                      {/* Fresh badge */}
+                      <span className="absolute top-2 left-2 bg-[#1E88E5] text-white text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full">
+                        Fresh
+                      </span>
+                    </Link>
+
+                    {/* Card info */}
+                    <div className="p-2.5 flex items-end justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-bold text-[#0D2542] text-sm truncate leading-tight">{product.name}</p>
+                        <p className="text-[#1E88E5] font-semibold text-xs mt-0.5">{formatMoney(product.pricePerKgCents)}<span className="text-[#0D2542]/50 font-normal"> /kg</span></p>
+                      </div>
+                      <button
+                        onClick={() => handleAddProductToCart(product)}
+                        title="Add to cart"
+                        className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                          productAdded ? "bg-[#2E7D32]" : "bg-[#1E88E5] hover:bg-[#1565C0]"
+                        } text-white shadow-sm`}
+                      >
+                        {productAdded ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-3.5 w-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </section>
         </div>
 
-        {/* ── RIGHT STICKY RAIL (340px) ── */}
-        <aside className="w-full xl:w-[340px] xl:sticky xl:top-24 xl:self-start space-y-4">
+        {/* ══════════════ STICKY RIGHT RAIL ══════════════ */}
+        <aside className="mt-5 xl:mt-0 xl:sticky xl:top-20 xl:self-start space-y-4">
 
-          {/* 1. Today's Special Banner */}
-          <div className="relative rounded-2xl overflow-hidden shadow-md border border-[#0D2137]/10" style={{ minHeight: 210 }}>
+          {/* 1. TODAY'S SPECIAL BANNER */}
+          <div className="relative rounded-2xl overflow-hidden shadow-sm" style={{ minHeight: 200 }}>
             <Image
               src="/banners/todays-special.jpg"
-              alt="Today's Special"
+              alt="Today's Special seafood"
               fill
-              className="object-cover"
-              sizes="340px"
+              className="object-cover object-right"
+              sizes="360px"
             />
-            {/* Dark navy gradient overlay on left for sharp legibility */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0D2137]/90 via-[#0D2137]/65 via-60% to-transparent p-5 flex flex-col justify-between text-white z-10">
-              <div className="space-y-1.5">
-                <span className="inline-block text-[10px] font-extrabold uppercase tracking-widest text-white bg-[#1B9AE4] px-2.5 py-1 rounded-full shadow-xs">
-                  TODAY&apos;S SPECIAL
+            {/* Deep banner-blue overlay on the left */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0B3C6F] via-[#0B3C6F]/85 via-50% to-transparent" />
+
+            <div className="relative z-10 p-5 flex flex-col justify-between h-full min-h-[200px]">
+              <div>
+                <span className="inline-block bg-[#1E88E5] text-white text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full mb-2.5">
+                  Today&apos;s Special
                 </span>
-                <h3 className="font-heading font-extrabold text-xl sm:text-2xl leading-tight mt-1 text-white">
+                <h3 className="font-heading font-extrabold text-white text-2xl leading-tight">
                   Fresh Catch,<br />
-                  <span className="text-[#27A04E]">Great Prices</span>
+                  <span className="text-[#4CAF50]">Great Prices</span>
                 </h3>
-                <p className="text-[12px] text-white/85 font-medium">
-                  Premium fresh fish &amp; seafood daily.
+                <p className="text-white/75 text-xs mt-1.5">
+                  Premium seafood at the best rates.
                 </p>
               </div>
               <Link
                 href="/shop"
-                className="inline-flex items-center space-x-1.5 bg-[#FF5722] hover:bg-[#E64A19] text-white px-4 py-2 rounded-xl font-bold text-xs transition-colors shadow-sm w-fit mt-3"
+                className="mt-4 inline-flex items-center gap-1.5 bg-white text-[#0B3C6F] hover:bg-[#E3F2FD] font-bold text-xs px-4 py-2 rounded-full shadow-sm w-fit transition-colors"
               >
-                <span>Shop Now</span>
-                <ArrowRight className="h-3.5 w-3.5" />
+                Shop Now <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
           </div>
 
-          {/* 2. Compact Trust Icons (Tinted light-blue card) */}
-          <div className="bg-[#E8F4FE]/80 border border-[#1B9AE4]/20 rounded-2xl p-4 shadow-xs">
+          {/* 2. TRUST ICONS CARD (light-blue tint) */}
+          <div className="bg-[#EBF5FF] rounded-xl border border-[#1E88E5]/15 p-4">
             <div className="grid grid-cols-4 gap-2 text-center">
               {TRUST_ITEMS.map(({ icon: Icon, label, color }) => (
-                <div key={label} className="flex flex-col items-center space-y-1">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center bg-white shadow-2xs"
-                    style={{ color }}
-                  >
-                    <Icon className="h-4.5 w-4.5" style={{ width: 18, height: 18 }} />
+                <div key={label} className="flex flex-col items-center gap-1.5">
+                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-xs" style={{ color }}>
+                    <Icon className="h-5 w-5" />
                   </div>
-                  <p className="text-[10px] font-bold text-[#0D2137] leading-tight">{label}</p>
+                  <p className="text-[9.5px] font-bold text-[#0D2542] leading-tight">{label}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* 3. Daily Deals */}
-          <div className="bg-[#FFF8F6] rounded-2xl border border-[#FF5722]/20 p-4 shadow-xs space-y-3">
-            <div className="flex items-center justify-between border-b border-[#FF5722]/15 pb-2">
-              <div className="flex items-center space-x-1.5">
+          {/* 3. DAILY DEALS */}
+          <div className="bg-white rounded-xl border border-[#DDE8F0] shadow-xs p-4">
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#DDE8F0]">
+              <div className="flex items-center gap-1.5">
                 <Flame className="h-4 w-4 text-[#FF5722]" />
-                <h3 className="font-heading font-bold text-sm text-[#0D2137]">Daily Deals</h3>
+                <h3 className="font-heading font-bold text-[#0D2542] text-sm">Daily Deals</h3>
               </div>
-              <Link href="/shop?deals=true" className="text-[11px] font-bold text-[#FF5722] hover:underline flex items-center space-x-0.5">
-                <span>View All</span>
-                <ArrowRight className="h-3 w-3" />
+              <Link href="/shop?deals=true" className="flex items-center gap-0.5 text-[11px] font-bold text-[#1E88E5] hover:underline">
+                View All <ChevronRight className="h-3.5 w-3.5" />
               </Link>
             </div>
 
             <div className="grid grid-cols-3 gap-2">
-              {DAILY_DEALS.map((deal) => (
-                <div
-                  key={deal.id}
-                  className="bg-white border border-[#FF5722]/15 rounded-xl p-2 flex flex-col hover:shadow-sm transition-all group"
-                >
-                  <div className="relative aspect-square w-full rounded-lg overflow-hidden mb-1.5">
-                    <Image
-                      src={deal.imageUrl}
-                      alt={deal.name}
-                      fill
-                      className="object-cover"
-                      sizes="90px"
-                    />
-                    <span className="absolute top-0 left-0 bg-[#FF5722] text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-br-lg">
-                      -{deal.offerPercent}%
-                    </span>
+              {DAILY_DEALS.map((deal) => {
+                const dealAdded = addedId === deal.id;
+                return (
+                  <div key={deal.id} className="flex flex-col gap-1">
+                    {/* Deal thumbnail */}
+                    <div className="relative rounded-lg overflow-hidden aspect-square">
+                      <Image
+                        src={deal.imageUrl}
+                        alt={deal.name}
+                        fill
+                        className="object-cover"
+                        sizes="110px"
+                      />
+                      <span className="absolute top-0 left-0 bg-[#2E7D32] text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-br-md">
+                        -{deal.offerPercent}%
+                      </span>
+                    </div>
+                    <p className="font-semibold text-[#0D2542] text-[11px] truncate leading-tight">{deal.name}</p>
+                    <p className="font-bold text-[#0D2542] text-[11px]">{formatMoney(deal.discountPriceCents)}<span className="font-normal text-[#0D2542]/50"> /kg</span></p>
+                    <p className="text-[10px] text-[#0D2542]/45 line-through leading-none">{formatMoney(deal.originalPriceCents)}</p>
+                    <button
+                      onClick={() => handleAddDealToCart(deal)}
+                      title="Add to cart"
+                      className={`mt-0.5 h-7 w-7 rounded-full flex items-center justify-center self-end transition-all ${
+                        dealAdded ? "bg-[#2E7D32]" : "bg-[#1E88E5] hover:bg-[#1565C0]"
+                      } text-white shadow-xs`}
+                    >
+                      {dealAdded ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3 w-3" />}
+                    </button>
                   </div>
-
-                  <h4 className="font-bold text-[11px] text-[#0D2137] truncate leading-tight">{deal.name}</h4>
-                  <span className="text-[11px] font-extrabold text-[#0D2137]">
-                    {formatMoney(deal.discountPriceCents)}
-                  </span>
-                  <span className="text-[9px] text-[#0D2137]/40 line-through">
-                    {formatMoney(deal.originalPriceCents)}
-                  </span>
-                  <span className="text-[9px] text-[#0D2137]/50">/kg</span>
-
-                  <button
-                    onClick={() => handleAddDealToCart(deal)}
-                    title="Add to cart"
-                    className={`mt-1.5 py-1 rounded-lg flex items-center justify-center transition-all ${
-                      addedDealId === deal.id
-                        ? "bg-[#27A04E] text-white"
-                        : "bg-[#1B9AE4] hover:bg-[#1478BB] text-white"
-                    }`}
-                  >
-                    {addedDealId === deal.id ? (
-                      <Check className="h-3 w-3" />
-                    ) : (
-                      <ShoppingCart className="h-3 w-3" />
-                    )}
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
-          {/* 4. Farm Produce Banner */}
-          <div className="relative rounded-2xl overflow-hidden shadow-xs border border-[#27A04E]/20" style={{ minHeight: 140 }}>
+          {/* 4. PRODUCE BANNER */}
+          <div className="relative rounded-xl overflow-hidden" style={{ minHeight: 140 }}>
             <Image
               src="/banners/produce.jpg"
               alt="Fresh Fruits & Vegetables"
               fill
-              className="object-cover"
-              sizes="340px"
+              className="object-cover object-right"
+              sizes="360px"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#27A04E]/90 via-[#27A04E]/70 to-transparent p-4 flex flex-col justify-between text-white z-10">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#1B5E20]/90 via-[#2E7D32]/75 via-50% to-transparent" />
+            <div className="relative z-10 p-4 flex flex-col justify-between h-full min-h-[140px] text-white">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-white/80">
-                  Fresh Fruits &amp; Vegetables
-                </span>
-                <h4 className="font-heading font-bold text-base leading-tight mt-1">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-white/80">Fresh Fruits &amp; Vegetables</p>
+                <h4 className="font-heading font-bold text-lg leading-tight mt-1">
                   Healthy Life<br />Starts Here
                 </h4>
               </div>
               <Link
                 href="/shop?category=vegetables"
-                className="inline-flex items-center space-x-1 bg-white text-[#27A04E] hover:bg-[#F0FAF2] px-3 py-1.5 rounded-lg font-bold text-[11px] transition-colors w-fit shadow-sm"
+                className="inline-flex items-center gap-1 bg-white text-[#2E7D32] hover:bg-[#E8F5E9] font-bold text-xs px-3 py-1.5 rounded-full shadow-xs w-fit transition-colors mt-2"
               >
-                <span>Shop Now</span>
-                <ArrowRight className="h-3 w-3" />
+                Shop Now <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
           </div>
 
-          {/* 5. Ocean Banner */}
-          <div className="relative rounded-2xl overflow-hidden shadow-xs border border-[#1B9AE4]/20" style={{ minHeight: 110 }}>
+          {/* 5. OCEAN BANNER */}
+          <div className="relative rounded-xl overflow-hidden" style={{ minHeight: 110 }}>
             <Image
               src="/banners/ocean.jpg"
-              alt="Sustainable seafood supply"
+              alt="Sustainable ocean fishing"
               fill
-              className="object-cover"
-              sizes="340px"
+              className="object-cover object-right"
+              sizes="360px"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0D2137]/90 via-[#1B9AE4]/80 to-transparent p-4 flex flex-col justify-center text-white z-10">
-              <p className="text-[11px] font-semibold text-white/90 leading-relaxed">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0B3C6F]/90 via-[#0D47A1]/70 via-55% to-transparent" />
+            <div className="relative z-10 p-4 flex flex-col justify-center h-full min-h-[110px] text-white">
+              <p className="text-xs font-semibold leading-snug">
                 Sustainable Fishing<br />
-                <span className="font-bold text-white">for a Better Tomorrow</span>
+                <span className="font-extrabold text-sm">for a Better Tomorrow</span>
               </p>
             </div>
           </div>

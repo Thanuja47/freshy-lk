@@ -34,7 +34,7 @@ export default function Footer() {
 
         {/* Quick links */}
         <div>
-          <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-[#1B9AE4] mb-4">
+          <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-[#1E88E5] mb-4">
             Quick Links
           </h4>
           <ul className="space-y-2.5 text-xs text-white/65">
@@ -50,7 +50,7 @@ export default function Footer() {
 
         {/* Customer care */}
         <div>
-          <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-[#1B9AE4] mb-4">
+          <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-[#1E88E5] mb-4">
             Customer Care
           </h4>
           <ul className="space-y-2.5 text-xs text-white/65">
@@ -66,7 +66,7 @@ export default function Footer() {
 
         {/* Contact info */}
         <div>
-          <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-[#1B9AE4] mb-4">
+          <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-[#1E88E5] mb-4">
             Contact Info
           </h4>
           <ul className="space-y-3 text-xs text-white/65">
@@ -90,11 +90,13 @@ export default function Footer() {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-12 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-white/40 gap-4">
         <p>© {new Date().getFullYear()} Freshy.lk. All rights reserved.</p>
         <div className="flex items-center space-x-4">
-          <span>Cold-Chain Delivery</span>
+          <span>Chilled delivery</span>
           <span>•</span>
-          <span>Islandwide Dispatch</span>
+          <span>Islandwide courier</span>
           <span>•</span>
           <span>Prices updated daily</span>
+          <span>•</span>
+          <Link href="/admin/login" className="hover:text-white/70 transition-colors">Staff login</Link>
         </div>
       </div>
     </footer>

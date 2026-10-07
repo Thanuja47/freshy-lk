@@ -3,29 +3,28 @@
 /* ─── Design Tokens (sampled from home-reference.png) ─── */
 @layer base {
   :root {
-    /* Primary colours */
-    --primary:       #1B9AE4; /* Ocean blue  — search btn, cart btn, nav active */
-    --primary-dark:  #1478BB; /* Darker blue on hover */
-    --navy:          #0D2137; /* Deep navy   — headings, "Shop Now" button */
-    --green-fresh:   #27A04E; /* Fresh green — hero 2nd line, produce accents */
-    --flame:         #FF5722; /* Flame orange — "Daily Deals" label */
-    --coral:         #FF6A4D; /* Coral — mobile CTA, kept for compat */
-    --coral-hover:   #E5593F;
+    /* Primary colours sampled from home-reference.png */
+    --primary:       #1E88E5; /* Ocean blue  — search btn, cart btn, nav active */
+    --primary-dark:  #1565C0; /* Darker blue on hover */
+    --navy:          #0D2542; /* Deep navy   — headings, "Shop Now" button */
+    --banner-blue:   #0B3C6F; /* Deep banner blue — Today's Special banner */
+    --green-fresh:   #2E7D32; /* Headline green — hero 2nd line, produce accents */
+    --flame:         #FF5722; /* Flame orange — "Daily Deals" label & icon */
 
     /* Backgrounds */
-    --bg:            #F0F7FF; /* Sky-tint page background */
+    --bg:            #F4F8FC; /* Sky-tint page background */
     --surface:       #FFFFFF;
-    --hero-from:     #E8F4FE;
+    --hero-from:     #DCEFFC;
     --hero-to:       #FFFFFF;
 
     /* Borders */
     --border:        #DDE8F0;
 
-    /* Pastel card backgrounds */
-    --card-blue:     #EAF5FE;
-    --card-pink:     #FFF0F5;
-    --card-cream:    #FFF8EE;
-    --card-green:    #F0FAF2;
+    /* Category card tints sampled from reference */
+    --card-blue:     #DCEFFC; /* Fresh Fish */
+    --card-pink:     #FDE6E8; /* Seafood */
+    --card-cream:    #FFF1D9; /* Fruits */
+    --card-green:    #E4F4DD; /* Vegetables */
 
     /* Legacy compat */
     --sea-glass:     #DCEBE6;
