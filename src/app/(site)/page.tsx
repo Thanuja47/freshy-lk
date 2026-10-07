@@ -251,55 +251,57 @@ export default function HomePage() {
             </div>
 
             {/* 5. Hero text content */}
-            <div className="relative z-20 h-full flex flex-col justify-center px-6 sm:px-8 max-w-lg">
-              {/* Small-caps label */}
-              <p className="text-[#1E88E5] text-[10px] sm:text-xs font-bold uppercase tracking-[0.18em] mb-2 sm:mb-3">
-                Premium Quality · Fresh &amp; Natural
-              </p>
+            <div className="relative z-20 h-full flex flex-col justify-center px-4 sm:px-6 py-4">
+              <div className="bg-white/75 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/80 shadow-xs max-w-[460px]">
+                {/* Small-caps label */}
+                <p className="text-[#1E88E5] text-[10px] sm:text-xs font-bold uppercase tracking-[0.18em] mb-2">
+                  Premium Quality · Fresh &amp; Natural
+                </p>
 
-              {/* 2-line headline */}
-              <h1 className="font-heading font-extrabold leading-[1.08] mb-3"
-                style={{ fontSize: "clamp(1.75rem, 2.7vw, 2.85rem)" }}>
-                <span className="block text-[#0D2542]">Island Fresh Seafood,</span>
-                <span className="block text-[#2E7D32]">Delivered to Your Door.</span>
-              </h1>
+                {/* 2-line headline */}
+                <h1 className="font-heading font-extrabold leading-[1.08] mb-2.5"
+                  style={{ fontSize: "clamp(1.65rem, 2.5vw, 2.7rem)" }}>
+                  <span className="block text-[#0D2542]">Island Fresh Seafood,</span>
+                  <span className="block text-[#2E7D32]">Delivered to Your Door.</span>
+                </h1>
 
-              <p className="text-[#0D2542]/80 text-xs sm:text-sm leading-snug mb-5 max-w-xs font-medium">
-                From Sri Lankan waters to your kitchen —<br />
-                we bring you the freshest catch, every day.
-              </p>
+                <p className="text-[#0D2542]/85 text-xs sm:text-sm leading-snug mb-4 font-medium">
+                  From Sri Lankan waters to your kitchen —<br />
+                  we bring you the freshest catch, every day.
+                </p>
 
-              {/* CTA */}
-              <Link
-                href="/shop"
-                className="inline-flex items-center gap-2 bg-[#0D2542] hover:bg-[#1E88E5] text-white font-bold text-sm px-6 py-2.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200 w-fit"
-              >
-                Shop Now <ArrowRight className="h-4 w-4" />
-              </Link>
+                {/* CTA */}
+                <Link
+                  href="/shop"
+                  className="inline-flex items-center gap-2 bg-[#0D2542] hover:bg-[#1E88E5] text-white font-bold text-sm px-5 py-2 rounded-full shadow-md hover:shadow-lg transition-all duration-200 w-fit"
+                >
+                  Shop Now <ArrowRight className="h-4 w-4" />
+                </Link>
 
-              {/* Delivery cut-off row */}
-              <div className="mt-4 flex items-center flex-wrap gap-3">
-                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[#0D2542]/85">
-                  <Sun className="h-3.5 w-3.5 text-[#2E7D32] shrink-0" />
-                  Before 12 PM → Same-day delivery
-                </span>
-                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[#0D2542]/85">
-                  <Moon className="h-3.5 w-3.5 text-[#1E88E5] shrink-0" />
-                  After 12 PM → Next-day delivery
-                </span>
-              </div>
-
-              {/* Three neutral badges */}
-              <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
-                {[
-                  { icon: Truck, text: "Chilled delivery" },
-                  { icon: ShieldCheck, text: "Secure checkout" },
-                  { icon: Leaf, text: "Prices updated daily" },
-                ].map(({ icon: Icon, text }) => (
-                  <span key={text} className="flex items-center gap-1.5 bg-white/80 backdrop-blur-sm border border-white/60 px-2.5 py-1 rounded-full font-semibold text-[#0D2542]/85 shadow-2xs">
-                    <Icon className="h-3 w-3 text-[#1E88E5]" /> {text}
+                {/* Delivery cut-off row */}
+                <div className="mt-3.5 flex items-center flex-wrap gap-2.5 pt-2.5 border-t border-[#0D2542]/10">
+                  <span className="flex items-center gap-1 text-[10.5px] font-bold text-[#0D2542]">
+                    <Sun className="h-3.5 w-3.5 text-[#2E7D32] shrink-0" />
+                    Before 12 PM → Same-day delivery
                   </span>
-                ))}
+                  <span className="flex items-center gap-1 text-[10.5px] font-bold text-[#0D2542]">
+                    <Moon className="h-3.5 w-3.5 text-[#1E88E5] shrink-0" />
+                    After 12 PM → Next-day delivery
+                  </span>
+                </div>
+
+                {/* Three neutral badges */}
+                <div className="mt-2.5 flex flex-wrap gap-1.5 text-[10.5px]">
+                  {[
+                    { icon: Truck, text: "Chilled delivery" },
+                    { icon: ShieldCheck, text: "Secure checkout" },
+                    { icon: Leaf, text: "Prices updated daily" },
+                  ].map(({ icon: Icon, text }) => (
+                    <span key={text} className="flex items-center gap-1 bg-white/90 border border-white px-2 py-0.5 rounded-full font-bold text-[#0D2542]/90 shadow-2xs">
+                      <Icon className="h-3 w-3 text-[#1E88E5]" /> {text}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </section>
