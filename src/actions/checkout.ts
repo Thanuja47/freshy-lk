@@ -8,6 +8,7 @@ import { calculatePackPriceCents, getEffectivePricePerKgCents, calculatePrepFeeC
 import { findZoneForDistrict, calculateDeliveryFee, validateStorageCompatibility, getEarliestDeliveryDate, formatDateYYYYMMDD } from "@/lib/delivery";
 import { reserveStock } from "@/lib/stock";
 import type { StorageType, PaymentMethod, CustomerType } from "@prisma/client";
+import { setDemoOrder } from "@/lib/demo-store";
 
 import { normalizePhone } from "@/lib/constants";
 
@@ -89,6 +90,43 @@ export async function createOrder(input: CheckoutInput): Promise<CheckoutActionR
   try {
     // 1. Validate Zod input
     const parsed = checkoutSchema.parse(input);
+
+    // DEMO_MODE fast-path: skip DB entirely, return synthetic order
+    if (process.env.DEMO_MODE === "true") {
+      const now = new Date();
+      const colomboDateStr = now.toLocaleDateString("en-US", {
+        timeZone: "Asia/Colombo",
+        year: "2-digit",
+        month: "2-digit",
+        day: "2-digit",
+      });
+      const [m, d, y] = colomboDateStr.split("/");
+      const dayKey = `${y}${m}${d}`;
+      const orderNo = `FRS-${dayKey}-DEMO`;
+      // Deterministic token based on idempotency key so same submission returns same token
+      const token = Buffer.from(parsed.idempotencyKey).toString("base64url").slice(0, 24);
+      const trackingToken = `demo-${token}`;
+
+      // Store demo order so /order/[token] can read it without a real DB
+      setDemoOrder(trackingToken, {
+        orderNo,
+        trackingToken,
+        customerName: parsed.customerName,
+        phone: parsed.phone,
+        email: parsed.email ?? null,
+        addressLine1: parsed.addressLine1,
+        addressLine2: parsed.addressLine2 ?? null,
+        city: parsed.city,
+        district: parsed.district,
+        deliveryDate: parsed.deliveryDate,
+        paymentMethod: parsed.paymentMethod,
+        items: parsed.items,
+        createdAt: now.toISOString(),
+      });
+
+      return { status: "SUCCESS", orderNo, trackingToken };
+    }
+
     const normalizedPhone = normalizePhone(parsed.phone);
 
     // 2. Idempotency Check
