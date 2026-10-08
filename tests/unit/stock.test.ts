@@ -73,21 +73,35 @@ describe("Stock Reservation Logic", () => {
     expect(mockTx.product.updateMany).not.toHaveBeenCalled();
   });
 
-  it("releases stock back on order cancellation", async () => {
+  it("releases stock back on order cancellation or expiration cron run", async () => {
     const mockTx = {
       product: {
         updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
     };
 
-    await releaseStock([{ productId: "p1", grams: 2000 }], mockTx as unknown as Parameters<typeof reserveStock>[1]);
-    expect(mockTx.product.updateMany).toHaveBeenCalledWith({
+    await releaseStock([
+      { productId: "p1", grams: 2000 },
+      { productId: "p2", grams: 1000 },
+    ], mockTx as unknown as Parameters<typeof reserveStock>[1]);
+
+    expect(mockTx.product.updateMany).toHaveBeenCalledTimes(2);
+    expect(mockTx.product.updateMany).toHaveBeenNthCalledWith(1, {
       where: {
         id: "p1",
         trackStock: true,
       },
       data: {
         stockGrams: { increment: 2000 },
+      },
+    });
+    expect(mockTx.product.updateMany).toHaveBeenNthCalledWith(2, {
+      where: {
+        id: "p2",
+        trackStock: true,
+      },
+      data: {
+        stockGrams: { increment: 1000 },
       },
     });
   });

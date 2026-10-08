@@ -111,6 +111,10 @@ nano .env.local  # Fill in production database URLs and credentials
 pnpm install --frozen-lockfile
 pnpm db:migrate:deploy
 pnpm build
+
+# Copy static assets into standalone directory for production serving
+cp -r public .next/standalone/public
+cp -r .next/static .next/standalone/.next/static
 ```
 
 ### Step 3: PM2 Process Management
