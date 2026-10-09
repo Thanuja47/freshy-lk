@@ -1,4 +1,4 @@
-import { renderInvoiceHTML, formatInvoiceNumber, DEFAULT_BUSINESS_DETAILS } from "./src/lib/invoices";
+import { renderInvoiceHTML, formatInvoiceNumber, DEFAULT_BUSINESS_DETAILS } from "../src/lib/invoices";
 import fs from "fs";
 import path from "path";
 
