@@ -339,6 +339,19 @@ async function main() {
     create: { key: "LOW_STOCK_THRESHOLD_GRAMS", value: 2000 },
   });
 
+  // 6. Admin User
+  await db.adminUser.upsert({
+    where: { email: "admin@freshy.lk" },
+    update: { role: "OWNER", isActive: true },
+    create: {
+      authUserId: "demo-owner-id",
+      email: "admin@freshy.lk",
+      name: "Freshy Owner",
+      role: "OWNER",
+      isActive: true,
+    },
+  });
+
   console.log("🎉 Supabase database seeding completed successfully!");
 }
 
@@ -350,3 +363,4 @@ main()
   .finally(async () => {
     await db.$disconnect();
   });
+

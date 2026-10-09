@@ -2,6 +2,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { formatMoney } from "@/lib/money";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
+import { ShoppingBag, ChevronRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -45,126 +46,139 @@ export default async function AdminOrdersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-serif text-3xl font-bold text-sea-ink">Orders Management</h1>
-          <p className="text-xs text-sea-ink/70 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#1D1D1F]">
+            Orders Management
+          </h1>
+          <p className="text-[13px] text-[#6E6E73] mt-1">
             Track customer orders, manage status transitions, and dispatch deliveries.
           </p>
         </div>
       </div>
 
       {/* Status Filter Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-        <div className="bg-white border border-sand p-3 rounded-lg text-center shadow-sm">
-          <div className="text-xs font-semibold text-sea-ink/60 uppercase">Total</div>
-          <div className="text-xl font-bold text-sea-ink mt-0.5">{counts.all}</div>
-        </div>
-        <div className="bg-white border border-amber-200 p-3 rounded-lg text-center shadow-sm bg-amber-50/50">
-          <div className="text-xs font-semibold text-amber-900 uppercase">Placed</div>
-          <div className="text-xl font-bold text-amber-900 mt-0.5">{counts.placed}</div>
-        </div>
-        <div className="bg-white border border-blue-200 p-3 rounded-lg text-center shadow-sm bg-blue-50/50">
-          <div className="text-xs font-semibold text-blue-900 uppercase">Confirmed</div>
-          <div className="text-xl font-bold text-blue-900 mt-0.5">{counts.confirmed}</div>
-        </div>
-        <div className="bg-white border border-purple-200 p-3 rounded-lg text-center shadow-sm bg-purple-50/50">
-          <div className="text-xs font-semibold text-purple-900 uppercase">Packed</div>
-          <div className="text-xl font-bold text-purple-900 mt-0.5">{counts.packed}</div>
-        </div>
-        <div className="bg-white border border-indigo-200 p-3 rounded-lg text-center shadow-sm bg-indigo-50/50">
-          <div className="text-xs font-semibold text-indigo-900 uppercase">Dispatched</div>
-          <div className="text-xl font-bold text-indigo-900 mt-0.5">{counts.dispatched}</div>
-        </div>
-        <div className="bg-white border border-green-200 p-3 rounded-lg text-center shadow-sm bg-green-50/50">
-          <div className="text-xs font-semibold text-green-900 uppercase">Delivered</div>
-          <div className="text-xl font-bold text-green-900 mt-0.5">{counts.delivered}</div>
-        </div>
-        <div className="bg-white border border-sand p-3 rounded-lg text-center shadow-sm">
-          <div className="text-xs font-semibold text-sea-ink/60 uppercase">Pending</div>
-          <div className="text-xl font-bold text-sea-ink mt-0.5">{counts.pending}</div>
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+        {[
+          { label: "Total", count: counts.all, color: "text-[#1D1D1F]" },
+          { label: "Placed", count: counts.placed, color: "text-[#B26A00]" },
+          { label: "Confirmed", count: counts.confirmed, color: "text-[#1E88E5]" },
+          { label: "Packed", count: counts.packed, color: "text-purple-700" },
+          { label: "Dispatched", count: counts.dispatched, color: "text-indigo-700" },
+          { label: "Delivered", count: counts.delivered, color: "text-[#2E7D32]" },
+          { label: "Pending", count: counts.pending, color: "text-[#6E6E73]" },
+        ].map((item) => (
+          <div
+            key={item.label}
+            className="bg-white border border-black/[0.06] p-3 rounded-2xl text-center shadow-[0_2px_8px_rgba(0,0,0,0.02)]"
+          >
+            <div className="text-[11px] font-semibold text-[#6E6E73] uppercase tracking-wider">
+              {item.label}
+            </div>
+            <div className={`text-xl font-semibold mt-0.5 tabular-nums ${item.color}`}>
+              {item.count}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Orders Table List */}
-      <div className="bg-white border border-sand rounded-xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-ice border-b border-sand text-[11px] font-bold uppercase tracking-wider text-sea-ink/70">
-                <th className="py-3 px-4">Order No</th>
-                <th className="py-3 px-4">Customer</th>
-                <th className="py-3 px-4">Items & Prep</th>
-                <th className="py-3 px-4">Delivery Zone</th>
-                <th className="py-3 px-4">Total</th>
-                <th className="py-3 px-4 text-center">Status</th>
-                <th className="py-3 px-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-sand/50 text-sm">
-              {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-ice/50">
-                  <td className="py-3 px-4 font-mono font-bold text-tide">
-                    <Link href={`/admin/orders/${order.id}`} className="hover:underline">
-                      {order.orderNo}
-                    </Link>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="font-semibold text-sea-ink">{order.customerName}</div>
-                    <div className="text-xs text-sea-ink/60">{order.phone}</div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="text-xs space-y-1">
-                      {order.items.map((it) => (
-                        <div key={it.id} className="text-sea-ink/90">
-                          {it.productName} ({it.packLabel}) x {it.quantity}
-                          {it.prepName && (
-                            <span className="ml-1 text-tide font-bold">[{it.prepName}]</span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-xs font-medium text-sea-ink/80">
-                    <div>{order.city}</div>
-                    <div className="text-sea-ink/60">{order.zone.name}</div>
-                  </td>
-                  <td className="py-3 px-4 font-mono font-bold text-coral">
-                    {formatMoney(order.totalCents)}
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                        order.status === "DELIVERED"
-                          ? "bg-green-100 text-green-800"
-                          : order.status === "DISPATCHED"
-                          ? "bg-indigo-100 text-indigo-800"
-                          : order.status === "PACKED"
-                          ? "bg-purple-100 text-purple-800"
-                          : order.status === "CONFIRMED"
-                          ? "bg-blue-100 text-blue-800"
-                          : order.status === "PLACED"
-                          ? "bg-amber-100 text-amber-900"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {ORDER_STATUS_LABELS[order.status] || order.status}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <Link
-                      href={`/admin/orders/${order.id}`}
-                      className="px-3 py-1.5 bg-sea-glass text-tide text-xs font-bold rounded-lg hover:bg-tide hover:text-white transition-colors"
-                    >
-                      View & Manage
-                    </Link>
-                  </td>
+      <div className="bg-white border border-black/[0.06] rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
+        {orders.length === 0 ? (
+          /* Designed Empty State */
+          <div className="py-16 text-center space-y-3">
+            <div className="w-12 h-12 rounded-full bg-black/[0.04] text-[#6E6E73] flex items-center justify-center mx-auto">
+              <ShoppingBag className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="text-base font-semibold text-[#1D1D1F]">No Orders Found</div>
+              <p className="text-xs text-[#6E6E73] mt-1 max-w-sm mx-auto">
+                No orders have been submitted yet. New customer orders will appear here automatically.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="sticky top-0 bg-[#F5F5F7] border-b border-black/[0.06] text-[11px] font-semibold uppercase tracking-wider text-[#6E6E73] z-10">
+                  <th className="py-3 px-4">Order No</th>
+                  <th className="py-3 px-4">Customer</th>
+                  <th className="py-3 px-4">Items & Prep</th>
+                  <th className="py-3 px-4">Delivery Zone</th>
+                  <th className="py-3 px-4">Total</th>
+                  <th className="py-3 px-4 text-center">Status</th>
+                  <th className="py-3 px-4 text-right">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-black/[0.04] text-sm">
+                {orders.map((order) => (
+                  <tr key={order.id} className="hover:bg-[#F5F5F7]/50 transition-colors">
+                    <td className="py-3.5 px-4 font-mono font-semibold text-[#1E88E5]">
+                      <Link href={`/admin/orders/${order.id}`} className="hover:underline">
+                        {order.orderNo}
+                      </Link>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <div className="font-semibold text-[#1D1D1F]">{order.customerName}</div>
+                      <div className="text-xs font-mono text-[#6E6E73]">{order.phone}</div>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <div className="text-xs space-y-1">
+                        {order.items.map((it) => (
+                          <div key={it.id} className="text-[#1D1D1F]">
+                            {it.productName} ({it.packLabel}) × {it.quantity}
+                            {it.prepName && (
+                              <span className="ml-1.5 text-[10px] font-semibold text-[#1E88E5] bg-[#1E88E5]/10 px-1.5 py-0.5 rounded">
+                                {it.prepName}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-xs font-medium text-[#1D1D1F]">
+                      <div>{order.city}</div>
+                      <div className="text-[#6E6E73]">{order.zone.name}</div>
+                    </td>
+                    <td className="py-3.5 px-4 font-mono font-semibold tabular-nums text-[#1D1D1F]">
+                      {formatMoney(order.totalCents)}
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                          order.status === "DELIVERED"
+                            ? "bg-[#2E7D32]/10 text-[#2E7D32]"
+                            : order.status === "DISPATCHED"
+                            ? "bg-indigo-100 text-indigo-800"
+                            : order.status === "PACKED"
+                            ? "bg-purple-100 text-purple-800"
+                            : order.status === "CONFIRMED"
+                            ? "bg-[#1E88E5]/10 text-[#1E88E5]"
+                            : order.status === "PLACED"
+                            ? "bg-[#B26A00]/10 text-[#B26A00]"
+                            : "bg-black/[0.05] text-[#6E6E73]"
+                        }`}
+                      >
+                        {ORDER_STATUS_LABELS[order.status] || order.status}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className="px-3 py-1.5 bg-[#F5F5F7] hover:bg-black/[0.06] text-[#1D1D1F] text-xs font-semibold rounded-xl transition-all inline-flex items-center gap-1"
+                      >
+                        <span>Manage</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-[#6E6E73]" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

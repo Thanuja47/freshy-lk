@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { ShieldCheck, Lock, Mail, KeyRound } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -67,92 +68,107 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-ice flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white border border-sand rounded-xl p-8 shadow-sm space-y-6">
-        <div className="text-center">
-          <div className="w-12 h-12 bg-sea-glass text-tide font-serif font-bold text-2xl rounded-full flex items-center justify-center mx-auto mb-3">
+    <div className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F] flex items-center justify-center p-4 font-sans selection:bg-[#1E88E5]/20">
+      <div className="w-full max-w-[420px] bg-white border border-black/[0.06] rounded-3xl p-8 shadow-[0_4px_24px_rgba(0,0,0,0.04)] space-y-6">
+        {/* Header Logo & Title */}
+        <div className="text-center space-y-2">
+          <div className="w-12 h-12 bg-[#1E88E5]/10 text-[#1E88E5] font-semibold text-xl rounded-2xl flex items-center justify-center mx-auto border border-[#1E88E5]/20">
             F
           </div>
-          <h1 className="font-serif text-2xl font-bold text-sea-ink">Freshy.lk Admin</h1>
-          <p className="text-xs text-sea-ink/70 mt-1">Sign in to manage prices, stock, and orders</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-[#1D1D1F]">
+            Freshy<span className="text-[#1E88E5]">.lk</span> Admin
+          </h1>
+          <p className="text-[13px] text-[#6E6E73]">
+            Sign in to manage daily prices, stock, and orders
+          </p>
         </div>
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-xs">
+          <div className="p-3 bg-[#C62828]/10 border border-[#C62828]/20 text-[#C62828] rounded-xl text-xs font-medium">
             {error}
           </div>
         )}
 
+        {/* Database Auth Form */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-sea-ink/70 mb-1">
+            <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6E6E73] mb-1.5">
               Email Address
             </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@freshy.lk"
-              className="w-full px-3 py-2 border border-sand rounded-md text-sea-ink focus:outline-none focus:ring-2 focus:ring-tide/50 text-sm"
-            />
+            <div className="relative">
+              <Mail className="w-4 h-4 text-[#6E6E73] absolute left-3 top-3" />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@freshy.lk"
+                className="w-full pl-9 pr-3 py-2.5 bg-[#F5F5F7]/50 border border-black/[0.08] rounded-xl text-[#1D1D1F] placeholder:text-[#6E6E73]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 text-sm font-medium transition-all"
+              />
+            </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-sea-ink/70 mb-1">
+            <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6E6E73] mb-1.5">
               Password
             </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-3 py-2 border border-sand rounded-md text-sea-ink focus:outline-none focus:ring-2 focus:ring-tide/50 text-sm"
-            />
+            <div className="relative">
+              <Lock className="w-4 h-4 text-[#6E6E73] absolute left-3 top-3" />
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full pl-9 pr-3 py-2.5 bg-[#F5F5F7]/50 border border-black/[0.08] rounded-xl text-[#1D1D1F] placeholder:text-[#6E6E73]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 text-sm font-medium transition-all"
+              />
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-tide text-white font-bold rounded-lg hover:bg-tide/90 transition-colors shadow-sm disabled:opacity-50 text-sm"
+            className="w-full py-3 bg-[#1E88E5] text-white font-semibold rounded-xl hover:bg-[#1E88E5]/90 transition-all duration-150 shadow-sm disabled:opacity-50 text-sm active:scale-[0.99]"
           >
             {isLoading ? "Signing in..." : "Sign In to Admin"}
           </button>
         </form>
 
-        {/* Demo Mode Passcode Login Section */}
-        <div className="border-t border-sand pt-6 mt-6">
+        {/* Demo Passcode Login Section */}
+        <div className="border-t border-black/[0.06] pt-6 mt-6">
           <div className="text-center mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wider text-amber-900 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
-              Demo Access Mode
+            <span className="text-[11px] font-semibold tracking-wider text-[#B26A00] bg-[#B26A00]/10 px-3 py-1 rounded-full border border-[#B26A00]/20 inline-flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" /> Demo Access Mode
             </span>
           </div>
 
           {demoError && (
-            <div className="p-3 mb-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-xs">
+            <div className="p-3 mb-3 bg-[#C62828]/10 border border-[#C62828]/20 text-[#C62828] rounded-xl text-xs font-medium">
               {demoError}
             </div>
           )}
 
           <form onSubmit={handleDemoLogin} className="space-y-3">
             <div>
-              <label className="block text-xs font-semibold text-sea-ink/70 mb-1">
+              <label className="block text-xs font-medium text-[#6E6E73] mb-1">
                 Demo Passcode
               </label>
-              <input
-                type="password"
-                required
-                value={demoPasscode}
-                onChange={(e) => setDemoPasscode(e.target.value)}
-                placeholder="Enter DEMO_ADMIN_PASSCODE"
-                className="w-full px-3 py-2 border border-sand rounded-md text-sea-ink focus:outline-none focus:ring-2 focus:ring-amber-500/50 text-sm font-mono"
-              />
+              <div className="relative">
+                <KeyRound className="w-4 h-4 text-[#6E6E73] absolute left-3 top-3" />
+                <input
+                  type="password"
+                  required
+                  value={demoPasscode}
+                  onChange={(e) => setDemoPasscode(e.target.value)}
+                  placeholder="Enter DEMO_ADMIN_PASSCODE"
+                  className="w-full pl-9 pr-3 py-2.5 bg-[#F5F5F7]/50 border border-black/[0.08] rounded-xl text-[#1D1D1F] placeholder:text-[#6E6E73]/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#B26A00]/40 text-sm font-mono transition-all"
+                />
+              </div>
             </div>
             <button
               type="submit"
               disabled={isDemoLoading}
-              className="w-full py-2.5 bg-amber-800 text-white font-bold rounded-lg hover:bg-amber-900 transition-colors shadow-sm disabled:opacity-50 text-sm"
+              className="w-full py-2.5 bg-[#1D1D1F] text-white font-semibold rounded-xl hover:bg-black transition-all duration-150 shadow-sm disabled:opacity-50 text-sm active:scale-[0.99]"
             >
               {isDemoLoading ? "Verifying Passcode..." : "Enter Demo Admin"}
             </button>

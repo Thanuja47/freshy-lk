@@ -4,6 +4,16 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { formatMoney } from "@/lib/money";
 import { updateProductPriceAndStock, bulkUpdateAvailability } from "@/actions/prices";
+import {
+  Search,
+  Tag,
+  AlertTriangle,
+  CheckCircle2,
+  RotateCcw,
+  Fish,
+  Check,
+  Save,
+} from "lucide-react";
 
 export interface ProductPriceItem {
   id: string;
@@ -20,6 +30,7 @@ export interface ProductPriceItem {
 
 export default function AdminPricesPage() {
   const [products, setProducts] = useState<ProductPriceItem[]>([]);
+  const [modifiedIds, setModifiedIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(true);
@@ -49,7 +60,7 @@ export default function AdminPricesPage() {
           setProducts(data.products || []);
         }
       } catch {
-        // Fallback demo data if endpoint is loading
+        // Fallback
       } finally {
         setIsLoading(false);
       }
@@ -67,7 +78,6 @@ export default function AdminPricesPage() {
     return matchesSearch && matchesCategory;
   });
 
-  // Check if updated today in Asia/Colombo time
   const isUpdatedToday = (isoString: string) => {
     const date = new Date(isoString);
     const todayStr = new Date().toLocaleDateString("en-US", { timeZone: "Asia/Colombo" });
@@ -83,6 +93,7 @@ export default function AdminPricesPage() {
     setProducts((prev) =>
       prev.map((p) => (p.id === id ? { ...p, pricePerKgCents: newCents } : p))
     );
+    setModifiedIds((prev) => new Set(prev).add(id));
   };
 
   const handleStockChange = (id: string, newKg: string) => {
@@ -93,12 +104,14 @@ export default function AdminPricesPage() {
     setProducts((prev) =>
       prev.map((p) => (p.id === id ? { ...p, stockGrams: newGrams } : p))
     );
+    setModifiedIds((prev) => new Set(prev).add(id));
   };
 
   const handleToggleAvailable = (id: string, isAvailable: boolean) => {
     setProducts((prev) =>
       prev.map((p) => (p.id === id ? { ...p, isAvailable } : p))
     );
+    setModifiedIds((prev) => new Set(prev).add(id));
     const prod = products.find((p) => p.id === id);
     if (prod) {
       saveProductUpdate(prod.id, prod.pricePerKgCents, prod.stockGrams, isAvailable);
@@ -124,13 +137,15 @@ export default function AdminPricesPage() {
 
     if (result.status === "SUCCESS") {
       setSavedStatus((prev) => ({ ...prev, [id]: "saved" }));
+      setModifiedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
       setProducts((prev) =>
-        prev.map((p) =>
-          p.id === id ? { ...p, priceUpdatedAt: result.updatedAt } : p
-        )
+        prev.map((p) => (p.id === id ? { ...p, priceUpdatedAt: result.updatedAt } : p))
       );
 
-      // Show Undo Toast if price changed
       if (result.oldPricePerKgCents !== result.newPricePerKgCents) {
         const prod = products.find((p) => p.id === id);
         if (prod) {
@@ -193,13 +208,15 @@ export default function AdminPricesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header & Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-serif text-3xl font-bold text-sea-ink">Today&apos;s Prices & Stock</h1>
-          <p className="text-xs text-sea-ink/70 mt-1">
-            Update prices per kg and daily stock. Storefront updates live in ~1 second.
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#1D1D1F]">
+            Today&apos;s Prices & Stock
+          </h1>
+          <p className="text-[13px] text-[#6E6E73] mt-1">
+            Update catch prices per kg and daily stock. Changes update live in ~1 second.
           </p>
         </div>
 
@@ -208,14 +225,14 @@ export default function AdminPricesPage() {
           <button
             type="button"
             onClick={() => handleBulkAction("OPEN_ALL_AVAILABLE")}
-            className="px-3 py-1.5 bg-green-100 text-green-800 text-xs font-semibold rounded-lg hover:bg-green-200"
+            className="px-3.5 py-2 bg-[#2E7D32]/10 text-[#2E7D32] hover:bg-[#2E7D32]/20 text-xs font-semibold rounded-xl transition-all"
           >
             Open All Available
           </button>
           <button
             type="button"
             onClick={() => handleBulkAction("MARK_ALL_SOLD_OUT")}
-            className="px-3 py-1.5 bg-red-100 text-red-800 text-xs font-semibold rounded-lg hover:bg-red-200"
+            className="px-3.5 py-2 bg-[#C62828]/10 text-[#C62828] hover:bg-[#C62828]/20 text-xs font-semibold rounded-xl transition-all"
           >
             Mark All Sold Out
           </button>
@@ -224,35 +241,38 @@ export default function AdminPricesPage() {
 
       {/* Undo Toast */}
       {undoState && (
-        <div className="p-4 bg-sea-ink text-white rounded-xl flex items-center justify-between shadow-lg">
-          <span className="text-sm">
+        <div className="p-4 bg-[#1D1D1F] text-white rounded-2xl flex items-center justify-between shadow-lg text-xs font-medium">
+          <span>
             Updated price for <strong>{undoState.productName}</strong>.
           </span>
           <button
             type="button"
             onClick={handleUndo}
-            className="px-3 py-1 bg-coral text-white text-xs font-bold rounded hover:bg-coral/90"
+            className="px-3 py-1 bg-[#1E88E5] text-white text-xs font-semibold rounded-lg hover:bg-[#1E88E5]/90 transition-all flex items-center gap-1"
           >
-            Undo Change
+            <RotateCcw className="w-3.5 h-3.5" /> Undo Change
           </button>
         </div>
       )}
 
       {/* > 30% Price Change Confirm Dialog */}
       {confirmDialog && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl space-y-4">
-            <h3 className="font-serif text-xl font-bold text-sea-ink">⚠️ Confirm Large Price Change</h3>
-            <p className="text-sm text-sea-ink/80">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 border border-black/[0.06]">
+            <div className="flex items-center gap-2 text-[#B26A00]">
+              <AlertTriangle className="w-5 h-5" />
+              <h3 className="text-lg font-semibold text-[#1D1D1F]">Confirm Large Price Change</h3>
+            </div>
+            <p className="text-sm text-[#6E6E73]">
               Price for <strong>{confirmDialog.productName}</strong> is changing from{" "}
-              <strong>{formatMoney(confirmDialog.oldPriceCents)}</strong> to{" "}
-              <strong>{formatMoney(confirmDialog.newPriceCents)}</strong> per kg. Is this correct?
+              <strong className="text-[#1D1D1F]">{formatMoney(confirmDialog.oldPriceCents)}</strong> to{" "}
+              <strong className="text-[#1E88E5]">{formatMoney(confirmDialog.newPriceCents)}</strong> per kg. Is this correct?
             </p>
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="flex justify-end gap-2.5 pt-2">
               <button
                 type="button"
                 onClick={() => setConfirmDialog(null)}
-                className="px-4 py-2 bg-sand/40 text-sea-ink rounded-lg text-sm font-semibold hover:bg-sand/60"
+                className="px-4 py-2 bg-[#F5F5F7] text-[#1D1D1F] rounded-xl text-xs font-semibold hover:bg-black/[0.06]"
               >
                 Cancel
               </button>
@@ -269,7 +289,7 @@ export default function AdminPricesPage() {
                     true
                   );
                 }}
-                className="px-4 py-2 bg-coral text-white rounded-lg text-sm font-bold hover:bg-coral/90"
+                className="px-4 py-2 bg-[#1E88E5] text-white rounded-xl text-xs font-semibold hover:bg-[#1E88E5]/90"
               >
                 Yes, Confirm Update
               </button>
@@ -278,27 +298,30 @@ export default function AdminPricesPage() {
         </div>
       )}
 
-      {/* Search & Category Tabs Filter Bar */}
-      <div className="bg-white border border-sand p-4 rounded-xl shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-          <input
-            type="text"
-            placeholder="Search fish by English or Sinhala name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full sm:w-80 px-3 py-2 border border-sand rounded-lg text-sm text-sea-ink focus:outline-none focus:ring-2 focus:ring-tide/50"
-          />
+      {/* Filter Bar */}
+      <div className="bg-white border border-black/[0.06] p-4 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 text-[#6E6E73] absolute left-3 top-2.5" />
+            <input
+              type="text"
+              placeholder="Search fish by name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 bg-[#F5F5F7]/80 border border-black/[0.06] rounded-xl text-xs text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 focus:bg-white transition-all font-medium"
+            />
+          </div>
 
-          <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
             {categories.map((cat) => (
               <button
                 key={cat}
                 type="button"
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                   selectedCategory === cat
-                    ? "bg-tide text-white"
-                    : "bg-ice text-sea-ink/70 hover:bg-sand/50"
+                    ? "bg-[#1E88E5] text-white shadow-sm"
+                    : "bg-[#F5F5F7] text-[#6E6E73] hover:text-[#1D1D1F] hover:bg-black/[0.06]"
                 }`}
               >
                 {cat}
@@ -308,19 +331,21 @@ export default function AdminPricesPage() {
         </div>
       </div>
 
-      {/* Price Table / Cards List */}
+      {/* Prices Table */}
       {isLoading ? (
-        <div className="py-12 text-center text-sea-ink/60">Loading daily prices...</div>
+        <div className="py-12 text-center text-xs text-[#6E6E73] bg-white border border-black/[0.06] rounded-2xl">
+          Loading daily prices...
+        </div>
       ) : filteredProducts.length === 0 ? (
-        <div className="py-12 text-center text-sea-ink/60 bg-white border border-sand rounded-xl">
+        <div className="py-12 text-center text-xs text-[#6E6E73] bg-white border border-black/[0.06] rounded-2xl">
           No matching products found.
         </div>
       ) : (
-        <div className="bg-white border border-sand rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-black/[0.06] rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-ice border-b border-sand text-[11px] font-bold uppercase tracking-wider text-sea-ink/70">
+                <tr className="border-b border-black/[0.06] text-[11px] font-semibold uppercase tracking-wider text-[#6E6E73] bg-[#F5F5F7]/40">
                   <th className="py-3 px-4">Product</th>
                   <th className="py-3 px-4">Price / kg (LKR)</th>
                   <th className="py-3 px-4">Stock (kg)</th>
@@ -328,22 +353,23 @@ export default function AdminPricesPage() {
                   <th className="py-3 px-4 text-right">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-sand/50 text-sm">
+              <tbody className="divide-y divide-black/[0.04] text-sm">
                 {filteredProducts.map((product) => {
                   const updatedToday = isUpdatedToday(product.priceUpdatedAt);
                   const status = savedStatus[product.id];
+                  const isModified = modifiedIds.has(product.id);
 
                   return (
                     <tr
                       key={product.id}
                       className={`transition-colors ${
-                        !updatedToday ? "bg-amber-50/60" : "hover:bg-ice/50"
+                        !updatedToday ? "bg-[#B26A00]/[0.02]" : "hover:bg-[#F5F5F7]/50"
                       }`}
                     >
-                      {/* Product Thumbnail & Name */}
-                      <td className="py-3 px-4">
+                      {/* Product Name & Thumbnail */}
+                      <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-sand/30 rounded-md overflow-hidden relative flex-shrink-0 flex items-center justify-center text-xs text-tide font-bold">
+                          <div className="w-10 h-10 bg-[#F5F5F7] rounded-xl overflow-hidden relative flex-shrink-0 flex items-center justify-center text-xs text-[#1E88E5] font-semibold border border-black/[0.04]">
                             {product.imageUrl ? (
                               <Image
                                 src={product.imageUrl}
@@ -352,22 +378,30 @@ export default function AdminPricesPage() {
                                 className="object-cover"
                               />
                             ) : (
-                              <span>🐟</span>
+                              <Fish className="w-5 h-5 text-[#6E6E73]" />
                             )}
                           </div>
                           <div>
-                            <div className="font-semibold text-sea-ink">{product.name}</div>
+                            <div className="font-semibold text-[#1D1D1F] flex items-center gap-1.5">
+                              <span>{product.name}</span>
+                              {isModified && (
+                                <span
+                                  className="w-2 h-2 rounded-full bg-[#1E88E5]"
+                                  title="Modified — blur input or press Enter to save"
+                                />
+                              )}
+                            </div>
                             {product.localName && (
-                              <div className="text-xs text-tide">{product.localName}</div>
+                              <div className="text-xs text-[#6E6E73]">{product.localName}</div>
                             )}
                           </div>
                         </div>
                       </td>
 
-                      {/* Price Per Kg Input */}
-                      <td className="py-3 px-4">
+                      {/* Price Per Kg Input (Large Tap-Friendly Input) */}
+                      <td className="py-3.5 px-4">
                         <div className="flex items-center gap-1">
-                          <span className="text-xs text-sea-ink/60 font-mono">Rs.</span>
+                          <span className="text-xs text-[#6E6E73] font-mono">Rs.</span>
                           <input
                             type="number"
                             step="10"
@@ -392,15 +426,15 @@ export default function AdminPricesPage() {
                                 );
                               }
                             }}
-                            className="w-28 px-2 py-1.5 border border-sand rounded-md text-sea-ink font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-tide/50 text-base"
+                            className="w-32 px-3 py-2 bg-[#F5F5F7]/80 border border-black/[0.08] rounded-xl text-[#1D1D1F] font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 focus:bg-white text-sm transition-all"
                           />
                         </div>
                       </td>
 
                       {/* Stock Input */}
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4">
                         {product.trackStock ? (
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1.5">
                             <input
                               type="number"
                               step="0.5"
@@ -415,50 +449,50 @@ export default function AdminPricesPage() {
                                   product.isAvailable
                                 )
                               }
-                              className="w-20 px-2 py-1.5 border border-sand rounded-md text-sea-ink font-mono text-sm focus:outline-none focus:ring-2 focus:ring-tide/50"
+                              className="w-24 px-3 py-2 bg-[#F5F5F7]/80 border border-black/[0.08] rounded-xl text-[#1D1D1F] font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 focus:bg-white transition-all"
                             />
-                            <span className="text-xs text-sea-ink/60">kg</span>
+                            <span className="text-xs text-[#6E6E73]">kg</span>
                           </div>
                         ) : (
-                          <span className="text-xs text-sea-ink/40 font-mono">Unlimited</span>
+                          <span className="text-xs text-[#6E6E73]/60 font-mono">Unlimited</span>
                         )}
                       </td>
 
                       {/* Available Switch */}
-                      <td className="py-3 px-4 text-center">
+                      <td className="py-3.5 px-4 text-center">
                         <button
                           type="button"
                           onClick={() =>
                             handleToggleAvailable(product.id, !product.isAvailable)
                           }
-                          className={`w-11 h-6 rounded-full p-0.5 transition-colors relative ${
-                            product.isAvailable ? "bg-tide" : "bg-sand"
+                          className={`w-11 h-6 rounded-full p-0.5 transition-all relative ${
+                            product.isAvailable ? "bg-[#1E88E5]" : "bg-black/20"
                           }`}
                         >
                           <div
-                            className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                            className={`w-5 h-5 bg-white rounded-full transition-transform shadow-sm ${
                               product.isAvailable ? "translate-x-5" : "translate-x-0"
                             }`}
                           />
                         </button>
                       </td>
 
-                      {/* Status Checkmark & Timestamp */}
-                      <td className="py-3 px-4 text-right">
+                      {/* Status */}
+                      <td className="py-3.5 px-4 text-right">
                         {status === "saving" ? (
-                          <span className="text-xs text-tide font-semibold">Saving...</span>
+                          <span className="text-xs text-[#1E88E5] font-semibold">Saving...</span>
                         ) : status === "saved" ? (
-                          <span className="text-xs text-green-700 font-bold flex items-center justify-end gap-1">
-                            ✓ Saved
+                          <span className="text-xs text-[#2E7D32] font-semibold inline-flex items-center gap-1">
+                            <Check className="w-3.5 h-3.5" /> Saved
                           </span>
                         ) : status === "error" ? (
-                          <span className="text-xs text-red-600 font-bold">Error</span>
+                          <span className="text-xs text-[#C62828] font-semibold">Error</span>
                         ) : !updatedToday ? (
-                          <span className="text-xs bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-medium">
-                            Stale (Not updated)
+                          <span className="text-[11px] bg-[#B26A00]/10 text-[#B26A00] px-2.5 py-0.5 rounded-full font-semibold">
+                            Not updated
                           </span>
                         ) : (
-                          <span className="text-[11px] text-sea-ink/50">Updated today</span>
+                          <span className="text-[11px] text-[#6E6E73]">Updated today</span>
                         )}
                       </td>
                     </tr>
