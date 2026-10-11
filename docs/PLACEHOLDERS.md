@@ -31,3 +31,76 @@ Per Round 2 directives, unverified promotional claims have been removed and repl
 | "Morning market rates" | Replaced | "Prices updated daily" |
 | "Vacuum Prepped" | Replaced | "Fresh Chilled & Frozen Delivery" |
 
+---
+
+## 3. Preparation Fees (`scripts/seed.ts` → prep options)
+
+Fees charged on top of the fish price when the customer selects a prep option.
+
+| Option | Fee type | Seeded value (LKR) | Status |
+|---|---|---|---|
+| Whole (Uncleaned) | Flat | LKR 0.00 | ✅ reasonable default — confirm |
+| Cleaned & Gutted | Flat | **LKR 150.00** | ⚠️ client to confirm |
+| Steaks / Slices | Per kg | **LKR 200.00 / kg** | ⚠️ client to confirm |
+| Boneless Fillet | Per kg | **LKR 350.00 / kg** | ⚠️ client to confirm |
+
+---
+
+## 4. Delivery Zones & Fees (`scripts/seed.ts` → delivery zones)
+
+All base delivery fees, cut-off times, and lead-day counts are invented.
+
+| Zone | Districts | Base fee (LKR) | Cut-off | Lead days | Same-day? |
+|---|---|---|---|---|---|
+| Colombo Metro Express | Colombo | **LKR 350.00** | 12:00 | 0 | ✅ yes |
+| Western Province Region | Gampaha, Kalutara | **LKR 450.00** | 12:00 | 0 | ✅ yes |
+| Central & Southern Region | Kandy, Matale, Nuwara Eliya, Galle, Matara, Hambantota | **LKR 550.00** | 10:00 | 1 | ❌ no |
+| North Western & North Central | Kurunegala, Puttalam, Anuradhapura, Polonnaruwa | **LKR 600.00** | 10:00 | 1 | ❌ no |
+| Northern & Eastern Region | Jaffna, Kilinochchi, Mannar, Vavuniya, Mullaitivu, Batticaloa, Ampara, Trincomalee | **LKR 750.00** | 09:00 | 2 | ❌ no |
+| Uva & Sabaragamuwa | Badulla, Moneragala, Ratnapura, Kegalle | **LKR 650.00** | 10:00 | 1 | ❌ no |
+
+> "Lead days" = minimum days from order to earliest possible delivery. `0` = same-day if before cut-off.
+
+---
+
+## 5. Demo Products — Prices & Stock (`scripts/seed-demo.ts`)
+
+> **`seed-demo.ts` refuses to run when `NEXT_PUBLIC_APP_ENV=production`.**
+> These values are for development / preview environments only.
+
+Prices stored as cents (LKR × 100). Shown on storefront as `LKR X,XXX / kg`.
+
+| Product | Local name | Price / kg (LKR) | Opening stock | Featured? |
+|---|---|---|---|---|
+| Yellowfin Tuna | Kelawalla | **LKR 1,800** | 25,000 g | ✅ |
+| Seer Fish | Thora | **LKR 2,400** | 15,000 g | ✅ |
+| Skipjack Tuna | Balaya | **LKR 1,200** | 30,000 g | ❌ |
+| Trevally / Jack | Paraw | **LKR 1,750** | 20,000 g | ✅ |
+| Barramundi | Modha | **LKR 2,100** | 12,000 g | ❌ |
+| Red Snapper | Ranna | **LKR 1,950** | 18,000 g | ❌ |
+| Sailfish | Thalapath | **LKR 1,850** | 22,000 g | ✅ |
+| Mahi Mahi / Dolphin Fish | Gal Malu | **LKR 1,600** | 15,000 g | ❌ |
+| Jumbo Tiger Prawns | Isso | **LKR 3,200** | 10,000 g | ✅ |
+| Lagoon Mud Crab | Kakuluwo | **LKR 2,600** | 8,000 g | ✅ |
+| Cuttlefish / Squid | Dallo | **LKR 2,100** | 14,000 g | ❌ |
+| Fresh Sprats | Hurulla | **LKR 980** | 20,000 g | ❌ |
+
+All prices and stock quantities are **client to confirm**. Edit `scripts/seed-demo.ts → productList`.
+
+---
+
+## 6. System Settings (`scripts/seed.ts`)
+
+| Key | Seeded value | Description | Status |
+|---|---|---|---|
+| `LOW_STOCK_THRESHOLD_GRAMS` | **2,000 g** | Admin low-stock alert threshold | ⚠️ client to confirm |
+
+---
+
+## How to Update
+
+1. Locate the value in the seed file referenced in each section.
+2. Replace the placeholder with the confirmed value.
+3. Re-run `pnpm seed` (reference data) or `pnpm seed:demo` (demo, non-production only).
+4. Change the row status from `⚠️ client to confirm` → `✅ confirmed (YYYY-MM-DD)`.
+5. Remove the row once confirmed and reflected in a proper Prisma migration.
