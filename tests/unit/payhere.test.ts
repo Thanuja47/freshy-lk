@@ -1,5 +1,6 @@
 // tests/unit/payhere.test.ts — Unit tests for PayHere gateway security hash, md5sig verification, status mapping & payload validation
 
+import crypto from "crypto";
 import { describe, it, expect } from "vitest";
 import {
   generatePayHereHash,
@@ -18,7 +19,7 @@ describe("PayHere Integration Suite", () => {
   const currency = "LKR";
 
   it("formats integer cents to 2-decimal string format", () => {
-    expect(formatPayHereAmount(155000)).toBe("1500.00" === "1550.00" ? "1550.00" : "1550.00");
+    expect(formatPayHereAmount(155000)).toBe("1550.00");
     expect(formatPayHereAmount(5000)).toBe("50.00");
     expect(formatPayHereAmount(0)).toBe("0.00");
   });
@@ -35,9 +36,9 @@ describe("PayHere Integration Suite", () => {
     const statusCode = "2"; // Successful payment
 
     // Calculate expected md5sig
-    const secretHash = require("crypto").createHash("md5").update(merchantSecret).digest("hex").toUpperCase();
+    const secretHash = crypto.createHash("md5").update(merchantSecret).digest("hex").toUpperCase();
     const rawString = `${merchantId}${orderId}${amountStr}${currency}${statusCode}${secretHash}`;
-    const md5sig = require("crypto").createHash("md5").update(rawString).digest("hex").toUpperCase();
+    const md5sig = crypto.createHash("md5").update(rawString).digest("hex").toUpperCase();
 
     const validPayload: PayHereNotifyPayload = {
       merchant_id: merchantId,

@@ -6,13 +6,10 @@ import { formatMoney } from "@/lib/money";
 import { updateProductPriceAndStock, bulkUpdateAvailability } from "@/actions/prices";
 import {
   Search,
-  Tag,
   AlertTriangle,
-  CheckCircle2,
   RotateCcw,
   Fish,
   Check,
-  Save,
 } from "lucide-react";
 
 export interface ProductPriceItem {

@@ -16,7 +16,6 @@ import {
   PackageCheck,
   Truck,
   CheckCheck,
-  HelpCircle,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +48,6 @@ export default async function AdminDashboardPage() {
   let todayOrdersCount = 0;
   let bankSlipsPendingCount = 0;
   let staleProductsCount = 0;
-  let staleProductsList: { id: string; name: string }[] = [];
   let lowStockProducts: { id: string; name: string; stockGrams: number }[] = [];
   let pendingOrders: { id: string; orderNo: string; customerName: string; totalCents: number; createdAt: Date }[] = [];
   let recentOrders: Array<{
@@ -130,7 +128,6 @@ export default async function AdminDashboardPage() {
     todayOrdersCount = ordersTodayCount;
     bankSlipsPendingCount = slipsCount;
     staleProductsCount = staleProducts.length;
-    staleProductsList = staleProducts;
     lowStockProducts = lowStock;
     pendingOrders = pendingList;
     recentOrders = recentList;

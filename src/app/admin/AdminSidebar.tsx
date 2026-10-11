@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Tag,
@@ -38,6 +38,7 @@ const NAV_ITEMS = [
 ];
 
 export function AdminSidebar({ user }: { user: AdminUserProps }) {
+  const router = useRouter();
   // Use pathname from next/navigation
   const pathname = usePathname() || "/admin";
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -48,7 +49,8 @@ export function AdminSidebar({ user }: { user: AdminUserProps }) {
     } catch {
       // Ignore
     }
-    window.location.href = "/admin/login";
+    router.push("/admin/login");
+    router.refresh();
   };
 
   const getInitials = (name: string) => {

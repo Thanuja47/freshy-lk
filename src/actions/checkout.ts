@@ -8,6 +8,7 @@ import { calculatePackPriceCents, getEffectivePricePerKgCents, calculatePrepFeeC
 import { findZoneForDistrict, calculateDeliveryFee, validateStorageCompatibility, getEarliestDeliveryDate, formatDateYYYYMMDD } from "@/lib/delivery";
 import { reserveStock } from "@/lib/stock";
 import { normalizePhone } from "@/lib/constants";
+import type { StorageType, CustomerType, PaymentMethod } from "@prisma/client";
 
 const checkoutItemSchema = z.object({
   productId: z.string().uuid(),
