@@ -114,3 +114,17 @@ export function getDeliveredTemplate(data: OrderNotificationData): NotificationT
     `,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Aliases used by src/actions/orders.ts
+// ---------------------------------------------------------------------------
+
+/** @alias getOrderReceivedTemplate */
+export const getOrderPlacedSmsTemplate = getOrderReceivedTemplate;
+
+/** @alias getOutForDeliveryTemplate */
+export const getDispatchedSmsTemplate = getOutForDeliveryTemplate;
+
+/** @alias getDeliveredTemplate */
+export const getDeliveredSmsTemplate = getDeliveredTemplate;
+

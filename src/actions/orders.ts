@@ -88,7 +88,12 @@ export async function updateOrderStatus(
 
     // Non-blocking notification dispatch
     if (nextStatus === "DELIVERED") {
-      const smsBody = getDeliveredSmsTemplate({ orderNo: order.orderNo });
+      const smsBody = getDeliveredSmsTemplate({
+        orderNo: order.orderNo,
+        customerName: order.customerName,
+        totalCents: order.totalCents,
+        trackingToken: order.trackingToken,
+      }).smsBody;
       sendNotification({
         orderId: order.id,
         channel: "SMS",
@@ -159,10 +164,12 @@ export async function dispatchOrder(
     // Send dispatch SMS
     const smsBody = getDispatchedSmsTemplate({
       orderNo: order.orderNo,
+      customerName: order.customerName,
+      totalCents: order.totalCents,
+      trackingToken: order.trackingToken,
       courierName,
       trackingNo,
-      trackingToken: order.trackingToken,
-    });
+    }).smsBody;
 
     sendNotification({
       orderId: order.id,
@@ -348,7 +355,7 @@ export async function createManualOrder(input: ManualOrderInput) {
       orderNo: created.orderNo,
       totalCents: created.totalCents,
       trackingToken: created.trackingToken,
-    });
+    }).smsBody;
 
     sendNotification({
       orderId: created.id,
