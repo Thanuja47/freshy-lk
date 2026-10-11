@@ -94,11 +94,31 @@ describe("env.ts — lazy runtime validation", () => {
   });
 
   // -------------------------------------------------------------------------
-  // 5. DEMO_MODE + production is a security error.
+  // 5. DEMO_MODE + production is a security error; preview is allowed even with NODE_ENV=production.
   // -------------------------------------------------------------------------
   it("validateEnv() throws security error when DEMO_MODE=true in production", () => {
     process.env.DEMO_MODE = "true";
     process.env.NEXT_PUBLIC_APP_ENV = "production";
+    _resetEnvCacheForTests();
+
+    expect(() => validateEnv()).toThrow(
+      "DEMO_MODE cannot be enabled in production"
+    );
+  });
+
+  it("DEMO_MODE=true is allowed in preview even when NODE_ENV=production, but strictly refused in production", () => {
+    // Vercel previews run with NODE_ENV=production, but NEXT_PUBLIC_APP_ENV=preview
+    process.env.NODE_ENV = "production";
+    process.env.NEXT_PUBLIC_APP_ENV = "preview";
+    process.env.DEMO_MODE = "true";
+    _resetEnvCacheForTests();
+
+    expect(() => validateEnv()).not.toThrow();
+    expect(env.DEMO_MODE).toBe(true);
+
+    // In actual production (NEXT_PUBLIC_APP_ENV=production), DEMO_MODE=true must fail loudly
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    process.env.DEMO_MODE = "true";
     _resetEnvCacheForTests();
 
     expect(() => validateEnv()).toThrow(
