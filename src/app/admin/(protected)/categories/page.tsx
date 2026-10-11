@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { Folder, Package, Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -26,40 +27,195 @@ export default async function AdminCategoriesPage() {
     categories = [
       { id: "demo-c1", slug: "fresh-fish", name: "Fresh Fish", description: "Wild caught sea fish direct from Sri Lankan landings.", _count: { products: 8 } },
       { id: "demo-c2", slug: "shellfish", name: "Shellfish & Crabs", description: "Fresh jumbo prawns, mud crabs, and cuttlefish.", _count: { products: 4 } },
+      { id: "demo-c3", slug: "vegetables", name: "Vegetables", description: "Farm-fresh locally grown vegetables.", _count: { products: 6 } },
+      { id: "demo-c4", slug: "fruits", name: "Fruits", description: "Seasonal tropical fruits from local farms.", _count: { products: 5 } },
     ];
   }
 
+  const ACCENT_COLORS = [
+    { bg: "#E3F2FD", text: "#1565C0" },
+    { bg: "#E8F5E9", text: "#2E7D32" },
+    { bg: "#FFF3E0", text: "#B26A00" },
+    { bg: "#F3E5F5", text: "#6A1B9A" },
+    { bg: "#FCE4EC", text: "#880E4F" },
+    { bg: "#E0F7FA", text: "#00695C" },
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-serif text-3xl font-bold text-sea-ink">Categories</h1>
-          <p className="text-xs text-sea-ink/70 mt-1">
-            Organize products into Fish, Vegetables, Fruits, or seasonal categories.
+          <h1
+            style={{
+              fontFamily: "-apple-system, 'SF Pro Text', Inter, system-ui, sans-serif",
+              fontSize: "28px",
+              fontWeight: 600,
+              letterSpacing: "-0.02em",
+              color: "#1D1D1F",
+              margin: 0,
+            }}
+          >
+            Categories
+          </h1>
+          <p style={{ fontSize: "14px", color: "#6E6E73", marginTop: "4px" }}>
+            Organize products into Fish, Vegetables, Fruits, or seasonal groups.
           </p>
         </div>
+        <button
+          type="button"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            background: "#1E88E5",
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: "14px",
+            padding: "9px 18px",
+            borderRadius: "12px",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          <Plus style={{ width: 15, height: 15, strokeWidth: 2.5 }} />
+          Add Category
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {categories.map((cat) => (
-          <div key={cat.id} className="bg-white border border-sand p-6 rounded-xl shadow-sm space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="w-10 h-10 bg-sea-glass text-tide font-serif font-bold text-xl rounded-lg flex items-center justify-center">
-                📁
-              </span>
-              <span className="px-2.5 py-1 bg-tide/10 text-tide font-bold text-xs rounded-full">
-                {cat._count.products} Products
-              </span>
+      {/* Summary strip */}
+      <div
+        style={{
+          background: "#fff",
+          border: "1px solid rgba(0,0,0,0.06)",
+          borderRadius: "16px",
+          padding: "14px 20px",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+        }}
+      >
+        <Folder style={{ width: 16, height: 16, color: "#1E88E5", strokeWidth: 1.75 }} />
+        <span style={{ fontSize: "14px", color: "#6E6E73" }}>
+          <strong style={{ color: "#1D1D1F" }}>{categories.length}</strong> categories,{" "}
+          <strong style={{ color: "#1D1D1F" }}>
+            {categories.reduce((sum, c) => sum + c._count.products, 0)}
+          </strong>{" "}
+          total products
+        </span>
+      </div>
+
+      {/* Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {categories.map((cat, i) => {
+          const accent = ACCENT_COLORS[i % ACCENT_COLORS.length];
+          return (
+            <div
+              key={cat.id}
+              style={{
+                background: "#fff",
+                border: "1px solid rgba(0,0,0,0.06)",
+                borderRadius: "20px",
+                padding: "24px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "16px",
+                transition: "box-shadow 0.15s",
+              }}
+            >
+              {/* Top row */}
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: "12px",
+                    background: accent.bg,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Folder style={{ width: 22, height: 22, color: accent.text, strokeWidth: 1.5 }} />
+                </div>
+                <span
+                  style={{
+                    background: accent.bg,
+                    color: accent.text,
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    padding: "4px 12px",
+                    borderRadius: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  <Package style={{ width: 11, height: 11, strokeWidth: 2 }} />
+                  {cat._count.products} Products
+                </span>
+              </div>
+
+              {/* Name & Description */}
+              <div>
+                <h3
+                  style={{
+                    fontFamily: "-apple-system, 'SF Pro Text', Inter, system-ui, sans-serif",
+                    fontSize: "18px",
+                    fontWeight: 600,
+                    color: "#1D1D1F",
+                    margin: "0 0 6px",
+                  }}
+                >
+                  {cat.name}
+                </h3>
+                <p style={{ fontSize: "13px", color: "#6E6E73", lineHeight: 1.5, margin: 0 }}>
+                  {cat.description || "No description provided."}
+                </p>
+              </div>
+
+              {/* Slug */}
+              <div
+                style={{
+                  paddingTop: "12px",
+                  borderTop: "1px solid rgba(0,0,0,0.05)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <code
+                  style={{
+                    fontSize: "11px",
+                    color: "#6E6E73",
+                    fontFamily: "monospace",
+                    background: "rgba(0,0,0,0.04)",
+                    padding: "2px 8px",
+                    borderRadius: "6px",
+                  }}
+                >
+                  /{cat.slug}
+                </code>
+                <button
+                  type="button"
+                  style={{
+                    fontSize: "12px",
+                    color: "#1E88E5",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    padding: "2px 4px",
+                  }}
+                >
+                  Edit
+                </button>
+              </div>
             </div>
-            <div>
-              <h3 className="font-serif text-xl font-bold text-sea-ink">{cat.name}</h3>
-              <p className="text-xs text-sea-ink/70 mt-1">{cat.description || "No description provided."}</p>
-            </div>
-            <div className="text-xs font-mono text-sea-ink/50 pt-2 border-t border-sand/50">
-              Slug: /{cat.slug}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

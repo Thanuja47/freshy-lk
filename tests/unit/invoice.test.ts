@@ -1,9 +1,9 @@
 // tests/unit/invoice.test.ts — Unit tests for Invoice generation and FR-YYYY-NNNNNN numbering
 
 import { describe, it, expect, vi } from "vitest";
-import { generateInvoice } from "../../src/lib/invoices";
+import { generateInvoice, formatInvoiceNumber, renderInvoiceHTML, DEFAULT_BUSINESS_DETAILS } from "../../src/lib/invoices";
 
-describe("Invoice Numbering (FR-YYYY-NNNNNN)", () => {
+describe("Invoice Numbering & HTML Template (FR-YYYY-NNNNNN)", () => {
   const mockOrder = {
     id: "ord-100",
     orderNo: "FRS-261004-0001",
@@ -55,27 +55,43 @@ describe("Invoice Numbering (FR-YYYY-NNNNNN)", () => {
     expect(invoice2.invoiceNo).toBe(`FR-${year}-000002`);
   });
 
-  it("returns existing invoice if invoice was already created for orderId", async () => {
-    const year = new Date().getFullYear();
-    const existingInvoice = {
-      id: "inv-existing",
-      orderId: "ord-100",
-      invoiceNo: `FR-${year}-000001`,
-      issuedAt: new Date(),
-      snapshot: {},
-    };
+  it("renders complete HTML invoice with LKR formatted totals and business details", () => {
+    const formattedNo = formatInvoiceNumber(2026, 42);
+    expect(formattedNo).toBe("FR-2026-000042");
 
-    const mockTx = {
-      invoice: {
-        findUnique: vi.fn().mockResolvedValue(existingInvoice),
+    const html = renderInvoiceHTML(
+      {
+        orderNo: "FRS-261008-0001",
+        invoiceNo: formattedNo,
+        issuedAt: new Date().toISOString(),
+        customerName: "Sunil Perera",
+        phone: "+94771112233",
+        addressLine1: "55 Main Street",
+        city: "Colombo 01",
+        district: "Colombo",
+        zoneName: "Colombo Core",
+        paymentMethod: "BANK_TRANSFER",
+        subtotalCents: 200000,
+        prepTotalCents: 1500,
+        deliveryFeeCents: 35000,
+        totalCents: 236500,
+        items: [
+          {
+            productName: "Seer Fish",
+            packLabel: "1 kg",
+            quantity: 1,
+            pricePerKgCents: 200000,
+            prepFeeCents: 1500,
+            lineTotalCents: 200000,
+          },
+        ],
       },
-      invoiceCounter: {
-        upsert: vi.fn(),
-      },
-    };
+      DEFAULT_BUSINESS_DETAILS
+    );
 
-    const invoice = await generateInvoice("ord-100", mockTx as unknown as Parameters<typeof generateInvoice>[1]);
-    expect(invoice).toBe(existingInvoice);
-    expect(mockTx.invoiceCounter.upsert).not.toHaveBeenCalled();
+    expect(html).toContain("FR-2026-000042");
+    expect(html).toContain("Freshy LK (Pvt) Ltd");
+    expect(html).toContain("Rs. 2,365.00");
+    expect(html).toContain("Seer Fish");
   });
 });

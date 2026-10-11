@@ -89,12 +89,15 @@ describe("Security & Authentication - requireAdmin", () => {
     expect(admin.role).toBe("OWNER");
   });
 
-  it("(d) DEMO_MODE=true + NEXT_PUBLIC_APP_ENV=production must throw error at startup in env.ts", async () => {
+  it("(d) DEMO_MODE=true + NEXT_PUBLIC_APP_ENV=production must throw error when env is accessed", async () => {
     process.env.DEMO_MODE = "true";
     process.env.NEXT_PUBLIC_APP_ENV = "production";
 
-    await expect(async () => {
-      await import("@/lib/env");
-    }).rejects.toThrow(/DEMO_MODE cannot be enabled in production environment/);
+    const { env, _resetEnvCacheForTests } = await import("@/lib/env");
+    _resetEnvCacheForTests();
+
+    expect(() => {
+      void env.DEMO_MODE;
+    }).toThrow(/DEMO_MODE cannot be enabled in production environment/);
   });
 });
