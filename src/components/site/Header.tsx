@@ -16,8 +16,6 @@ import {
   X,
   ChevronDown,
   Fish,
-  Leaf,
-  Apple,
   Tag,
   Mail,
 } from "lucide-react";
@@ -36,8 +34,6 @@ const NAV_LINKS = [
     ],
   },
   { label: "Fish", href: "/shop?category=fish", icon: Fish },
-  { label: "Fruits", href: "/shop?category=fruits", icon: Apple },
-  { label: "Vegetables", href: "/shop?category=vegetables", icon: Leaf },
   { label: "Offers", href: "/shop?deals=true", icon: Tag },
   { label: "Contact", href: "/contact", icon: Mail },
 ];
@@ -100,7 +96,7 @@ export default function Header() {
 
   return (
     <>
-      {/* ── Top utility bar ── */}
+      {/* ΓöÇΓöÇ Top utility bar ΓöÇΓöÇ */}
       <div className="bg-[#0D2137] text-white text-[11px] py-1.5 px-4 hidden sm:block">
         <div className="max-w-[1400px] mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -110,7 +106,7 @@ export default function Header() {
             </span>
             <span className="text-white/30">|</span>
             <span className="text-white/80">
-              Order before 12 PM → same-day delivery in selected zones
+              Order before 12 PM ΓåÆ same-day delivery in selected zones
             </span>
           </div>
           <div className="flex items-center space-x-4">
@@ -130,7 +126,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* ── Main sticky header ── */}
+      {/* ΓöÇΓöÇ Main sticky header ΓöÇΓöÇ */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#DDE8F0] shadow-sm">
         {/* Row 1: Logo + Search + Account/Wishlist/Cart */}
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
@@ -139,7 +135,7 @@ export default function Header() {
             <div className="relative h-12 w-40">
               <Image
                 src="/brand/logo.svg"
-                alt="Freshy.lk — Fresh from the Ocean & Farm"
+                alt="Freshy.lk ΓÇö Fresh from the Ocean & Farm"
                 fill
                 priority
                 className="object-contain object-left"
@@ -155,7 +151,7 @@ export default function Header() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for fresh fish, fruits, vegetables..."
+                placeholder="Search for fresh fish, seafood..."
                 className="w-full pl-4 pr-14 py-2.5 bg-[#F0F7FF] border border-[#DDE8F0] rounded-full text-sm text-[#0D2137] placeholder-[#0D2137]/40 focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] focus:bg-white transition-all"
               />
               <button
@@ -280,7 +276,7 @@ export default function Header() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search fish, seafood, vegetables..."
+                placeholder="Search fish, seafood..."
                 className="w-full pl-4 pr-12 py-2.5 bg-[#F0F7FF] border border-[#DDE8F0] rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#1B9AE4]"
               />
               <button
@@ -295,7 +291,7 @@ export default function Header() {
         )}
       </header>
 
-      {/* ── Mobile Bottom Navigation Bar ── */}
+      {/* ΓöÇΓöÇ Mobile Bottom Navigation Bar ΓöÇΓöÇ */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#DDE8F0] px-2 py-1 flex justify-around items-center shadow-lg">
         <Link
           href="/"

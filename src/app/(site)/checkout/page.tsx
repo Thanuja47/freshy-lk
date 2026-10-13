@@ -178,7 +178,7 @@ export default function CheckoutPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-6">
         <div className="w-20 h-20 bg-[#E8F4FE] text-[#1B9AE4] rounded-3xl flex items-center justify-center mx-auto shadow-xs border border-[#1B9AE4]/20">
-          🛒
+          ≡ƒ¢Æ
         </div>
         <h1 className="font-heading font-extrabold text-3xl text-[#0D2137]">Your Cart is Empty</h1>
         <p className="text-xs sm:text-sm text-[#0D2137]/70">Please add fresh fish to your cart before proceeding to checkout.</p>
@@ -262,10 +262,15 @@ export default function CheckoutPage() {
       } else if (result.status === "OUT_OF_STOCK" || result.status === "ZONE_STORAGE_BLOCKED") {
         setErrorMessage(result.message);
       } else {
-        setErrorMessage(result.message || "An unexpected error occurred.");
+        setErrorMessage(typeof result.message === "string" ? result.message : "An unexpected error occurred. Please try again or call us.");
       }
     } catch (err: unknown) {
-      setErrorMessage(err instanceof Error ? err.message : "Failed to place order. Please try again.");
+      // Ensure errorMessage is always a plain string (never an object) to avoid React #441
+      const rawMsg = err instanceof Error ? err.message : "";
+      const safeMsg = typeof rawMsg === "string" && rawMsg.length > 0
+        ? rawMsg
+        : "Unable to place your order right now. Please try again or call us.";
+      setErrorMessage(safeMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -276,7 +281,7 @@ export default function CheckoutPage() {
       {/* Page Header */}
       <div className="border-b border-[#DDE8F0] pb-4 space-y-1">
         <h1 className="font-heading font-extrabold text-3xl text-[#0D2137]">Express Checkout</h1>
-        <p className="text-xs sm:text-sm text-[#0D2137]/70">No account required. Direct cold-chain delivery setup.</p>
+        <p className="text-xs sm:text-sm text-[#0D2137]/70">No account required. Fast delivery across Sri Lanka.</p>
       </div>
 
       {/* 3-Step Indicator Bar */}
@@ -317,7 +322,7 @@ export default function CheckoutPage() {
 
       {errorMessage && (
         <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-start gap-3 text-sm">
-          <span className="text-xl">⚠️</span>
+          <span className="text-xl">ΓÜá∩╕Å</span>
           <div>
             <p className="font-bold">Unable to complete checkout</p>
             <p className="text-xs text-red-600">{errorMessage}</p>
@@ -338,7 +343,7 @@ export default function CheckoutPage() {
             onClick={() => setPriceChangeNotice(null)}
             className="px-5 py-2.5 bg-amber-800 text-white rounded-xl text-xs font-bold hover:bg-amber-900 transition-colors"
           >
-            I Accept Updated Prices — Click Place Order Again
+            I Accept Updated Prices ΓÇö Click Place Order Again
           </button>
         </div>
       )}
@@ -730,7 +735,7 @@ export default function CheckoutPage() {
 
             <p className="text-center text-[11px] text-[#0D2137]/60 mt-2 flex items-center justify-center space-x-1">
               <Lock className="h-3.5 w-3.5 text-[#1B9AE4]" />
-              <span>Safe &amp; Secure Checkout • Cold-Chain Express</span>
+              <span>Safe &amp; Secure Checkout ΓÇó Fresh Delivery</span>
             </p>
           </div>
         </div>

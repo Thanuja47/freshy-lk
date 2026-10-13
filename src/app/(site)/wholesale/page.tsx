@@ -56,7 +56,7 @@ export default function WholesalePage() {
           Seafood Supply for Hotels, Restaurants &amp; Export
         </h1>
         <p className="text-xs sm:text-sm text-gray-300 max-w-2xl leading-relaxed">
-          Daily bulk supply of fresh catch, custom prep specifications, tier pricing, and dedicated cold-chain delivery across Sri Lanka.
+          Daily bulk supply of fresh catch, custom prep specifications, tier pricing, and dedicated delivery across Sri Lanka.
         </p>
       </div>
 
@@ -86,7 +86,7 @@ export default function WholesalePage() {
               <div className="flex items-start space-x-3">
                 <ShieldCheck className="h-5 w-5 text-[#1B9AE4] shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="font-bold text-sm">Guaranteed Cold-Chain Logistics</h3>
+                  <h3 className="font-bold text-sm">Reliable Delivery Logistics</h3>
                   <p className="text-[#0D2137]/70 mt-0.5">Insulated chilled temperature-controlled delivery direct to your receiving bay.</p>
                 </div>
               </div>
