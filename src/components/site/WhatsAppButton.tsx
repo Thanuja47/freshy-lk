@@ -1,11 +1,16 @@
 "use client";
 
 import { MessageCircle } from "lucide-react";
-import { env } from "@/lib/env";
+
+// NEXT_PUBLIC_* vars are inlined by Next.js at build time.
+// Do NOT import server-side `env` here — it would be evaluated during `next build`.
+const whatsappNum =
+  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "94770000000";
 
 export default function WhatsAppButton() {
-  const whatsappNum = env.NEXT_PUBLIC_WHATSAPP_NUMBER || "94770000000";
-  const href = `https://wa.me/${whatsappNum}?text=${encodeURIComponent("Hello Freshy.lk, I have an inquiry about today's fresh fish!")}`;
+  const href = `https://wa.me/${whatsappNum}?text=${encodeURIComponent(
+    "Hello Freshy.lk, I have an inquiry about today's fresh fish!"
+  )}`;
 
   return (
     <a

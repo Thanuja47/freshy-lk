@@ -41,8 +41,8 @@ export default function Footer() {
             <li><Link href="/shop" className="hover:text-white transition-colors">Shop Today&apos;s Catch</Link></li>
             <li><Link href="/shop?category=fish" className="hover:text-white transition-colors">Fresh Fish</Link></li>
             <li><Link href="/shop?category=seafood" className="hover:text-white transition-colors">Seafood &amp; Shellfish</Link></li>
-            <li><Link href="/shop?category=fruits" className="hover:text-white transition-colors">Fruits</Link></li>
-            <li><Link href="/shop?category=vegetables" className="hover:text-white transition-colors">Vegetables</Link></li>
+            <li><span className="text-gray-500 cursor-default">Fruits (Coming Soon)</span></li>
+            <li><span className="text-gray-500 cursor-default">Vegetables (Coming Soon)</span></li>
             <li><Link href="/shop?deals=true" className="hover:text-white transition-colors">Offers &amp; Deals</Link></li>
             <li><Link href="/wholesale" className="hover:text-white transition-colors">Wholesale &amp; B2B</Link></li>
           </ul>
@@ -88,14 +88,14 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-12 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-white/40 gap-4">
-        <p>© {new Date().getFullYear()} Freshy.lk. All rights reserved.</p>
+        <p>┬⌐ {new Date().getFullYear()} Freshy.lk. All rights reserved.</p>
         <div className="flex items-center space-x-4">
           <span>Chilled delivery</span>
-          <span>•</span>
+          <span>ΓÇó</span>
           <span>Islandwide courier</span>
-          <span>•</span>
+          <span>ΓÇó</span>
           <span>Prices updated daily</span>
-          <span>•</span>
+          <span>ΓÇó</span>
           <Link href="/admin/login" className="hover:text-white/70 transition-colors">Staff login</Link>
         </div>
       </div>

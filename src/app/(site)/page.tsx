@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { formatMoney } from "@/lib/money";
 
-/* ─── Static sample data (replaced by DB calls in production) ─── */
+/* ΓöÇΓöÇΓöÇ Static sample data (replaced by DB calls in production) ΓöÇΓöÇΓöÇ */
 const SAMPLE_PRODUCTS = [
   {
     id: "1",
@@ -113,6 +113,7 @@ const CATEGORIES = [
     image: "/categories/fresh-fish.png",
     bg: "#DCEFFC",
     accent: "#1E88E5",
+    comingSoon: false,
   },
   {
     label: "Seafood",
@@ -121,6 +122,7 @@ const CATEGORIES = [
     image: "/categories/seafood.png",
     bg: "#FDE6E8",
     accent: "#E53935",
+    comingSoon: false,
   },
   {
     label: "Fruits",
@@ -129,6 +131,7 @@ const CATEGORIES = [
     image: "/categories/fruits.png",
     bg: "#FFF1D9",
     accent: "#F57C00",
+    comingSoon: true,
   },
   {
     label: "Vegetables",
@@ -137,6 +140,7 @@ const CATEGORIES = [
     image: "/categories/vegetables.png",
     bg: "#E4F4DD",
     accent: "#2E7D32",
+    comingSoon: true,
   },
 ];
 
@@ -197,16 +201,16 @@ export default function HomePage() {
 
   return (
     <div className="bg-[#F4F8FC] pb-24 md:pb-6 min-h-screen">
-      {/* ══════════════════════════════════════════
+      {/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
           PAGE WRAPPER: max 1400 px, 24 px gap,
           Two-column grid: main 1fr + rail 360px
-          ══════════════════════════════════════════ */}
+          ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */}
       <div className="max-w-[1400px] mx-auto px-4 sm:px-5 py-4 xl:grid xl:grid-cols-[1fr_360px] xl:gap-6 xl:items-start">
 
-        {/* ══════════════ MAIN COLUMN ══════════════ */}
+        {/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ MAIN COLUMN ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */}
         <div className="space-y-5">
 
-          {/* ── HERO (inside main column) ── */}
+          {/* ΓöÇΓöÇ HERO (inside main column) ΓöÇΓöÇ */}
           <section
             className="relative rounded-2xl overflow-hidden shadow-sm"
             style={{ height: "clamp(340px, 32vw, 420px)" }}
@@ -255,7 +259,7 @@ export default function HomePage() {
               <div className="bg-white/75 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/80 shadow-xs max-w-[460px]">
                 {/* Small-caps label */}
                 <p className="text-[#1E88E5] text-[10px] sm:text-xs font-bold uppercase tracking-[0.18em] mb-2">
-                  Premium Quality · Fresh &amp; Natural
+                  Premium Quality ┬╖ Fresh &amp; Natural
                 </p>
 
                 {/* 2-line headline */}
@@ -266,7 +270,7 @@ export default function HomePage() {
                 </h1>
 
                 <p className="text-[#0D2542]/85 text-xs sm:text-sm leading-snug mb-4 font-medium">
-                  From Sri Lankan waters to your kitchen —<br />
+                  From Sri Lankan waters to your kitchen ΓÇö<br />
                   we bring you the freshest catch, every day.
                 </p>
 
@@ -282,11 +286,11 @@ export default function HomePage() {
                 <div className="mt-3.5 flex items-center flex-wrap gap-2.5 pt-2.5 border-t border-[#0D2542]/10">
                   <span className="flex items-center gap-1 text-[10.5px] font-bold text-[#0D2542]">
                     <Sun className="h-3.5 w-3.5 text-[#2E7D32] shrink-0" />
-                    Before 12 PM → Same-day delivery
+                    Before 12 PM ΓåÆ Same-day delivery
                   </span>
                   <span className="flex items-center gap-1 text-[10.5px] font-bold text-[#0D2542]">
                     <Moon className="h-3.5 w-3.5 text-[#1E88E5] shrink-0" />
-                    After 12 PM → Next-day delivery
+                    After 12 PM ΓåÆ Next-day delivery
                   </span>
                 </div>
 
@@ -306,7 +310,7 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* ── SHOP BY CATEGORY ── */}
+          {/* ΓöÇΓöÇ SHOP BY CATEGORY ΓöÇΓöÇ */}
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-heading font-bold text-[#0D2542] text-xl sm:text-2xl">Shop by Category</h2>
@@ -316,49 +320,80 @@ export default function HomePage() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-              {CATEGORIES.map((cat) => (
-                <Link
-                  key={cat.label}
-                  href={cat.href}
-                  className="group relative rounded-2xl overflow-hidden border border-white/80 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg flex"
-                  style={{ backgroundColor: cat.bg, aspectRatio: "4/3" }}
-                >
-                  {/* Left text zone (~50% width) */}
-                  <div className="relative z-10 w-1/2 p-3.5 sm:p-4 flex flex-col justify-between h-full">
-                    <div>
-                      <h3 className="font-heading font-bold text-[#0D2542] text-base sm:text-lg leading-tight transition-colors duration-200 group-hover:text-[#1E88E5]">
-                        {cat.label}
-                      </h3>
-                      <p className="text-xs text-[#0D2542]/80 font-medium leading-tight mt-1">
-                        {cat.sub}
-                      </p>
-                    </div>
-                    <div>
-                      <div
-                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-115 group-hover:bg-[#0D2542] shadow-xs"
-                        style={{ backgroundColor: cat.accent }}
-                      >
-                        <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white transition-transform duration-200 group-hover:translate-x-0.5" />
+              {CATEGORIES.map((cat) => {
+                const innerContent = (
+                  <>
+                    {/* Left text zone (~50% width) */}
+                    <div className="relative z-10 w-1/2 p-3.5 sm:p-4 flex flex-col justify-between h-full">
+                      <div>
+                        <h3 className={`font-heading font-bold text-[#0D2542] text-base sm:text-lg leading-tight ${cat.comingSoon ? "" : "transition-colors duration-200 group-hover:text-[#1E88E5]"}`}>
+                          {cat.label}
+                        </h3>
+                        <p className="text-xs text-[#0D2542]/80 font-medium leading-tight mt-1">
+                          {cat.sub}
+                        </p>
+                      </div>
+                      <div>
+                        {!cat.comingSoon && (
+                          <div
+                            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-115 group-hover:bg-[#0D2542] shadow-xs"
+                            style={{ backgroundColor: cat.accent }}
+                          >
+                            <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white transition-transform duration-200 group-hover:translate-x-0.5" />
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
 
-                  {/* Right image zone (~50% width) — transparent PNG cutout with smooth zoom & tilt */}
-                  <div className="relative w-1/2 h-full pointer-events-none overflow-hidden">
-                    <Image
-                      src={cat.image}
-                      alt={cat.label}
-                      fill
-                      className="object-contain object-bottom-right p-1.5 drop-shadow-md transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-1"
-                      sizes="220px"
-                    />
-                  </div>
-                </Link>
-              ))}
+                    {/* Right image zone (~50% width) ΓÇö transparent PNG cutout */}
+                    <div className="relative w-1/2 h-full pointer-events-none overflow-hidden">
+                      <Image
+                        src={cat.image}
+                        alt={cat.label}
+                        fill
+                        className={`object-contain object-bottom-right p-1.5 drop-shadow-md ${cat.comingSoon ? "" : "transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-1"}`}
+                        sizes="220px"
+                      />
+                    </div>
+
+                    {/* Coming Soon overlay badge */}
+                    {cat.comingSoon && (
+                      <div className="absolute inset-0 bg-[#0D2542]/20 backdrop-blur-[1px] flex items-center justify-center z-20">
+                        <span className="bg-[#0D2542] text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                          Coming Soon
+                        </span>
+                      </div>
+                    )}
+                  </>
+                );
+
+                if (cat.comingSoon) {
+                  return (
+                    <div
+                      key={cat.label}
+                      className="relative rounded-2xl overflow-hidden border border-white/80 shadow-sm flex opacity-60 cursor-default select-none"
+                      style={{ backgroundColor: cat.bg, aspectRatio: "4/3" }}
+                    >
+                      {innerContent}
+                    </div>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={cat.label}
+                    href={cat.href}
+                    className="group relative rounded-2xl overflow-hidden border border-white/80 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg flex"
+                    style={{ backgroundColor: cat.bg, aspectRatio: "4/3" }}
+                  >
+                    {innerContent}
+                  </Link>
+                );
+              })}
             </div>
           </section>
 
-          {/* ── FEATURED PRODUCTS ── */}
+          {/* ΓöÇΓöÇ FEATURED PRODUCTS ΓöÇΓöÇ */}
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-heading font-bold text-[#0D2542] text-xl sm:text-2xl">Featured Products</h2>
@@ -413,7 +448,7 @@ export default function HomePage() {
           </section>
         </div>
 
-        {/* ══════════════ STICKY RIGHT RAIL ══════════════ */}
+        {/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ STICKY RIGHT RAIL ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */}
         <aside className="mt-5 xl:mt-0 xl:sticky xl:top-20 xl:self-start space-y-4">
 
           {/* 1. TODAY'S SPECIAL BANNER */}
@@ -516,25 +551,22 @@ export default function HomePage() {
           <div className="relative rounded-xl overflow-hidden" style={{ minHeight: 140 }}>
             <Image
               src="/banners/produce.jpg"
-              alt="Fresh Fruits & Vegetables"
+              alt="More categories coming soon"
               fill
-              className="object-cover object-right"
+              className="object-cover object-right opacity-60"
               sizes="360px"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-[#1B5E20]/90 via-[#2E7D32]/75 via-50% to-transparent" />
             <div className="relative z-10 p-4 flex flex-col justify-between h-full min-h-[140px] text-white">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-white/80">Fresh Fruits &amp; Vegetables</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-white/80">Coming Soon</p>
                 <h4 className="font-heading font-bold text-lg leading-tight mt-1">
-                  Healthy Life<br />Starts Here
+                  More Categories<br />Coming Soon
                 </h4>
               </div>
-              <Link
-                href="/shop?category=vegetables"
-                className="inline-flex items-center gap-1 bg-white text-[#2E7D32] hover:bg-[#E8F5E9] font-bold text-xs px-3 py-1.5 rounded-full shadow-xs w-fit transition-colors mt-2"
-              >
-                Shop Now <ArrowRight className="h-3 w-3" />
-              </Link>
+              <span className="inline-flex items-center gap-1 bg-white/20 text-white font-semibold text-xs px-3 py-1.5 rounded-full w-fit mt-2">
+                Stay Tuned
+              </span>
             </div>
           </div>
 

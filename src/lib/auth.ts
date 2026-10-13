@@ -1,4 +1,4 @@
-// src/lib/auth.ts — Role-based access control helpers for admin layouts and server actions
+// src/lib/auth.ts ΓÇö Role-based access control helpers for admin layouts and server actions
 
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
@@ -56,7 +56,7 @@ export async function requireAdmin(): Promise<CurrentAdminUser> {
     if (verifyDemoSession(demoCookie, passcode)) {
       return {
         id: "demo-owner-id",
-        email: process.env.SEED_ADMIN_EMAIL || "admin@freshy.lk",
+        email: process.env.ADMIN_BOOTSTRAP_EMAIL || "admin@freshy.lk",
         name: "Freshy Owner (Demo)",
         role: "OWNER",
         isActive: true,

@@ -1,4 +1,4 @@
-// src/actions/checkout.ts — Server action for guest checkout & order creation
+// src/actions/checkout.ts ΓÇö Server action for guest checkout & order creation
 
 "use server";
 
@@ -7,10 +7,13 @@ import { db } from "@/lib/db";
 import { calculatePackPriceCents, getEffectivePricePerKgCents, calculatePrepFeeCents } from "@/lib/pricing";
 import { findZoneForDistrict, calculateDeliveryFee, validateStorageCompatibility, getEarliestDeliveryDate, formatDateYYYYMMDD } from "@/lib/delivery";
 import { reserveStock } from "@/lib/stock";
-import type { StorageType, PaymentMethod, CustomerType } from "@prisma/client";
-import { setDemoOrder } from "@/lib/demo-store";
-
 import { normalizePhone } from "@/lib/constants";
+import type { StorageType, CustomerType, PaymentMethod } from "@prisma/client";
+import { randomBytes } from "crypto";
+
+function generateErrorId(): string {
+  return `ERR-${Date.now().toString(36)}-${randomBytes(3).toString("hex")}`;
+}
 
 const checkoutItemSchema = z.object({
   productId: z.string().uuid(),
@@ -90,43 +93,6 @@ export async function createOrder(input: CheckoutInput): Promise<CheckoutActionR
   try {
     // 1. Validate Zod input
     const parsed = checkoutSchema.parse(input);
-
-    // DEMO_MODE fast-path: skip DB entirely, return synthetic order
-    if (process.env.DEMO_MODE === "true") {
-      const now = new Date();
-      const colomboDateStr = now.toLocaleDateString("en-US", {
-        timeZone: "Asia/Colombo",
-        year: "2-digit",
-        month: "2-digit",
-        day: "2-digit",
-      });
-      const [m, d, y] = colomboDateStr.split("/");
-      const dayKey = `${y}${m}${d}`;
-      const orderNo = `FRS-${dayKey}-DEMO`;
-      // Deterministic token based on idempotency key so same submission returns same token
-      const token = Buffer.from(parsed.idempotencyKey).toString("base64url").slice(0, 24);
-      const trackingToken = `demo-${token}`;
-
-      // Store demo order so /order/[token] can read it without a real DB
-      setDemoOrder(trackingToken, {
-        orderNo,
-        trackingToken,
-        customerName: parsed.customerName,
-        phone: parsed.phone,
-        email: parsed.email ?? null,
-        addressLine1: parsed.addressLine1,
-        addressLine2: parsed.addressLine2 ?? null,
-        city: parsed.city,
-        district: parsed.district,
-        deliveryDate: parsed.deliveryDate,
-        paymentMethod: parsed.paymentMethod,
-        items: parsed.items,
-        createdAt: now.toISOString(),
-      });
-
-      return { status: "SUCCESS", orderNo, trackingToken };
-    }
-
     const normalizedPhone = normalizePhone(parsed.phone);
 
     // 2. Idempotency Check
@@ -186,7 +152,7 @@ export async function createOrder(input: CheckoutInput): Promise<CheckoutActionR
 
     const productMap = new Map(products.map((p) => [p.id, p]));
 
-    // 5. Cold-chain storage compatibility check
+    // 5. Storage compatibility check
     const cartStorageTypes = products.map((p) => p.storageType);
     const storageCheck = validateStorageCompatibility(zone, cartStorageTypes);
     if (!storageCheck.isValid) {
@@ -429,19 +395,34 @@ interface ValidatedItem {
       trackingToken: result.trackingToken,
     };
   } catch (err: unknown) {
+    const errorId = generateErrorId();
+
     if (err instanceof Error && err.message.startsWith("STOCK_OUT:")) {
       const productName = err.message.split("STOCK_OUT:")[1];
+      console.error(`[${errorId}] Stock reservation failed for: ${productName}`);
       return {
-        status: "OUT_OF_STOCK",
-        message: `${productName} is sold out or has insufficient stock available.`,
+        status: "OUT_OF_STOCK" as const,
+        message: `${productName} is sold out or has insufficient stock available. Please try again or call us.`,
         failedProductName: productName,
       };
     }
 
-    console.error("Checkout action error:", err);
+    // Log full error server-side; never expose to customer
+    console.error(`[${errorId}] Checkout action error:`, err);
+
+    // Detect specific failure types from error message
+    const msg = err instanceof Error ? err.message : String(err);
+
+    if (msg.includes("connect") || msg.includes("ECONNREFUSED") || msg.includes("PrismaClient")) {
+      return {
+        status: "ERROR" as const,
+        message: `Service temporarily unavailable. Please try again in a few minutes or call us. (Ref: ${errorId})`,
+      };
+    }
+
     return {
-      status: "ERROR",
-      message: err instanceof Error ? err.message : "An unexpected error occurred during checkout.",
+      status: "ERROR" as const,
+      message: `Something went wrong placing your order. Please try again or call us. (Ref: ${errorId})`,
     };
   }
 }

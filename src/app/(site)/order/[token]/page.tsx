@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { formatMoney } from "@/lib/money";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
-import { getDemoOrder } from "@/lib/demo-store";
 import { Truck, MessageCircle, Calendar } from "lucide-react";
 
 export interface OrderPageProps {
@@ -11,9 +10,6 @@ export interface OrderPageProps {
 
 export const dynamic = "force-dynamic";
 
-// ---------------------------------------------------------------------------
-// Shape shared between real DB order and demo order for rendering
-// ---------------------------------------------------------------------------
 interface RenderableOrder {
   orderNo: string;
   status: string;
@@ -51,65 +47,18 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
 
   let order: RenderableOrder | null = null;
 
-  // Try demo store first (fast, no DB)
-  if (process.env.DEMO_MODE === "true") {
-    const demo = getDemoOrder(token);
-    if (demo) {
-      const subtotalCents = demo.items.reduce(
-        (sum, item) => sum + Math.round((item.cartPricePerKgCents * item.packWeightGrams) / 1000) * item.quantity,
-        0
-      );
-      const deliveryFeeCents = 35000; // default demo fee
-      order = {
-        orderNo: demo.orderNo,
-        status: "PENDING_PAYMENT",
-        paymentStatus: "UNPAID",
-        paymentMethod: demo.paymentMethod,
-        createdAt: new Date(demo.createdAt),
-        deliveryDate: new Date(demo.deliveryDate),
-        customerName: demo.customerName,
-        phone: demo.phone,
-        email: demo.email,
-        addressLine1: demo.addressLine1,
-        addressLine2: demo.addressLine2,
-        city: demo.city,
-        district: demo.district,
-        subtotalCents,
-        prepTotalCents: 0,
-        deliveryFeeCents,
-        totalCents: subtotalCents + deliveryFeeCents,
-        zone: { name: `${demo.district} Zone` },
-        items: demo.items.map((item, idx) => ({
-          id: `demo-item-${idx}`,
-          productName: `Product (${item.productId.slice(0, 8)})`,
-          packLabel: `${item.packWeightGrams >= 1000 ? item.packWeightGrams / 1000 + " kg" : item.packWeightGrams + " g"}`,
-          quantity: item.quantity,
-          pricePerKgCents: item.cartPricePerKgCents,
-          lineTotalCents: Math.round((item.cartPricePerKgCents * item.packWeightGrams) / 1000) * item.quantity,
-          prepFeeCents: 0,
-          prepName: null,
-        })),
-        events: [{ toStatus: "PENDING_PAYMENT", createdAt: new Date(demo.createdAt) }],
-      };
-    }
-  }
-
-  // Fallback to real DB
-  if (!order) {
-    try {
-      const dbOrder = await db.order.findUnique({
-        where: { trackingToken: token },
-        include: {
-          items: true,
-          zone: true,
-          events: { orderBy: { createdAt: "asc" } },
-        },
-      });
-      if (dbOrder) order = dbOrder as unknown as RenderableOrder;
-    } catch (err) {
-      if (process.env.DEMO_MODE !== "true") throw err;
-      console.warn("DB offline in OrderTokenPage fallback:", err);
-    }
+  try {
+    const dbOrder = await db.order.findUnique({
+      where: { trackingToken: token },
+      include: {
+        items: true,
+        zone: true,
+        events: { orderBy: { createdAt: "asc" } },
+      },
+    });
+    if (dbOrder) order = dbOrder as unknown as RenderableOrder;
+  } catch (err) {
+    console.error("DB query failed in OrderTokenPage:", err);
   }
 
   if (!order) {
