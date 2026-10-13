@@ -16,9 +16,9 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Freshy.lk | Fresh Seafood, Fish, Fruits & Vegetables — Sri Lanka",
+  title: "Freshy.lk | Fresh Seafood & Fish - Sri Lanka",
   description:
-    "Order fresh fish, seafood, fruits and vegetables online. Direct from Sri Lankan coastal landings, custom prepped and delivered cold to your door.",
+    "Order fresh fish and seafood online. Direct from Sri Lankan coastal landings, custom prepped and delivered fresh to your door.",
   icons: {
     icon: "/brand/logo.svg",
     shortcut: "/brand/logo.svg",

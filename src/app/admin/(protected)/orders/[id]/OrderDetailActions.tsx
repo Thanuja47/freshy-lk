@@ -66,7 +66,7 @@ export default function OrderDetailActions({
         <button
           type="button"
           disabled={isUpdating}
-          onClick={() => handleStatusChange("PACKED", "Order packed in cold-chain box")}
+          onClick={() => handleStatusChange("PACKED", "Order packed for dispatch")}
           className="px-4 py-2 bg-purple-600 text-white font-bold rounded-lg text-xs hover:bg-purple-700 transition-colors shadow-sm disabled:opacity-50"
         >
           Mark Packed

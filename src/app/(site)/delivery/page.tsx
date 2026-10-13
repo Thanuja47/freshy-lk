@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Truck, Sun, Moon, ShieldCheck, ArrowRight } from "lucide-react";
 
 export const metadata = {
-  title: "Cold-Chain Delivery Zones & 12 PM Cut-off Rule | Freshy.lk",
+  title: "Delivery Zones & 12 PM Cut-off Rule | Freshy.lk",
   description: "Order before 12 PM for same-day delivery in selected areas, next day or later elsewhere.",
 };
 
@@ -23,7 +23,7 @@ const ZONES = [
     cutoff: "12:00 PM",
     leadDays: "1 Day (Next-Day)",
     baseFee: "Rs. 500",
-    storage: "Chilled & Frozen Cold-Chain",
+    storage: "Chilled & Frozen",
   },
   {
     name: "Islandwide Express",
@@ -32,7 +32,7 @@ const ZONES = [
     cutoff: "12:00 PM",
     leadDays: "1 - 2 Days",
     baseFee: "Rs. 650",
-    storage: "Cold-Chain Express",
+    storage: "Express Delivery",
   },
 ];
 
@@ -43,7 +43,7 @@ export default function DeliveryZonesPage() {
       <div className="bg-gradient-to-r from-[#E8F4FE] via-[#EEF8FF] to-white border border-[#DDE8F0] p-6 sm:p-10 rounded-3xl space-y-3 relative overflow-hidden shadow-xs">
         <div className="inline-flex items-center space-x-1.5 bg-white border border-[#1B9AE4]/20 px-3.5 py-1 rounded-full text-xs font-bold text-[#1B9AE4]">
           <Truck className="h-3.5 w-3.5" />
-          <span>COLD-CHAIN COURIER DISPATCH</span>
+          <span>COURIER DISPATCH</span>
         </div>
         <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-[#0D2137]">
           Delivery Zones &amp; Cut-off Rules

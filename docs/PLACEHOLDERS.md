@@ -30,6 +30,12 @@ Per Round 2 directives, unverified promotional claims have been removed and repl
 | "24/7 Support" | Replaced | "WhatsApp Support" (Quick assistance) |
 | "Morning market rates" | Replaced | "Prices updated daily" |
 | "Vacuum Prepped" | Replaced | "Fresh Chilled & Frozen Delivery" |
+| "Cold-Chain Express" | **Removed** | "Fresh Delivery" — ⚠️ client to confirm cold-chain capability |
+| "Cold-Chain Courier" | **Removed** | "Courier Dispatch" — ⚠️ client to confirm |
+| "Direct cold-chain delivery setup" | **Removed** | "Fast delivery across Sri Lanka" — ⚠️ client to confirm |
+| "Chilled & Frozen Cold-Chain" | **Removed** | "Chilled & Frozen" — ⚠️ client to confirm |
+| "Guaranteed Cold-Chain Logistics" | **Removed** | "Reliable Delivery Logistics" — ⚠️ client to confirm |
+| "Order packed in cold-chain box" | **Removed** | "Order packed for dispatch" — ⚠️ client to confirm packaging |
 
 ---
 

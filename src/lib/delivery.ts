@@ -1,4 +1,4 @@
-// src/lib/delivery.ts — delivery fee, zone lookup, cold-chain storage validation, and delivery date/cutoff logic
+// src/lib/delivery.ts - delivery fee, zone lookup, storage validation, and delivery date/cutoff logic
 
 import type { StorageType } from "@prisma/client";
 
@@ -43,7 +43,7 @@ export function calculateDeliveryFee(
 }
 
 /**
- * Validates whether all cart storage types are supported by the zone cold-chain rules.
+ * Validates whether all cart storage types are supported by the zone rules.
  */
 export function validateStorageCompatibility(
   zone: DeliveryZoneLike,

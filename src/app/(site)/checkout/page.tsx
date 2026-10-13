@@ -262,10 +262,15 @@ export default function CheckoutPage() {
       } else if (result.status === "OUT_OF_STOCK" || result.status === "ZONE_STORAGE_BLOCKED") {
         setErrorMessage(result.message);
       } else {
-        setErrorMessage(result.message || "An unexpected error occurred.");
+        setErrorMessage(typeof result.message === "string" ? result.message : "An unexpected error occurred. Please try again or call us.");
       }
     } catch (err: unknown) {
-      setErrorMessage(err instanceof Error ? err.message : "Failed to place order. Please try again.");
+      // Ensure errorMessage is always a plain string (never an object) to avoid React #441
+      const rawMsg = err instanceof Error ? err.message : "";
+      const safeMsg = typeof rawMsg === "string" && rawMsg.length > 0
+        ? rawMsg
+        : "Unable to place your order right now. Please try again or call us.";
+      setErrorMessage(safeMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -276,7 +281,7 @@ export default function CheckoutPage() {
       {/* Page Header */}
       <div className="border-b border-[#DDE8F0] pb-4 space-y-1">
         <h1 className="font-heading font-extrabold text-3xl text-[#0D2137]">Express Checkout</h1>
-        <p className="text-xs sm:text-sm text-[#0D2137]/70">No account required. Direct cold-chain delivery setup.</p>
+        <p className="text-xs sm:text-sm text-[#0D2137]/70">No account required. Fast delivery across Sri Lanka.</p>
       </div>
 
       {/* 3-Step Indicator Bar */}
@@ -730,7 +735,7 @@ export default function CheckoutPage() {
 
             <p className="text-center text-[11px] text-[#0D2137]/60 mt-2 flex items-center justify-center space-x-1">
               <Lock className="h-3.5 w-3.5 text-[#1B9AE4]" />
-              <span>Safe &amp; Secure Checkout • Cold-Chain Express</span>
+              <span>Safe &amp; Secure Checkout • Fresh Delivery</span>
             </p>
           </div>
         </div>

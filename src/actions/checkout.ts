@@ -9,6 +9,11 @@ import { findZoneForDistrict, calculateDeliveryFee, validateStorageCompatibility
 import { reserveStock } from "@/lib/stock";
 import { normalizePhone } from "@/lib/constants";
 import type { StorageType, CustomerType, PaymentMethod } from "@prisma/client";
+import { randomBytes } from "crypto";
+
+function generateErrorId(): string {
+  return `ERR-${Date.now().toString(36)}-${randomBytes(3).toString("hex")}`;
+}
 
 const checkoutItemSchema = z.object({
   productId: z.string().uuid(),
@@ -147,7 +152,7 @@ export async function createOrder(input: CheckoutInput): Promise<CheckoutActionR
 
     const productMap = new Map(products.map((p) => [p.id, p]));
 
-    // 5. Cold-chain storage compatibility check
+    // 5. Storage compatibility check
     const cartStorageTypes = products.map((p) => p.storageType);
     const storageCheck = validateStorageCompatibility(zone, cartStorageTypes);
     if (!storageCheck.isValid) {
@@ -390,19 +395,34 @@ interface ValidatedItem {
       trackingToken: result.trackingToken,
     };
   } catch (err: unknown) {
+    const errorId = generateErrorId();
+
     if (err instanceof Error && err.message.startsWith("STOCK_OUT:")) {
       const productName = err.message.split("STOCK_OUT:")[1];
+      console.error(`[${errorId}] Stock reservation failed for: ${productName}`);
       return {
-        status: "OUT_OF_STOCK",
-        message: `${productName} is sold out or has insufficient stock available.`,
+        status: "OUT_OF_STOCK" as const,
+        message: `${productName} is sold out or has insufficient stock available. Please try again or call us.`,
         failedProductName: productName,
       };
     }
 
-    console.error("Checkout action error:", err);
+    // Log full error server-side; never expose to customer
+    console.error(`[${errorId}] Checkout action error:`, err);
+
+    // Detect specific failure types from error message
+    const msg = err instanceof Error ? err.message : String(err);
+
+    if (msg.includes("connect") || msg.includes("ECONNREFUSED") || msg.includes("PrismaClient")) {
+      return {
+        status: "ERROR" as const,
+        message: `Service temporarily unavailable. Please try again in a few minutes or call us. (Ref: ${errorId})`,
+      };
+    }
+
     return {
-      status: "ERROR",
-      message: err instanceof Error ? err.message : "An unexpected error occurred during checkout.",
+      status: "ERROR" as const,
+      message: `Something went wrong placing your order. Please try again or call us. (Ref: ${errorId})`,
     };
   }
 }

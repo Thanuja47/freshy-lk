@@ -16,8 +16,6 @@ import {
   X,
   ChevronDown,
   Fish,
-  Leaf,
-  Apple,
   Tag,
   Mail,
 } from "lucide-react";
@@ -36,8 +34,6 @@ const NAV_LINKS = [
     ],
   },
   { label: "Fish", href: "/shop?category=fish", icon: Fish },
-  { label: "Fruits", href: "/shop?category=fruits", icon: Apple },
-  { label: "Vegetables", href: "/shop?category=vegetables", icon: Leaf },
   { label: "Offers", href: "/shop?deals=true", icon: Tag },
   { label: "Contact", href: "/contact", icon: Mail },
 ];
@@ -155,7 +151,7 @@ export default function Header() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for fresh fish, fruits, vegetables..."
+                placeholder="Search for fresh fish, seafood..."
                 className="w-full pl-4 pr-14 py-2.5 bg-[#F0F7FF] border border-[#DDE8F0] rounded-full text-sm text-[#0D2137] placeholder-[#0D2137]/40 focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] focus:bg-white transition-all"
               />
               <button
@@ -280,7 +276,7 @@ export default function Header() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search fish, seafood, vegetables..."
+                placeholder="Search fish, seafood..."
                 className="w-full pl-4 pr-12 py-2.5 bg-[#F0F7FF] border border-[#DDE8F0] rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#1B9AE4]"
               />
               <button

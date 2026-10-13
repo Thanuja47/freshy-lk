@@ -41,8 +41,8 @@ export default function Footer() {
             <li><Link href="/shop" className="hover:text-white transition-colors">Shop Today&apos;s Catch</Link></li>
             <li><Link href="/shop?category=fish" className="hover:text-white transition-colors">Fresh Fish</Link></li>
             <li><Link href="/shop?category=seafood" className="hover:text-white transition-colors">Seafood &amp; Shellfish</Link></li>
-            <li><Link href="/shop?category=fruits" className="hover:text-white transition-colors">Fruits</Link></li>
-            <li><Link href="/shop?category=vegetables" className="hover:text-white transition-colors">Vegetables</Link></li>
+            <li><span className="text-gray-500 cursor-default">Fruits (Coming Soon)</span></li>
+            <li><span className="text-gray-500 cursor-default">Vegetables (Coming Soon)</span></li>
             <li><Link href="/shop?deals=true" className="hover:text-white transition-colors">Offers &amp; Deals</Link></li>
             <li><Link href="/wholesale" className="hover:text-white transition-colors">Wholesale &amp; B2B</Link></li>
           </ul>

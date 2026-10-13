@@ -170,7 +170,7 @@ export default function CartPage() {
           </select>
           <p className="text-xs text-[#27A04E] font-bold flex items-center space-x-1">
             <ShieldCheck className="h-4 w-4" />
-            <span>Estimated delivery to {selectedDistrict}: 1 - 2 Days Cold-Chain Courier</span>
+            <span>Estimated delivery to {selectedDistrict}: 1 - 2 Days</span>
           </p>
         </div>
 
