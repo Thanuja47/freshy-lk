@@ -36,9 +36,10 @@ export const envSchema = z.object({
   DATABASE_URL: z.string().optional().or(z.literal("")),
   DIRECT_URL: z.string().optional().or(z.literal("")),
 
-  // Seed
-  SEED_ADMIN_EMAIL: z.string().email().optional().or(z.literal("")),
-  SEED_ADMIN_PASSWORD: z.string().optional().or(z.literal("")),
+  // Seed bootstrap (no password field — passwords live in Supabase Auth only)
+  ADMIN_BOOTSTRAP_EMAIL: z.string().email().optional().or(z.literal("")),
+  ADMIN_BOOTSTRAP_NAME: z.string().optional().or(z.literal("")),
+  ADMIN_BOOTSTRAP_AUTH_ID: z.string().optional().or(z.literal("")),
 
   // PayHere
   PAYHERE_MODE: z.enum(["sandbox", "live"]).default("sandbox"),
@@ -96,6 +97,28 @@ function getParsed(): Env {
       "SECURITY RISK: DEMO_MODE cannot be enabled in production environment."
     );
   }
+
+  // Production required variables check.
+  // Key ONLY on NEXT_PUBLIC_APP_ENV — never on NODE_ENV.
+  // Vercel previews have NODE_ENV=production but APP_ENV=preview, so they
+  // must NOT trigger the production hard-fail.
+  const isProductionAppEnv = result.data.NEXT_PUBLIC_APP_ENV === "production";
+
+  if (isProductionAppEnv) {
+    const requiredProdVars: (keyof Env)[] = [
+      "DATABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY",
+    ];
+    const missing = requiredProdVars.filter((key) => !result.data[key]);
+    if (missing.length > 0) {
+      throw new Error(
+        `Production startup failed: Required production environment variables are missing:\n  ${missing.join(", ")}`
+      );
+    }
+  }
+
   _parsed = result.data;
   return _parsed;
 }

@@ -8,7 +8,8 @@
  */
 export async function register() {
   // Only validate on the Node.js runtime (not in the Edge runtime).
-  if (process.env.NEXT_RUNTIME === "nodejs") {
+  // In Next.js standalone server, NEXT_RUNTIME is undefined or 'nodejs' (never 'edge').
+  if (process.env.NEXT_RUNTIME === "nodejs" || !process.env.NEXT_RUNTIME) {
     const { validateEnv } = await import("@/lib/env");
     validateEnv();
   }

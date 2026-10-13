@@ -37,21 +37,18 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 describe("Security & Authentication - requireAdmin", () => {
-  const originalEnv = { ...process.env };
-
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
-    process.env = { ...originalEnv };
   });
 
   afterEach(() => {
-    process.env = originalEnv;
+    vi.unstubAllEnvs();
   });
 
   it("(a) DB error in production must not grant admin access and rethrow DB error", async () => {
-    process.env.DEMO_MODE = "false";
-    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    vi.stubEnv("DEMO_MODE", "false");
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "production");
     mockGetUser.mockResolvedValueOnce({ data: { user: { email: "admin@freshy.lk" } } });
     mockDbAdminUserFindUnique.mockRejectedValueOnce(new Error("Database connection error"));
 
@@ -61,9 +58,9 @@ describe("Security & Authentication - requireAdmin", () => {
   });
 
   it("(b) DEMO_MODE=true without correct passcode cookie must deny access and redirect to login", async () => {
-    process.env.DEMO_MODE = "true";
-    process.env.DEMO_ADMIN_PASSCODE = "secret-passcode-123";
-    process.env.NEXT_PUBLIC_APP_ENV = "development";
+    vi.stubEnv("DEMO_MODE", "true");
+    vi.stubEnv("DEMO_ADMIN_PASSCODE", "secret-passcode-123");
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "development");
     mockGetUser.mockResolvedValueOnce({ data: { user: null } });
     mockGetCookie.mockReturnValue(undefined); // No passcode cookie
 
@@ -73,9 +70,9 @@ describe("Security & Authentication - requireAdmin", () => {
   });
 
   it("(c) DEMO_MODE=true with correct passcode cookie must return demo admin user", async () => {
-    process.env.DEMO_MODE = "true";
-    process.env.DEMO_ADMIN_PASSCODE = "secret-passcode-123";
-    process.env.NEXT_PUBLIC_APP_ENV = "development";
+    vi.stubEnv("DEMO_MODE", "true");
+    vi.stubEnv("DEMO_ADMIN_PASSCODE", "secret-passcode-123");
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "development");
     mockGetUser.mockResolvedValueOnce({ data: { user: null } });
 
     const validToken = signDemoSession("secret-passcode-123");
@@ -90,8 +87,8 @@ describe("Security & Authentication - requireAdmin", () => {
   });
 
   it("(d) DEMO_MODE=true + NEXT_PUBLIC_APP_ENV=production must throw error when env is accessed", async () => {
-    process.env.DEMO_MODE = "true";
-    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    vi.stubEnv("DEMO_MODE", "true");
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "production");
 
     const { env, _resetEnvCacheForTests } = await import("@/lib/env");
     _resetEnvCacheForTests();

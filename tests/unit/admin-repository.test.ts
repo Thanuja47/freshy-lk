@@ -19,6 +19,12 @@ describe("admin-repository: production guard", () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("NEXT_PUBLIC_APP_ENV", "production");
     vi.stubEnv("ENABLE_DEV_FIXTURE", "true");
+    // Satisfy env.ts production required-var check so the fixture guard's own
+    // error is what gets thrown (not the env validation error).
+    vi.stubEnv("DATABASE_URL", "postgresql://user:pass@host/db");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://abc.supabase.co");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon-key");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "service-role-key");
     vi.resetModules();
 
     const { assertFixtureNotInProduction } = await import("@/lib/admin-repository");

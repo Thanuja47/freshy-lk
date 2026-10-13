@@ -10,9 +10,13 @@
  *  5. DEMO_MODE + production env throws the security error.
  *  6. The Proxy blocks writes.
  *  7. _resetEnvCacheForTests() clears the cache between scenarios.
+ *
+ * NOTE: We NEVER directly assign process.env.NODE_ENV because it is a
+ * read-only property. We use vi.stubEnv() for all env mutations so that
+ * vi.unstubAllEnvs() in afterEach restores them cleanly.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   envSchema,
   validateEnv,
@@ -21,20 +25,12 @@ import {
 } from "@/lib/env";
 
 describe("env.ts — lazy runtime validation", () => {
-  // Save the real env and restore after each test.
-  let savedEnv: Record<string, string | undefined>;
-
   beforeEach(() => {
-    savedEnv = { ...process.env };
     _resetEnvCacheForTests();
   });
 
   afterEach(() => {
-    // Restore every key we might have mutated.
-    for (const key of Object.keys(process.env)) {
-      if (!(key in savedEnv)) delete process.env[key];
-    }
-    Object.assign(process.env, savedEnv);
+    vi.unstubAllEnvs();
     _resetEnvCacheForTests();
   });
 
@@ -50,11 +46,15 @@ describe("env.ts — lazy runtime validation", () => {
   // 2. Lazy proxy returns defaults.
   // -------------------------------------------------------------------------
   it("env Proxy returns schema defaults when vars are absent", () => {
-    // Remove vars that have defaults so we exercise them.
-    delete process.env.NEXT_PUBLIC_APP_ENV;
-    delete process.env.PAYHERE_MODE;
-    delete process.env.CRON_SECRET;
-    delete process.env.DEMO_MODE;
+    // Delete keys that have schema defaults so we can exercise the defaults.
+    // vi.stubEnv with undefined removes the key; empty string is still a value
+    // and would fail enum validation. Use delete on process.env directly for
+    // keys that must be absent (not merely empty).
+    // vi.unstubAllEnvs() in afterEach restores them.
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", undefined as unknown as string);
+    vi.stubEnv("PAYHERE_MODE", undefined as unknown as string);
+    vi.stubEnv("CRON_SECRET", undefined as unknown as string);
+    vi.stubEnv("DEMO_MODE", undefined as unknown as string);
     _resetEnvCacheForTests();
 
     expect(env.NEXT_PUBLIC_APP_ENV).toBe("development");
@@ -67,9 +67,14 @@ describe("env.ts — lazy runtime validation", () => {
   // 3. validateEnv() succeeds with valid env.
   // -------------------------------------------------------------------------
   it("validateEnv() does not throw with valid env vars", () => {
-    process.env.NEXT_PUBLIC_SITE_URL = "https://freshy.lk";
-    process.env.NEXT_PUBLIC_APP_ENV = "production";
-    process.env.DEMO_MODE = "false";
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://freshy.lk");
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "production");
+    vi.stubEnv("DEMO_MODE", "false");
+    // Production mode requires these vars to be present:
+    vi.stubEnv("DATABASE_URL", "postgresql://user:pass@host/db");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://abc.supabase.co");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon-key-value");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "service-role-key-value");
     _resetEnvCacheForTests();
 
     expect(() => validateEnv()).not.toThrow();
@@ -79,26 +84,27 @@ describe("env.ts — lazy runtime validation", () => {
   // 4. validateEnv() throws for invalid values.
   // -------------------------------------------------------------------------
   it("validateEnv() throws 'Environment validation failed' for invalid SITE_URL", () => {
-    process.env.NEXT_PUBLIC_SITE_URL = "not-a-valid-url";
-    process.env.NEXT_PUBLIC_APP_ENV = "development";
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "not-a-valid-url");
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "development");
     _resetEnvCacheForTests();
 
     expect(() => validateEnv()).toThrow("Environment validation failed");
   });
 
   it("validateEnv() throws for unknown NEXT_PUBLIC_APP_ENV value", () => {
-    process.env.NEXT_PUBLIC_APP_ENV = "staging"; // not in enum
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "staging"); // not in enum
     _resetEnvCacheForTests();
 
     expect(() => validateEnv()).toThrow("Environment validation failed");
   });
 
   // -------------------------------------------------------------------------
-  // 5. DEMO_MODE + production is a security error; preview is allowed even with NODE_ENV=production.
+  // 5. DEMO_MODE + production is a security error;
+  //    preview is allowed even with NODE_ENV=production (Vercel preview).
   // -------------------------------------------------------------------------
   it("validateEnv() throws security error when DEMO_MODE=true in production", () => {
-    process.env.DEMO_MODE = "true";
-    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    vi.stubEnv("DEMO_MODE", "true");
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "production");
     _resetEnvCacheForTests();
 
     expect(() => validateEnv()).toThrow(
@@ -106,19 +112,21 @@ describe("env.ts — lazy runtime validation", () => {
     );
   });
 
-  it("DEMO_MODE=true is allowed in preview even when NODE_ENV=production, but strictly refused in production", () => {
-    // Vercel previews run with NODE_ENV=production, but NEXT_PUBLIC_APP_ENV=preview
-    process.env.NODE_ENV = "production";
-    process.env.NEXT_PUBLIC_APP_ENV = "preview";
-    process.env.DEMO_MODE = "true";
+  it("DEMO_MODE=true is allowed in preview even when NODE_ENV=production", () => {
+    // Vercel previews run with NODE_ENV=production but NEXT_PUBLIC_APP_ENV=preview.
+    // vi.stubEnv handles NODE_ENV safely (no TS2540).
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "preview");
+    vi.stubEnv("DEMO_MODE", "true");
     _resetEnvCacheForTests();
 
     expect(() => validateEnv()).not.toThrow();
     expect(env.DEMO_MODE).toBe(true);
+  });
 
-    // In actual production (NEXT_PUBLIC_APP_ENV=production), DEMO_MODE=true must fail loudly
-    process.env.NEXT_PUBLIC_APP_ENV = "production";
-    process.env.DEMO_MODE = "true";
+  it("DEMO_MODE=true is strictly refused when NEXT_PUBLIC_APP_ENV=production", () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "production");
+    vi.stubEnv("DEMO_MODE", "true");
     _resetEnvCacheForTests();
 
     expect(() => validateEnv()).toThrow(

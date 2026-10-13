@@ -4,15 +4,12 @@ import { checkDemoLoginRateLimit, resetDemoLoginRateLimit } from "@/lib/demo-rat
 import { POST } from "@/app/api/admin/demo-login/route";
 
 describe("Hardened Demo Login & Session Security", () => {
-  const originalEnv = { ...process.env };
-
   beforeEach(() => {
-    process.env = { ...originalEnv };
     resetDemoLoginRateLimit();
   });
 
   afterEach(() => {
-    process.env = originalEnv;
+    vi.unstubAllEnvs();
   });
 
   describe("timingSafeCompare", () => {
@@ -29,7 +26,7 @@ describe("Hardened Demo Login & Session Security", () => {
 
   describe("DEMO_HMAC_SECRET and 2-Hour Max Age", () => {
     it("should sign and verify token using DEMO_HMAC_SECRET", () => {
-      process.env.DEMO_HMAC_SECRET = "custom-32-char-hmac-secret-key-12345";
+      vi.stubEnv("DEMO_HMAC_SECRET", "custom-32-char-hmac-secret-key-12345");
       const passcode = "passcode123";
 
       const token = signDemoSession(passcode);
@@ -37,7 +34,7 @@ describe("Hardened Demo Login & Session Security", () => {
     });
 
     it("should reject token if HMAC signature is tampered", () => {
-      process.env.DEMO_HMAC_SECRET = "custom-32-char-hmac-secret-key-12345";
+      vi.stubEnv("DEMO_HMAC_SECRET", "custom-32-char-hmac-secret-key-12345");
       const passcode = "passcode123";
 
       const token = signDemoSession(passcode);
@@ -46,7 +43,7 @@ describe("Hardened Demo Login & Session Security", () => {
     });
 
     it("should reject token older than 2 hours", () => {
-      process.env.DEMO_HMAC_SECRET = "custom-32-char-hmac-secret-key-12345";
+      vi.stubEnv("DEMO_HMAC_SECRET", "custom-32-char-hmac-secret-key-12345");
       const passcode = "passcode123";
 
       // Mock Date.now to 3 hours in the past
@@ -78,8 +75,8 @@ describe("Hardened Demo Login & Session Security", () => {
 
   describe("Demo Login Route Handler & Cookie Security", () => {
     it("should enforce rate limiting on POST /api/admin/demo-login", async () => {
-      process.env.DEMO_MODE = "true";
-      process.env.DEMO_ADMIN_PASSCODE = "correct-passcode";
+      vi.stubEnv("DEMO_MODE", "true");
+      vi.stubEnv("DEMO_ADMIN_PASSCODE", "correct-passcode");
       const clientIp = "10.0.0.5";
 
       // Simulate 5 failed attempts
@@ -112,9 +109,9 @@ describe("Hardened Demo Login & Session Security", () => {
     });
 
     it("should set httpOnly, SameSite=Lax, 2-hour maxAge cookie on successful login", async () => {
-      process.env.DEMO_MODE = "true";
-      process.env.DEMO_ADMIN_PASSCODE = "correct-passcode";
-      process.env.DEMO_HMAC_SECRET = "test-hmac-secret-key-32-chars-long";
+      vi.stubEnv("DEMO_MODE", "true");
+      vi.stubEnv("DEMO_ADMIN_PASSCODE", "correct-passcode");
+      vi.stubEnv("DEMO_HMAC_SECRET", "test-hmac-secret-key-32-chars-long");
 
       const req = new Request("https://freshy.lk/api/admin/demo-login", {
         method: "POST",

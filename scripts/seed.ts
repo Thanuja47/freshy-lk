@@ -2,10 +2,36 @@
 // Populates: categories, prep options, delivery zones, system settings, admin user.
 // Safe to run in ALL environments including production.
 // Does NOT insert demo products or demo prices (see scripts/seed-demo.ts).
+//
+// Admin bootstrap env vars (required in production):
+//   ADMIN_BOOTSTRAP_EMAIL  — email address of the initial owner account
+//   ADMIN_BOOTSTRAP_NAME   — display name (optional, defaults to "Freshy Owner")
+//   ADMIN_BOOTSTRAP_AUTH_ID — Supabase Auth UID of the pre-created user (required in production)
+//
+// NOTE: No password is ever accepted or stored by this script.
+//       The admin password is set exclusively through Supabase Auth
+//       (Supabase dashboard / invite email / password-reset flow).
 
 import "dotenv/config";
 import { db } from "../src/lib/db";
 import { SRI_LANKA_DISTRICTS } from "../src/lib/constants";
+
+const APP_ENV = process.env.NEXT_PUBLIC_APP_ENV ?? "development";
+const ADMIN_EMAIL   = process.env.ADMIN_BOOTSTRAP_EMAIL;
+const ADMIN_NAME    = process.env.ADMIN_BOOTSTRAP_NAME ?? "Freshy Owner";
+const ADMIN_AUTH_ID = process.env.ADMIN_BOOTSTRAP_AUTH_ID;
+
+// In production the caller must supply real credentials; fail fast.
+if (APP_ENV === "production") {
+  if (!ADMIN_EMAIL) {
+    console.error("❌  seed: ADMIN_BOOTSTRAP_EMAIL is required when NEXT_PUBLIC_APP_ENV=production.");
+    process.exit(1);
+  }
+  if (!ADMIN_AUTH_ID) {
+    console.error("❌  seed: ADMIN_BOOTSTRAP_AUTH_ID is required when NEXT_PUBLIC_APP_ENV=production.");
+    process.exit(1);
+  }
+}
 
 async function main() {
   console.log("🌱 Seeding reference data (categories, prep options, zones, settings)…");
@@ -157,13 +183,23 @@ async function main() {
   });
 
   // ── 5. Admin User (bootstrap) ─────────────────────────────────────────────────
+  // Email and Supabase Auth UID come from env vars (never hard-coded).
+  // In development, sensible placeholder values are used so the script can
+  // run without env vars for quick local setup.
+  const adminEmail  = ADMIN_EMAIL   ?? "admin@freshy.lk";   // dev placeholder only
+  const adminAuthId = ADMIN_AUTH_ID ?? "dev-owner-placeholder-id"; // dev placeholder only
+
+  // Never log the password — there is no password in this record.
+  // The admin password is managed entirely by Supabase Auth.
+  console.log(`  → Upserting admin user: ${adminEmail} (name: "${ADMIN_NAME}")`);
+
   await db.adminUser.upsert({
-    where:  { email: "admin@freshy.lk" },
-    update: { role: "OWNER", isActive: true },
+    where:  { email: adminEmail },
+    update: { role: "OWNER", isActive: true, name: ADMIN_NAME },
     create: {
-      authUserId: "demo-owner-id",
-      email:      "admin@freshy.lk",
-      name:       "Freshy Owner",
+      authUserId: adminAuthId,
+      email:      adminEmail,
+      name:       ADMIN_NAME,
       role:       "OWNER",
       isActive:   true,
     },

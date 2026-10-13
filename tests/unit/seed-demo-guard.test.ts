@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { execFileSync, spawnSync } from "child_process";
+import { spawnSync } from "child_process";
 import * as path from "path";
 import * as os from "os";
 import * as fs from "fs";

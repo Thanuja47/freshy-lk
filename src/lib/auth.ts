@@ -56,7 +56,7 @@ export async function requireAdmin(): Promise<CurrentAdminUser> {
     if (verifyDemoSession(demoCookie, passcode)) {
       return {
         id: "demo-owner-id",
-        email: process.env.SEED_ADMIN_EMAIL || "admin@freshy.lk",
+        email: process.env.ADMIN_BOOTSTRAP_EMAIL || "admin@freshy.lk",
         name: "Freshy Owner (Demo)",
         role: "OWNER",
         isActive: true,
