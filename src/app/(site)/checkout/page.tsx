@@ -80,7 +80,7 @@ export default function CheckoutPage() {
   const [idempotencyKey, setIdempotencyKey] = useState<string>(() =>
     typeof window !== "undefined" && window.crypto?.randomUUID
       ? window.crypto.randomUUID()
-      : Math.random().toString(36).slice(2)
+      : `retry-${Date.now().toString(36)}`
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -158,12 +158,6 @@ export default function CheckoutPage() {
   const earliestDate = activeZone ? getEarliestDeliveryDate(activeZone) : new Date();
   const earliestDateYMD = formatDateYYYYMMDD(earliestDate);
 
-  useEffect(() => {
-    if (earliestDateYMD && (!deliveryDate || deliveryDate < earliestDateYMD)) {
-      setDeliveryDate(earliestDateYMD);
-    }
-  }, [earliestDateYMD, deliveryDate]);
-
   // Live countdown check
   const countdown = activeZone ? getCutoffCountdown(activeZone.cutoffTime || "12:00") : null;
   const cutoffRuleMessage = getDeliveryCutoffMessage(activeZone, earliestDate);
@@ -196,7 +190,7 @@ export default function CheckoutPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-6">
         <div className="w-20 h-20 bg-[#E8F4FE] text-[#1B9AE4] rounded-3xl flex items-center justify-center mx-auto shadow-xs border border-[#1B9AE4]/20">
-          🛒
+          ðŸ›’
         </div>
         <h1 className="font-heading font-extrabold text-3xl text-[#0D2137]">Your Cart is Empty</h1>
         <p className="text-xs sm:text-sm text-[#0D2137]/70">Please add fresh fish to your cart before proceeding to checkout.</p>
@@ -225,7 +219,9 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      const activeDeliveryDate = overrideDeliveryDate || deliveryDate;
+      const activeDeliveryDate =
+        overrideDeliveryDate ||
+        (earliestDateYMD && deliveryDate < earliestDateYMD ? earliestDateYMD : deliveryDate);
       const activeIdempotencyKey = overrideIdempotencyKey || idempotencyKey;
       const payload: CheckoutInput = {
         customerName,
@@ -351,9 +347,7 @@ export default function CheckoutPage() {
             type="button"
             onClick={(e) => {
               const newDate = deliveryDateChangedNotice.newEarliestDate;
-              const newIdemKey = typeof window !== "undefined" && window.crypto?.randomUUID
-                ? window.crypto.randomUUID()
-                : Math.random().toString(36).slice(2);
+              const newIdemKey = window.crypto.randomUUID();
               setDeliveryDate(newDate);
               setIdempotencyKey(newIdemKey);
               setDeliveryDateChangedNotice(null);
@@ -368,7 +362,7 @@ export default function CheckoutPage() {
 
       {errorMessage && (
         <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-start gap-3 text-sm">
-          <span className="text-xl">⚠️</span>
+          <span className="text-xl">âš ï¸</span>
           <div>
             <p className="font-bold">Unable to complete checkout</p>
             <p className="text-xs text-red-600">{errorMessage}</p>
@@ -387,16 +381,14 @@ export default function CheckoutPage() {
           <button
             type="button"
             onClick={(e) => {
-              const newIdemKey = typeof window !== "undefined" && window.crypto?.randomUUID
-                ? window.crypto.randomUUID()
-                : Math.random().toString(36).slice(2);
+              const newIdemKey = window.crypto.randomUUID();
               setIdempotencyKey(newIdemKey);
               setPriceChangeNotice(null);
               handleSubmit(e, deliveryDate, newIdemKey);
             }}
             className="px-5 py-2.5 bg-amber-800 text-white rounded-xl text-xs font-bold hover:bg-amber-900 transition-colors"
           >
-            I Accept Updated Prices — Place Order
+            I Accept Updated Prices &mdash; Place Order
           </button>
         </div>
       )}
@@ -793,7 +785,7 @@ export default function CheckoutPage() {
 
             <p className="text-center text-[11px] text-[#0D2137]/60 mt-2 flex items-center justify-center space-x-1">
               <Lock className="h-3.5 w-3.5 text-[#1B9AE4]" />
-              <span>Safe &amp; Secure Checkout • Fresh Delivery</span>
+              <span>Safe &amp; Secure Checkout &bull; Fresh Delivery</span>
             </p>
           </div>
         </div>
@@ -801,3 +793,5 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+
