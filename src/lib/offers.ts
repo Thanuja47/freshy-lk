@@ -1,3 +1,5 @@
+import { roundPriceCents } from "./money";
+
 /**
  * Offer pricing helpers.
  *
@@ -35,7 +37,7 @@ export function isOfferActive(product: ProductOfferFields): boolean {
 /** Returns the offer-reduced price per kg in cents. Asserts offer is active before calling. */
 export function getOfferPricePerKgCents(product: ProductOfferFields): number {
   const pct = product.offerPercent ?? 0;
-  return Math.round(product.pricePerKgCents * (1 - pct / 100));
+  return roundPriceCents(product.pricePerKgCents * (1 - pct / 100));
 }
 
 export interface EffectivePrice {

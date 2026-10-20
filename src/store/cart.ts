@@ -86,6 +86,19 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: "freshy_lk_cart",
+      version: 2,
+      migrate: (persistedState: unknown, version: number) => {
+        if (version < 2 && persistedState && typeof persistedState === "object") {
+          const state = persistedState as { items?: CartItem[] };
+          // Filter out stale non-UUID items from previous schema
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          const validItems = (state.items ?? []).filter((item) =>
+            uuidRegex.test(item.productId)
+          );
+          return { ...state, items: validItems };
+        }
+        return persistedState as CartStore;
+      },
     }
   )
 );

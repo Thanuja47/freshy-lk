@@ -1,4 +1,4 @@
-import { roundToNearestRupee } from "./money";
+import { roundPriceCents } from "./money";
 
 export interface PackInput {
   weightGrams: number;
@@ -19,11 +19,11 @@ export interface CartLineInput {
 }
 
 /**
- * Calculate Pack Price: (pricePerKgCents * weightGrams / 1000) rounded to nearest 100 cents (whole rupee)
+ * Calculate Pack Price: (pricePerKgCents * weightGrams / 1000) rounded with shared rule (cents precision)
  */
 export function calculatePackPriceCents(pricePerKgCents: number, weightGrams: number): number {
   const rawCents = (pricePerKgCents * weightGrams) / 1000;
-  return roundToNearestRupee(rawCents);
+  return roundPriceCents(rawCents);
 }
 
 /**
@@ -70,7 +70,7 @@ export function calculatePrepFeeCents(
 
   // PER_KG: fee * (pack weight in kg) * quantity
   const rawFee = feeCents * (weightGrams / 1000) * quantity;
-  return roundToNearestRupee(rawFee);
+  return roundPriceCents(rawFee);
 }
 
 /**

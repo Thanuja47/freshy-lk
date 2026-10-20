@@ -6,19 +6,19 @@ import { Search, ArrowUpDown, Sparkles } from "lucide-react";
 
 const ALL_PRODUCTS = [
   {
-    id: "1",
+    id: "61af5f38-2383-4191-9d7c-5a612605930d",
     slug: "yellowfin-tuna",
     name: "Yellowfin Tuna",
     localName: "Kelawalla",
-    pricePerKgCents: 180000,
-    offerPercent: null,
+    pricePerKgCents: 165000,
+    offerPercent: 15,
     storageType: "FRESH" as const,
     isAvailable: true,
     category: "fish",
     imageUrl: "/products/yellowfin-tuna.jpg",
   },
   {
-    id: "2",
+    id: "95780d5f-3bb2-4d35-abd6-ab90f728243d",
     slug: "skipjack-tuna",
     name: "Skipjack Tuna",
     localName: "Balaya",
@@ -30,7 +30,7 @@ const ALL_PRODUCTS = [
     imageUrl: "/products/skipjack-tuna.jpg",
   },
   {
-    id: "3",
+    id: "ac49d9d9-376b-4af5-95dc-0f3b52651b0a",
     slug: "seer-fish",
     name: "Seer Fish",
     localName: "Thora",
@@ -42,7 +42,7 @@ const ALL_PRODUCTS = [
     imageUrl: "/products/seer-fish.jpg",
   },
   {
-    id: "4",
+    id: "1cf72daa-aa72-4b73-9350-37969180272e",
     slug: "trevally",
     name: "Trevally",
     localName: "Paraw",
@@ -54,7 +54,7 @@ const ALL_PRODUCTS = [
     imageUrl: "/products/trevally-paraw.jpg",
   },
   {
-    id: "5",
+    id: "cfc32b9f-e856-404c-92ad-bd124f4ebad3",
     slug: "tiger-prawns",
     name: "Tiger Prawns",
     localName: "Isso",
@@ -66,7 +66,7 @@ const ALL_PRODUCTS = [
     imageUrl: "/products/jumbo-tiger-prawns.jpg",
   },
   {
-    id: "6",
+    id: "98880f3d-cb1a-4087-896b-ea5aeb7ee861",
     slug: "mud-crab",
     name: "Mud Crab",
     localName: "Kakuluwo",
@@ -78,7 +78,7 @@ const ALL_PRODUCTS = [
     imageUrl: "/products/lagoon-mud-crab.jpg",
   },
   {
-    id: "7",
+    id: "6dd25d7b-b9d9-4e94-9d6a-4e8004ffc63a",
     slug: "cuttlefish",
     name: "Cuttlefish",
     localName: "Dallo",
@@ -90,7 +90,7 @@ const ALL_PRODUCTS = [
     imageUrl: "/products/cuttlefish-dallo.jpg",
   },
   {
-    id: "8",
+    id: "09f8235d-fb4b-4930-9075-79818d473be2",
     slug: "sprats",
     name: "Sprats",
     localName: "Hurulla",

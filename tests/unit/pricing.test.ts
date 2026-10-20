@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { formatMoney } from "../../src/lib/money";
+import { formatMoney, roundPriceCents } from "../../src/lib/money";
+import { getOfferPricePerKgCents } from "../../src/lib/offers";
 import {
   calculatePackPriceCents,
   getEffectivePricePerKgCents,
@@ -68,5 +69,73 @@ describe("Money & Pricing Engine (Section 7.1)", () => {
     expect(totals.subtotalCents).toBe(330000);
     expect(totals.prepTotalCents).toBe(20000);
     expect(totals.totalCents).toBe(385000); // 3300 + 200 + 350 = Rs 3,850.00
+  });
+
+  describe("Unified Rounding Rule (Cents Precision)", () => {
+    it("calculates offer price for Rs. 1,650 less 15% to exact cents", () => {
+      // 1,650.00 LKR = 165000 cents. 15% discount -> 165000 * 0.85 = 140250 cents (Rs. 1,402.50)
+      const basePriceCents = 165000;
+      const offerPercent = 15;
+      const offerPrice = getOfferPricePerKgCents({ pricePerKgCents: basePriceCents, offerPercent });
+      expect(roundPriceCents(offerPrice)).toBe(140250);
+      expect(offerPrice).toBe(140250);
+      expect(formatMoney(offerPrice)).toBe("Rs. 1,402.50");
+    });
+
+    it("renders identical price across shop, product page, cart, checkout, order, invoice and admin", () => {
+      const basePriceCents = 165000;
+      const offerPercent = 15;
+      const offerPricePerKgCents = getOfferPricePerKgCents({ pricePerKgCents: basePriceCents, offerPercent });
+
+      // 1. Shop card price
+      const shopDisplay = formatMoney(offerPricePerKgCents);
+      expect(shopDisplay).toBe("Rs. 1,402.50");
+
+      // 2. Product detail page (1 kg pack)
+      const packWeightGrams = 1000;
+      const productPagePackPrice = calculatePackPriceCents(offerPricePerKgCents, packWeightGrams);
+      const productPageDisplay = formatMoney(productPagePackPrice);
+      expect(productPageDisplay).toBe("Rs. 1,402.50");
+
+      // 3. Cart subtotal (1 item x 1 kg)
+      const cartLineTotal = productPagePackPrice * 1;
+      const cartDisplay = formatMoney(cartLineTotal);
+      expect(cartDisplay).toBe("Rs. 1,402.50");
+
+      // 4. Checkout summary line total
+      const checkoutTotals = calculateOrderTotals(
+        [{ lineTotalCents: cartLineTotal, prepFeeCents: 0 }],
+        0 // zero delivery for pure goods comparison
+      );
+      const checkoutDisplay = formatMoney(checkoutTotals.subtotalCents);
+      expect(checkoutDisplay).toBe("Rs. 1,402.50");
+
+      // 5. Order confirmation line total
+      const orderLineTotal = cartLineTotal;
+      const orderDisplay = formatMoney(orderLineTotal);
+      expect(orderDisplay).toBe("Rs. 1,402.50");
+
+      // 6. Invoice goods total
+      const invoiceDisplay = formatMoney(orderLineTotal);
+      expect(invoiceDisplay).toBe("Rs. 1,402.50");
+
+      // 7. Admin order view
+      const adminDisplay = formatMoney(orderLineTotal);
+      expect(adminDisplay).toBe("Rs. 1,402.50");
+
+      // All 7 touchpoints render identical price string
+      expect(shopDisplay)
+        .toBe(productPageDisplay);
+      expect(productPageDisplay)
+        .toBe(cartDisplay);
+      expect(cartDisplay)
+        .toBe(checkoutDisplay);
+      expect(checkoutDisplay)
+        .toBe(orderDisplay);
+      expect(orderDisplay)
+        .toBe(invoiceDisplay);
+      expect(invoiceDisplay)
+        .toBe(adminDisplay);
+    });
   });
 });

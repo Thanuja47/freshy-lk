@@ -9,15 +9,15 @@ export const metadata: Metadata = {
 };
 
 const FISH_PRODUCTS = [
-  { id: "1", slug: "yellowfin-tuna", name: "Yellowfin Tuna", localName: "Kelawalla", pricePerKgCents: 165000, offerPercent: 15, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/yellowfin-tuna.jpg" },
-  { id: "2", slug: "skipjack-tuna", name: "Skipjack Tuna", localName: "Balaya", pricePerKgCents: 110000, offerPercent: null, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/skipjack-tuna.jpg" },
-  { id: "3", slug: "seer-fish", name: "Seer Fish", localName: "Thora", pricePerKgCents: 280000, offerPercent: 10, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/seer-fish.jpg" },
-  { id: "4", slug: "trevally", name: "Trevally", localName: "Paraw", pricePerKgCents: 175000, offerPercent: null, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/trevally-paraw.jpg" },
-  { id: "8", slug: "sprats", name: "Sprats", localName: "Hurulla", pricePerKgCents: 95000, offerPercent: null, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/sprats-hurulla.jpg" },
-  { id: "9", slug: "sailfish", name: "Sailfish", localName: "Thalapath", pricePerKgCents: 195000, offerPercent: null, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/sailfish-thalapath.jpg" },
-  { id: "10", slug: "mahi-mahi", name: "Mahi Mahi", localName: "Koppara", pricePerKgCents: 155000, offerPercent: 5, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/mahi-mahi.jpg" },
-  { id: "11", slug: "red-snapper", name: "Red Snapper", localName: "Ranna", pricePerKgCents: 210000, offerPercent: null, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/red-snapper.jpg" },
-  { id: "12", slug: "barramundi", name: "Barramundi", localName: "Modha", pricePerKgCents: 230000, offerPercent: null, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/barramundi-modha.jpg" },
+  { id: "61af5f38-2383-4191-9d7c-5a612605930d", slug: "yellowfin-tuna", name: "Yellowfin Tuna", localName: "Kelawalla", pricePerKgCents: 165000, offerPercent: 15, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/yellowfin-tuna.jpg" },
+  { id: "95780d5f-3bb2-4d35-abd6-ab90f728243d", slug: "skipjack-tuna", name: "Skipjack Tuna", localName: "Balaya", pricePerKgCents: 110000, offerPercent: null, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/skipjack-tuna.jpg" },
+  { id: "ac49d9d9-376b-4af5-95dc-0f3b52651b0a", slug: "seer-fish", name: "Seer Fish", localName: "Thora", pricePerKgCents: 280000, offerPercent: 10, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/seer-fish.jpg" },
+  { id: "1cf72daa-aa72-4b73-9350-37969180272e", slug: "trevally", name: "Trevally", localName: "Paraw", pricePerKgCents: 175000, offerPercent: null, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/trevally-paraw.jpg" },
+  { id: "09f8235d-fb4b-4930-9075-79818d473be2", slug: "sprats", name: "Sprats", localName: "Hurulla", pricePerKgCents: 95000, offerPercent: null, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/sprats-hurulla.jpg" },
+  { id: "4e164a8c-982b-4890-8f85-5f7f18ab89a5", slug: "sailfish", name: "Sailfish", localName: "Thalapath", pricePerKgCents: 195000, offerPercent: null, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/sailfish-thalapath.jpg" },
+  { id: "1038d16a-ffa3-4c69-a8b3-b065a90a089b", slug: "mahi-mahi", name: "Mahi Mahi", localName: "Koppara", pricePerKgCents: 155000, offerPercent: 5, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/mahi-mahi.jpg" },
+  { id: "d3e894fa-42bd-4a39-b2dd-9f0ae3cad274", slug: "red-snapper", name: "Red Snapper", localName: "Ranna", pricePerKgCents: 210000, offerPercent: null, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/red-snapper.jpg" },
+  { id: "2394fd25-b734-4bbe-9fc2-ea2772750390", slug: "barramundi", name: "Barramundi", localName: "Modha", pricePerKgCents: 230000, offerPercent: null, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/barramundi-modha.jpg" },
 ];
 
 export default function FishCategoryPage() {

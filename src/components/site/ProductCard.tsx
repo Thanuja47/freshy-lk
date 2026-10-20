@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { formatMoney } from "@/lib/money";
+import { isOfferActive, getOfferPricePerKgCents } from "@/lib/offers";
 import { useCartStore } from "@/store/cart";
 import { useState } from "react";
 import { Check, ShoppingCart } from "lucide-react";
@@ -25,14 +26,8 @@ export default function ProductCard({ product }: { product: MockProduct }) {
   const addItem = useCartStore((s) => s.addItem);
   const [added, setAdded] = useState(false);
 
-  const hasOffer =
-    !!product.offerPercent &&
-    product.offerPercent >= 1 &&
-    (!product.offerEndsAt || new Date(product.offerEndsAt) > new Date());
-
-  const offerPrice = hasOffer
-    ? Math.round(product.pricePerKgCents * (1 - (product.offerPercent ?? 0) / 100))
-    : null;
+  const hasOffer = isOfferActive(product);
+  const offerPrice = hasOffer ? getOfferPricePerKgCents(product) : null;
 
   const imagePath = product.imageUrl ?? `/products/${product.slug}.jpg`;
   const [imgSrc, setImgSrc] = useState(imagePath);

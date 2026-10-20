@@ -9,9 +9,9 @@ export const metadata: Metadata = {
 };
 
 const SEAFOOD_PRODUCTS = [
-  { id: "5", slug: "tiger-prawns", name: "Tiger Prawns", localName: "Isso", pricePerKgCents: 220000, offerPercent: null, storageType: "FRESH" as const, isAvailable: true, category: "seafood", imageUrl: "/products/jumbo-tiger-prawns.jpg" },
-  { id: "6", slug: "mud-crab", name: "Mud Crab", localName: "Kakuluwo", pricePerKgCents: 240000, offerPercent: null, storageType: "FRESH" as const, isAvailable: true, category: "seafood", imageUrl: "/products/lagoon-mud-crab.jpg" },
-  { id: "7", slug: "cuttlefish", name: "Cuttlefish", localName: "Dallo", pricePerKgCents: 190000, offerPercent: 5, storageType: "FRESH" as const, isAvailable: true, category: "seafood", imageUrl: "/products/cuttlefish-dallo.jpg" },
+  { id: "cfc32b9f-e856-404c-92ad-bd124f4ebad3", slug: "tiger-prawns", name: "Tiger Prawns", localName: "Isso", pricePerKgCents: 220000, offerPercent: null, storageType: "FRESH" as const, isAvailable: true, category: "seafood", imageUrl: "/products/jumbo-tiger-prawns.jpg" },
+  { id: "98880f3d-cb1a-4087-896b-ea5aeb7ee861", slug: "mud-crab", name: "Mud Crab", localName: "Kakuluwo", pricePerKgCents: 240000, offerPercent: null, storageType: "FRESH" as const, isAvailable: true, category: "seafood", imageUrl: "/products/lagoon-mud-crab.jpg" },
+  { id: "6dd25d7b-b9d9-4e94-9d6a-4e8004ffc63a", slug: "cuttlefish", name: "Cuttlefish", localName: "Dallo", pricePerKgCents: 190000, offerPercent: 5, storageType: "FRESH" as const, isAvailable: true, category: "seafood", imageUrl: "/products/cuttlefish-dallo.jpg" },
 ];
 
 export default function SeafoodCategoryPage() {

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { formatMoney } from "@/lib/money";
+import { formatMoney, roundPriceCents } from "@/lib/money";
 import { calculatePackPriceCents, calculatePrepFeeCents, getEffectivePricePerKgCents } from "@/lib/pricing";
 import { useCartStore, type CartStore } from "@/store/cart";
 import { ShoppingBag, CheckCircle, Sparkles, Sun, Moon, Truck } from "lucide-react";
@@ -51,9 +51,9 @@ export default function ProductDetailPage() {
   const [addedNotice, setAddedNotice] = useState(false);
   const [imgSrc, setImgSrc] = useState(product.imageUrl || "/products/photo-coming-soon.svg");
 
-  // Calculate discount rate if present
+  // Calculate discount rate if present using shared rounding rule
   const activePricePerKg = product.offerPercent
-    ? Math.round(product.pricePerKgCents * (1 - product.offerPercent / 100))
+    ? roundPriceCents(product.pricePerKgCents * (1 - product.offerPercent / 100))
     : product.pricePerKgCents;
 
   const totalGrams = selectedPack.weightGrams * quantity;
