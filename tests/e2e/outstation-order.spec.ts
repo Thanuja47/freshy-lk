@@ -56,7 +56,7 @@ test.describe("Outstation UI Order Flow (Bank Transfer)", () => {
     // Select outstation district (Kandy)
     const districtSelect = page.locator('select[id$="-district"]');
     await districtSelect.selectOption("Kandy");
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1500);
 
     // Fill delivery address
     const cityInput = page.locator('input[placeholder*="Nugegoda"], input[id$="-city"]');
@@ -71,11 +71,10 @@ test.describe("Outstation UI Order Flow (Bank Transfer)", () => {
 
     // Ensure delivery date input is set to min allowed date (outstation cutoff)
     const dateInput = page.locator('input[id$="-deliveryDate"]');
-    if (await dateInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-      const minDate = await dateInput.getAttribute("min");
-      if (minDate) {
-        await dateInput.fill(minDate);
-      }
+    await page.waitForTimeout(1000);
+    const minDate = await dateInput.getAttribute("min");
+    if (minDate) {
+      await dateInput.fill(minDate);
     }
 
     await page.waitForTimeout(1000);

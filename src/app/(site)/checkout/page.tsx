@@ -158,6 +158,12 @@ export default function CheckoutPage() {
   const earliestDate = activeZone ? getEarliestDeliveryDate(activeZone) : new Date();
   const earliestDateYMD = formatDateYYYYMMDD(earliestDate);
 
+  useEffect(() => {
+    if (earliestDateYMD && (!deliveryDate || deliveryDate < earliestDateYMD)) {
+      setDeliveryDate(earliestDateYMD);
+    }
+  }, [earliestDateYMD, deliveryDate]);
+
   // Live countdown check
   const countdown = activeZone ? getCutoffCountdown(activeZone.cutoffTime || "12:00") : null;
   const cutoffRuleMessage = getDeliveryCutoffMessage(activeZone, earliestDate);
