@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useId, useEffect } from "react";
+import { useState, useId, useEffect, useSyncExternalStore } from "react";
+const emptySubscribe = () => () => {};
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCartStore, type CartItem } from "@/store/cart";
@@ -152,6 +153,10 @@ export default function CheckoutPage() {
       })
       .catch(() => {});
   }, []);
+
+  const activeZone = findZoneForDistrict(zones, district);
+  const earliestDate = activeZone ? getEarliestDeliveryDate(activeZone) : new Date();
+  const earliestDateYMD = formatDateYYYYMMDD(earliestDate);
 
   // Live countdown check
   const countdown = activeZone ? getCutoffCountdown(activeZone.cutoffTime || "12:00") : null;
