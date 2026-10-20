@@ -23,7 +23,7 @@ const checkoutItemSchema = z.object({
   cartPricePerKgCents: z.number().int().nonnegative(),
 });
 
-export const checkoutSchema = z.object({
+const checkoutSchema = z.object({
   customerName: z.string().min(2, "Name must be at least 2 characters"),
   phone: z.string().min(9, "Valid Sri Lankan phone number required"),
   email: z.string().email("Invalid email address").optional().or(z.literal("")),
@@ -64,6 +64,7 @@ export type CheckoutActionResult =
       message: string;
       newSubtotalCents: number;
       newTotalCents: number;
+      updatedPrices?: Record<string, number>;
     }
   | {
       status: "OUT_OF_STOCK";
@@ -277,6 +278,7 @@ interface ValidatedItem {
         message: "Prices for items in your cart have updated. Please review your total before completing the order.",
         newSubtotalCents: freshSubtotalCents,
         newTotalCents: freshTotalCents,
+        updatedPrices: Object.fromEntries(validatedItems.map((v) => [v.productId, v.pricePerKgCents])),
       };
     }
 

@@ -286,18 +286,18 @@ export default function HomePage() {
                 <div className="mt-3.5 flex items-center flex-wrap gap-2.5 pt-2.5 border-t border-[#0D2542]/10">
                   <span className="flex items-center gap-1 text-[10.5px] font-bold text-[#0D2542]">
                     <Sun className="h-3.5 w-3.5 text-[#2E7D32] shrink-0" />
-                    Before 12 PM → Same-day delivery
+                    Before 12 PM — Same-day delivery
                   </span>
                   <span className="flex items-center gap-1 text-[10.5px] font-bold text-[#0D2542]">
                     <Moon className="h-3.5 w-3.5 text-[#1E88E5] shrink-0" />
-                    After 12 PM → Next-day delivery
+                    After 12 PM — Next-day delivery
                   </span>
                 </div>
 
                 {/* Three neutral badges */}
                 <div className="mt-2.5 flex flex-wrap gap-1.5 text-[10.5px]">
                   {[
-                    { icon: Truck, text: "Chilled delivery" },
+                    { icon: Truck, text: "Fresh delivery" },
                     { icon: ShieldCheck, text: "Secure checkout" },
                     { icon: Leaf, text: "Prices updated daily" },
                   ].map(({ icon: Icon, text }) => (

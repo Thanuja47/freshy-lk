@@ -24,19 +24,19 @@ const NAV_LINKS = [
   { label: "Home", href: "/", icon: Home },
   {
     label: "Seafood",
-    href: "/shop?category=seafood",
+    href: "/seafood",
     icon: Fish,
     children: [
-      { label: "Tiger Prawns", href: "/shop?category=seafood&q=prawns" },
-      { label: "Mud Crab", href: "/shop?category=seafood&q=crab" },
-      { label: "Cuttlefish", href: "/shop?category=seafood&q=cuttlefish" },
-      { label: "Lobster", href: "/shop?category=seafood&q=lobster" },
+      { label: "Tiger Prawns", href: "/product/tiger-prawns" },
+      { label: "Mud Crab", href: "/product/mud-crab" },
+      { label: "Cuttlefish", href: "/product/cuttlefish" },
     ],
   },
-  { label: "Fish", href: "/shop?category=fish", icon: Fish },
-  { label: "Offers", href: "/shop?deals=true", icon: Tag },
+  { label: "Fish", href: "/fish", icon: Fish },
+  { label: "Offers", href: "/offers", icon: Tag },
   { label: "Contact", href: "/contact", icon: Mail },
 ];
+
 
 export default function Header() {
   const router = useRouter();
@@ -102,11 +102,11 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             <span className="flex items-center space-x-1.5">
               <Truck className="h-3 w-3 text-[#1B9AE4]" />
-              <span>Chilled Delivery Islandwide</span>
+              <span>Delivery across Sri Lanka</span>
             </span>
             <span className="text-white/30">|</span>
             <span className="text-white/80">
-              Order before 12 PM → same-day delivery in selected zones
+              Order before 12 PM — same-day delivery in selected zones
             </span>
           </div>
           <div className="flex items-center space-x-4">

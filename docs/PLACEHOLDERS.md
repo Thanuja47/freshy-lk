@@ -36,6 +36,12 @@ Per Round 2 directives, unverified promotional claims have been removed and repl
 | "Chilled & Frozen Cold-Chain" | **Removed** | "Chilled & Frozen" — ⚠️ client to confirm |
 | "Guaranteed Cold-Chain Logistics" | **Removed** | "Reliable Delivery Logistics" — ⚠️ client to confirm |
 | "Order packed in cold-chain box" | **Removed** | "Order packed for dispatch" — ⚠️ client to confirm packaging |
+| "Chilled Delivery Islandwide" | **Removed** | "Delivery across Sri Lanka" — ⚠️ client to confirm |
+| "delivered chilled" | **Removed** | "delivered across Sri Lanka" — ⚠️ client to confirm |
+| "Morning harbor rates" | **Removed** | "Updated daily rates" — ⚠️ client to confirm |
+| "Morning Harbor Catch" | **Removed** | "Fresh Coastal Catch" — ⚠️ client to confirm |
+| "Packed Chilled" | **Removed** | "Packed for Dispatch" — ⚠️ client to confirm |
+| "Fresh Chilled" | **Removed** | "Fresh" — ⚠️ client to confirm |
 
 ---
 

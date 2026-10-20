@@ -9,20 +9,20 @@ import { useCartStore, type CartStore } from "@/store/cart";
 import { ShoppingBag, CheckCircle, Sparkles, Sun, Moon, Truck } from "lucide-react";
 
 const SAMPLE_PRODUCT_DATA = {
-  id: "prod-tuna-1",
+  id: "61af5f38-2383-4191-9d7c-5a612605930d",
   slug: "yellowfin-tuna",
   name: "Yellowfin Tuna",
   localName: "Kelawalla",
-  shortDesc: "Wild-caught yellowfin tuna landed in local Sri Lankan harbors.",
+  shortDesc: "Wild-caught yellowfin tuna landed daily along Sri Lankan coasts.",
   description: "Firm flesh suitable for steaks, curry, or grilling. Cleaned and prepped to order.",
   tips: "Wipe clean with paper towel. Cut against the grain for tender pieces.",
   catchType: "Wild caught",
   origin: "Sri Lankan Coastal Waters",
   storageType: "FRESH" as const,
-  pricePerKgCents: 165000,
-  offerPercent: 15,
+  pricePerKgCents: 180000,
+  offerPercent: 0,
   priceVersion: 1,
-  imageUrl: "/placeholders/yellowfin-tuna.jpg",
+  imageUrl: "/products/yellowfin-tuna.jpg",
   packs: [
     { weightGrams: 500, label: "500 g" },
     { weightGrams: 1000, label: "1 kg" },
@@ -49,6 +49,7 @@ export default function ProductDetailPage() {
   const [selectedPrep, setSelectedPrep] = useState(product.prepOptions[0]); // Default Whole
   const [quantity, setQuantity] = useState(1);
   const [addedNotice, setAddedNotice] = useState(false);
+  const [imgSrc, setImgSrc] = useState(product.imageUrl || "/products/photo-coming-soon.svg");
 
   // Calculate discount rate if present
   const activePricePerKg = product.offerPercent
@@ -103,12 +104,13 @@ export default function ProductDetailPage() {
         <div className="lg:col-span-6 space-y-4">
           <div className="relative aspect-[4/3] rounded-3xl overflow-hidden border border-[#DDE8F0] bg-[#E8F4FE] shadow-xs">
             <Image
-              src={product.imageUrl}
+              src={imgSrc}
               alt={product.name}
               fill
               priority
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
+              onError={() => setImgSrc("/products/photo-coming-soon.svg")}
             />
             {product.offerPercent && (
               <span className="absolute top-4 left-4 bg-[#FF5722] text-white text-xs font-extrabold px-3 py-1 rounded-full uppercase shadow-md">
@@ -116,7 +118,7 @@ export default function ProductDetailPage() {
               </span>
             )}
             <span className="absolute top-4 right-4 bg-white/90 backdrop-blur-xs text-[#1B9AE4] border border-[#1B9AE4]/20 text-xs font-bold px-3 py-1 rounded-full uppercase shadow-xs">
-              {product.storageType === "FRESH" ? "Fresh Chilled" : "Frozen"}
+              {product.storageType === "FRESH" ? "Fresh" : "Frozen"}
             </span>
           </div>
 
@@ -144,7 +146,7 @@ export default function ProductDetailPage() {
           <div>
             <div className="inline-flex items-center space-x-1.5 bg-[#1B9AE4]/10 border border-[#1B9AE4]/20 px-3 py-1 rounded-full text-xs font-bold text-[#1B9AE4] mb-2">
               <Sparkles className="h-3.5 w-3.5" />
-              <span>Morning Harbor Catch</span>
+              <span>Fresh Coastal Catch</span>
             </div>
             <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-[#0D2137]">{product.name}</h1>
             <p className="text-[#1B9AE4] font-bold text-base mt-0.5">{product.localName}</p>
@@ -197,13 +199,13 @@ export default function ProductDetailPage() {
                   </span>
                 </div>
                 <p className="text-[11px] text-[#0D2137]/60 mt-0.5">
-                  Chilled courier dispatch to your location
+                  Courier dispatch to your location
                 </p>
               </div>
             </div>
 
             <Link href="/delivery" className="text-[11px] font-bold text-[#1B9AE4] hover:underline shrink-0">
-              Details →
+              Details &rarr;
             </Link>
           </div>
 

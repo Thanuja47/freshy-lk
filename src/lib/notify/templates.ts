@@ -39,7 +39,7 @@ export function getOrderReceivedTemplate(data: OrderNotificationData): Notificat
       <p>Dear ${data.customerName},</p>
       <p>Thank you for your order <strong>${data.orderNo}</strong> totalling <strong>${totalFormatted}</strong>.</p>
       <p>You can track your delivery status anytime here: <a href="${link}">${link}</a></p>
-      <p>Fresh Seafood Delivered Chilled to Your Doorstep.</p>
+      <p>Fresh Seafood Delivered to Your Doorstep.</p>
     `,
   };
 }
@@ -73,7 +73,7 @@ export function getPaymentConfirmedTemplate(data: OrderNotificationData): Notifi
       <h2>Payment Confirmed!</h2>
       <p>Dear ${data.customerName},</p>
       <p>Payment for order <strong>${data.orderNo}</strong> has been successfully verified.</p>
-      <p>Our team is now packing your fresh seafood chilled for dispatch.</p>
+      <p>Our team is now packing your fresh seafood for dispatch.</p>
       <p>Track your order: <a href="${link}">${link}</a></p>
     `,
   };

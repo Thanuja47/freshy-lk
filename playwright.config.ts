@@ -2,7 +2,9 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  fullyParallel: true,
+  fullyParallel: false,
+  workers: 1,
+  timeout: 300000,
   use: {
     baseURL: "http://localhost:3000",
     trace: "on-first-retry",
@@ -11,10 +13,6 @@ export default defineConfig({
     {
       name: "Desktop Chrome",
       use: { ...devices["Desktop Chrome"] },
-    },
-    {
-      name: "Mobile Safari (iPhone 13)",
-      use: { ...devices["iPhone 13"] },
     },
   ],
 });

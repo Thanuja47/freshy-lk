@@ -14,7 +14,7 @@ const ZONES = [
     cutoff: "12:00 PM",
     leadDays: "0 Days (Same-Day)",
     baseFee: "Rs. 350",
-    storage: "Fresh Chilled & Frozen Delivery",
+    storage: "Fresh & Frozen Delivery",
   },
   {
     name: "Western & Southern Outstation",
@@ -23,7 +23,7 @@ const ZONES = [
     cutoff: "12:00 PM",
     leadDays: "1 Day (Next-Day)",
     baseFee: "Rs. 500",
-    storage: "Chilled & Frozen",
+    storage: "Fresh & Frozen",
   },
   {
     name: "Islandwide Express",

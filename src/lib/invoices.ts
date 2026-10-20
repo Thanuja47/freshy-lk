@@ -186,7 +186,7 @@ export function renderInvoiceHTML(
   </table>
 
   <div class="footer">
-    Thank you for choosing Freshy.lk — Fresh Seafood Delivered Chilled to Your Doorstep.<br>
+    Thank you for choosing Freshy.lk — Fresh Seafood Delivered to Your Doorstep.<br>
     For inquiries, contact us at ${business.phone} or email ${business.email}
   </div>
 </body>

@@ -87,7 +87,7 @@ export default function WholesalePage() {
                 <ShieldCheck className="h-5 w-5 text-[#1B9AE4] shrink-0 mt-0.5" />
                 <div>
                   <h3 className="font-bold text-sm">Reliable Delivery Logistics</h3>
-                  <p className="text-[#0D2137]/70 mt-0.5">Insulated chilled temperature-controlled delivery direct to your receiving bay.</p>
+                  <p className="text-[#0D2137]/70 mt-0.5">Insulated temperature-controlled delivery direct to your receiving bay.</p>
                 </div>
               </div>
             </div>

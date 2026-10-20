@@ -4,7 +4,9 @@ import { db } from "@/lib/db";
 import { formatMoney } from "@/lib/money";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
 import OrderDetailActions from "./OrderDetailActions";
-import { ArrowLeft, User, MapPin, ClipboardList, Clock } from "lucide-react";
+import AdminSlipViewer from "./AdminSlipViewer";
+import { ArrowLeft, User, MapPin, ClipboardList, Clock, CreditCard } from "lucide-react";
+
 
 export interface OrderDetailPageProps {
   params: Promise<{ id: string }>;
@@ -57,6 +59,10 @@ export default async function AdminOrderDetailPage({ params }: OrderDetailPagePr
       include: {
         items: true,
         zone: true,
+        invoice: true,
+        slips: {
+          orderBy: { createdAt: "desc" },
+        },
         events: {
           orderBy: { createdAt: "asc" },
         },
@@ -127,8 +133,14 @@ export default async function AdminOrderDetailPage({ params }: OrderDetailPagePr
         </div>
 
         {/* Action Controls Client Component */}
-        <OrderDetailActions orderId={order.id} currentStatus={order.status} />
+        <OrderDetailActions
+          orderId={order.id}
+          currentStatus={order.status}
+          paymentStatus={order.paymentStatus}
+          invoiceNo={order.invoice?.invoiceNo}
+        />
       </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Left Column: Order Items + Events */}
@@ -386,8 +398,68 @@ export default async function AdminOrderDetailPage({ params }: OrderDetailPagePr
               </div>
             </div>
           </div>
+
+          {/* Payment & Bank Slips */}
+          <div style={cardStyle}>
+            <h3 style={sectionHeadingStyle}>
+              <CreditCard style={{ width: 16, height: 16, color: "#1E88E5", strokeWidth: 1.75 }} />
+              Payment & Bank Slips
+            </h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontSize: "14px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ color: "#6E6E73", fontSize: "13px" }}>Payment Method:</span>
+                <span style={{ fontWeight: 600, color: "#1D1D1F" }}>{order.paymentMethod}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ color: "#6E6E73", fontSize: "13px" }}>Payment Status:</span>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    fontSize: "11px",
+                    textTransform: "uppercase",
+                    padding: "3px 8px",
+                    borderRadius: "6px",
+                    background: order.paymentStatus === "PAID" ? "#E8F5E9" : "#FFF3E0",
+                    color: order.paymentStatus === "PAID" ? "#2E7D32" : "#B26A00",
+                  }}
+                >
+                  {order.paymentStatus}
+                </span>
+              </div>
+              {order.invoice && (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "8px", borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+                  <span style={{ color: "#6E6E73", fontSize: "13px" }}>Invoice Issued:</span>
+                  <a
+                    href={`/api/invoices/${order.invoice.invoiceNo}/pdf`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ fontWeight: 700, fontFamily: "monospace", color: "#1E88E5", textDecoration: "none" }}
+                  >
+                    {order.invoice.invoiceNo} (Download PDF)
+                  </a>
+                </div>
+              )}
+              <div style={{ paddingTop: "12px", borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+                <div style={{ fontSize: "12px", fontWeight: 600, color: "#1D1D1F", marginBottom: "8px" }}>
+                  Customer Uploaded Slips:
+                </div>
+                <AdminSlipViewer
+                  slips={order.slips.map((s) => ({
+                    id: s.id,
+                    storagePath: s.storagePath,
+                    mimeType: s.mimeType,
+                    sizeBytes: s.sizeBytes,
+                    status: s.status,
+                    createdAt: s.createdAt.toISOString(),
+                    reviewNote: s.reviewNote,
+                  }))}
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
   );
 }

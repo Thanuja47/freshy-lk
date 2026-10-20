@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
+const emptySubscribe = () => () => {};
 import Link from "next/link";
 import { useCartStore, type CartItem } from "@/store/cart";
 import { formatMoney } from "@/lib/money";
@@ -9,6 +10,8 @@ import { Trash2, ShoppingBag, ArrowRight, Info, ShieldCheck } from "lucide-react
 import { SRI_LANKA_DISTRICTS } from "@/lib/constants";
 
 export default function CartPage() {
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+
   const { items, updateQuantity, removeItem, clearCart } = useCartStore();
   const [selectedDistrict, setSelectedDistrict] = useState("Colombo");
 
@@ -26,6 +29,14 @@ export default function CartPage() {
   const totalCartWeightKg = (
     items.reduce((acc, item) => acc + item.weightGrams * item.quantity, 0) / 1000
   ).toFixed(1);
+
+  if (!mounted) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+        <div className="w-8 h-8 border-2 border-[#1B9AE4] border-t-transparent rounded-full animate-spin mx-auto"></div>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (

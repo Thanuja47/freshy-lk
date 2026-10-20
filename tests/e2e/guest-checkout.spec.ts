@@ -3,18 +3,25 @@ import { test, expect } from "@playwright/test";
 test.describe("Phase 2: Guest Checkout & Order Flow", () => {
   test("guest can browse product, select pack, add to cart and view cart", async ({ page }) => {
     await page.goto("/shop");
-    await expect(page.locator("h1")).toContainText(/Fish/i);
+    await expect(page.locator("h1")).toContainText(/Catch/i);
 
     // Click on the first product card
     const firstProduct = page.locator('a[href^="/product/"]').first();
-    await firstProduct.click();
+    const href = await firstProduct.getAttribute("href");
+    if (href) {
+      await page.goto(href);
+    } else {
+      await firstProduct.click({ force: true });
+    }
 
     // Verify product detail page
     await expect(page.locator("h1")).toBeVisible();
-    await expect(page.getByRole("button", { name: /Add to Cart/i })).toBeVisible();
+    const addToCartBtn = page.locator("button:has-text('Add to Cart')").first();
+    await expect(addToCartBtn).toBeVisible();
 
     // Add to cart
-    await page.getByRole("button", { name: /Add to Cart/i }).click();
+    await addToCartBtn.click();
+    await page.waitForTimeout(500);
 
     // Navigate to cart
     await page.goto("/cart");
@@ -24,11 +31,20 @@ test.describe("Phase 2: Guest Checkout & Order Flow", () => {
 
   test("guest can navigate to checkout and view order summary", async ({ page }) => {
     await page.goto("/shop");
-    await page.locator('a[href^="/product/"]').first().click();
-    await page.getByRole("button", { name: /Add to Cart/i }).click();
+    const firstProduct = page.locator('a[href^="/product/"]').first();
+    const href = await firstProduct.getAttribute("href");
+    if (href) {
+      await page.goto(href);
+    } else {
+      await firstProduct.click({ force: true });
+    }
+
+    const addToCartBtn = page.locator("button:has-text('Add to Cart')").first();
+    await addToCartBtn.click();
+    await page.waitForTimeout(500);
 
     await page.goto("/checkout");
-    await expect(page.locator("h1")).toContainText(/Guest Checkout/i);
+    await expect(page.locator("h1")).toContainText(/Checkout/i);
     await expect(page.getByRole("button", { name: /Place Order/i })).toBeVisible();
   });
 

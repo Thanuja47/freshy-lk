@@ -19,7 +19,7 @@ export default function Footer() {
             />
           </Link>
           <p className="text-xs text-white/65 leading-relaxed max-w-sm">
-            Fresh seafood and farm produce delivered chilled to your doorstep, islandwide.
+            Fresh seafood and farm produce delivered to your doorstep across Sri Lanka.
           </p>
           <a
             href="https://wa.me/94771234567"
@@ -39,11 +39,11 @@ export default function Footer() {
           </h4>
           <ul className="space-y-2.5 text-xs text-white/65">
             <li><Link href="/shop" className="hover:text-white transition-colors">Shop Today&apos;s Catch</Link></li>
-            <li><Link href="/shop?category=fish" className="hover:text-white transition-colors">Fresh Fish</Link></li>
-            <li><Link href="/shop?category=seafood" className="hover:text-white transition-colors">Seafood &amp; Shellfish</Link></li>
+            <li><Link href="/fish" className="hover:text-white transition-colors">Fresh Fish</Link></li>
+            <li><Link href="/seafood" className="hover:text-white transition-colors">Seafood &amp; Shellfish</Link></li>
             <li><span className="text-gray-500 cursor-default">Fruits (Coming Soon)</span></li>
             <li><span className="text-gray-500 cursor-default">Vegetables (Coming Soon)</span></li>
-            <li><Link href="/shop?deals=true" className="hover:text-white transition-colors">Offers &amp; Deals</Link></li>
+            <li><Link href="/offers" className="hover:text-white transition-colors">Offers &amp; Deals</Link></li>
             <li><Link href="/wholesale" className="hover:text-white transition-colors">Wholesale &amp; B2B</Link></li>
           </ul>
         </div>
@@ -54,6 +54,7 @@ export default function Footer() {
             Customer Care
           </h4>
           <ul className="space-y-2.5 text-xs text-white/65">
+            <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
             <li><Link href="/faq" className="hover:text-white transition-colors">Frequently Asked Questions</Link></li>
             <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
             <li><Link href="/delivery" className="hover:text-white transition-colors">Delivery Zones &amp; Rules</Link></li>
@@ -64,6 +65,7 @@ export default function Footer() {
           </ul>
         </div>
 
+
         {/* Contact info */}
         <div>
           <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-[#1E88E5] mb-4">
@@ -72,7 +74,7 @@ export default function Footer() {
           <ul className="space-y-3 text-xs text-white/65">
             <li className="flex items-start space-x-2.5">
               <MapPin className="h-4 w-4 text-[#1B9AE4] shrink-0 mt-0.5" />
-              <span>Colombo &amp; Islandwide Chilled Delivery</span>
+              <span>Colombo &amp; Islandwide Delivery</span>
             </li>
             <li className="flex items-center space-x-2.5">
               <Phone className="h-4 w-4 text-[#1B9AE4] shrink-0" />
@@ -90,7 +92,7 @@ export default function Footer() {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-12 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-white/40 gap-4">
         <p>© {new Date().getFullYear()} Freshy.lk. All rights reserved.</p>
         <div className="flex items-center space-x-4">
-          <span>Chilled delivery</span>
+          <span>Fresh delivery</span>
           <span>•</span>
           <span>Islandwide courier</span>
           <span>•</span>

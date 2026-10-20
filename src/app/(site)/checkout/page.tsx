@@ -71,10 +71,12 @@ function loadSavedCustomerDetails(): SavedCustomerDetails {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const formId = useId();
+    const formId = useId();
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+
   const { items, clearCart } = useCartStore();
 
-  const [idempotencyKey] = useState<string>(() =>
+  const [idempotencyKey, setIdempotencyKey] = useState<string>(() =>
     typeof window !== "undefined" && window.crypto?.randomUUID
       ? window.crypto.randomUUID()
       : Math.random().toString(36).slice(2)
@@ -114,6 +116,7 @@ export default function CheckoutPage() {
   });
 
   const [paymentMethod, setPaymentMethod] = useState<"BANK_TRANSFER" | "CARD_ONLINE">("BANK_TRANSFER");
+  const [orderSuccessToken, setOrderSuccessToken] = useState<string | null>(null);
 
   // Calculate cart subtotal & prep total
   const subtotalCents = items.reduce((acc: number, item: CartItem) => {
@@ -142,26 +145,13 @@ export default function CheckoutPage() {
   const [zones, setZones] = useState<import("@/lib/delivery").DeliveryZoneLike[]>([]);
 
   useEffect(() => {
-    fetch("/api/delivery-zones")
+    fetch('/api/delivery-zones')
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data.zones)) setZones(data.zones);
       })
       .catch(() => {});
   }, []);
-
-  const activeZone = findZoneForDistrict(zones, district);
-  const earliestDate = activeZone ? getEarliestDeliveryDate(activeZone) : new Date();
-  // Derive delivery date directly from zone (no setState in effect needed)
-  const earliestDateYMD = formatDateYYYYMMDD(earliestDate);
-
-  // Sync delivery date when zone changes (using ref comparison to avoid re-render loop)
-  useEffect(() => {
-    if (activeZone && deliveryDate !== earliestDateYMD) {
-      requestAnimationFrame(() => setDeliveryDate(earliestDateYMD));
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [earliestDateYMD]);
 
   // Live countdown check
   const countdown = activeZone ? getCutoffCountdown(activeZone.cutoffTime || "12:00") : null;
@@ -173,6 +163,23 @@ export default function CheckoutPage() {
     ? 35000
     : 50000;
   const estimatedTotalCents = subtotalCents + prepTotalCents + estimatedDeliveryFeeCents;
+
+  if (!mounted) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
+        <div className="w-8 h-8 border-2 border-[#1B9AE4] border-t-transparent rounded-full animate-spin mx-auto"></div>
+      </div>
+    );
+  }
+
+  if (orderSuccessToken) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-4">
+        <div className="w-8 h-8 border-2 border-[#1B9AE4] border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p className="text-sm font-bold text-[#0D2137]">Order placed successfully! Redirecting...</p>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -193,14 +200,22 @@ export default function CheckoutPage() {
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (
+    e?: React.FormEvent,
+    overrideDeliveryDate?: string,
+    overrideIdempotencyKey?: string
+  ) => {
+    if (e && typeof e.preventDefault === "function") {
+      e.preventDefault();
+    }
     setErrorMessage(null);
     setPriceChangeNotice(null);
     setDeliveryDateChangedNotice(null);
     setIsSubmitting(true);
 
     try {
+      const activeDeliveryDate = overrideDeliveryDate || deliveryDate;
+      const activeIdempotencyKey = overrideIdempotencyKey || idempotencyKey;
       const payload: CheckoutInput = {
         customerName,
         phone,
@@ -215,9 +230,9 @@ export default function CheckoutPage() {
         district,
         postalCode: postalCode || undefined,
         deliveryNote: deliveryNote || undefined,
-        deliveryDate,
+        deliveryDate: activeDeliveryDate,
         paymentMethod,
-        idempotencyKey,
+        idempotencyKey: activeIdempotencyKey,
         items: items.map((it: CartItem) => ({
           productId: it.productId,
           packWeightGrams: it.weightGrams,
@@ -246,8 +261,11 @@ export default function CheckoutPage() {
           // Ignore
         }
 
+        setOrderSuccessToken(result.trackingToken);
         clearCart();
+        
         router.push(`/order/${result.trackingToken}`);
+        return;
       } else if (result.status === "DELIVERY_DATE_CHANGED") {
         setDeliveryDateChangedNotice({
           message: result.message,
@@ -259,6 +277,14 @@ export default function CheckoutPage() {
           newSubtotalCents: result.newSubtotalCents,
           newTotalCents: result.newTotalCents,
         });
+        if (result.updatedPrices) {
+          useCartStore.setState((state) => ({
+            items: state.items.map((it) => {
+              const freshPrice = result.updatedPrices?.[it.productId];
+              return freshPrice ? { ...it, pricePerKgCents: freshPrice } : it;
+            }),
+          }));
+        }
       } else if (result.status === "OUT_OF_STOCK" || result.status === "ZONE_STORAGE_BLOCKED") {
         setErrorMessage(result.message);
       } else {
@@ -312,7 +338,16 @@ export default function CheckoutPage() {
           </p>
           <button
             type="button"
-            onClick={() => setDeliveryDateChangedNotice(null)}
+            onClick={(e) => {
+              const newDate = deliveryDateChangedNotice.newEarliestDate;
+              const newIdemKey = typeof window !== "undefined" && window.crypto?.randomUUID
+                ? window.crypto.randomUUID()
+                : Math.random().toString(36).slice(2);
+              setDeliveryDate(newDate);
+              setIdempotencyKey(newIdemKey);
+              setDeliveryDateChangedNotice(null);
+              handleSubmit(e, newDate, newIdemKey);
+            }}
             className="px-5 py-2.5 bg-[#0D2137] hover:bg-[#1B9AE4] text-white rounded-xl text-xs font-bold transition-colors"
           >
             Confirm New Delivery Date ({deliveryDateChangedNotice.newEarliestDate}) &amp; Place Order
@@ -340,10 +375,17 @@ export default function CheckoutPage() {
           </p>
           <button
             type="button"
-            onClick={() => setPriceChangeNotice(null)}
+            onClick={(e) => {
+              const newIdemKey = typeof window !== "undefined" && window.crypto?.randomUUID
+                ? window.crypto.randomUUID()
+                : Math.random().toString(36).slice(2);
+              setIdempotencyKey(newIdemKey);
+              setPriceChangeNotice(null);
+              handleSubmit(e, deliveryDate, newIdemKey);
+            }}
             className="px-5 py-2.5 bg-amber-800 text-white rounded-xl text-xs font-bold hover:bg-amber-900 transition-colors"
           >
-            I Accept Updated Prices — Click Place Order Again
+            I Accept Updated Prices — Place Order
           </button>
         </div>
       )}
@@ -483,7 +525,12 @@ export default function CheckoutPage() {
                 <select
                   id={`${formId}-district`}
                   value={district}
-                  onChange={(e) => setDistrict(e.target.value)}
+                  onChange={(e) => {
+                  const newDistrict = e.target.value;
+                  setDistrict(newDistrict);
+                  const z = findZoneForDistrict(zones, newDistrict);
+                  if (z) setDeliveryDate(formatDateYYYYMMDD(getEarliestDeliveryDate(z)));
+                }}
                   className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-bold"
                 >
                   {SRI_LANKA_DISTRICTS.map((dist) => (

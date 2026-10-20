@@ -94,4 +94,46 @@ describe("Invoice Numbering & HTML Template (FR-YYYY-NNNNNN)", () => {
     expect(html).toContain("Rs. 2,365.00");
     expect(html).toContain("Seer Fish");
   });
+
+  it("generates a valid binary PDF 1.4 invoice document", async () => {
+    const { generateInvoicePdfBuffer } = await import("../../src/lib/pdf");
+    const snapshot = {
+      orderNo: "FRS-261016-0001",
+      invoiceNo: "FR-2026-000001",
+      issuedAt: new Date().toISOString(),
+      customerName: "Amara Silva",
+      phone: "+94770001122",
+      addressLine1: "15 Marine Drive",
+      city: "Colombo 03",
+      district: "Colombo",
+      zoneName: "Colombo Metro Express",
+      paymentMethod: "BANK_TRANSFER",
+      subtotalCents: 49000,
+      prepTotalCents: 0,
+      deliveryFeeCents: 35000,
+      totalCents: 84000,
+      items: [
+        {
+          productName: "Fresh Sprats (Hurulla)",
+          packLabel: "500 g pack",
+          quantity: 1,
+          pricePerKgCents: 98000,
+          prepFeeCents: 0,
+          lineTotalCents: 49000,
+        },
+      ],
+    };
+
+    const pdfBuffer = generateInvoicePdfBuffer(snapshot);
+    expect(pdfBuffer).toBeInstanceOf(Buffer);
+    expect(pdfBuffer.length).toBeGreaterThan(500);
+
+    const pdfString = pdfBuffer.toString("binary");
+    expect(pdfString.startsWith("%PDF-1.4")).toBe(true);
+    expect(pdfString.includes("%%EOF")).toBe(true);
+    expect(pdfString).toContain("FR-2026-000001");
+    expect(pdfString).toContain("FRS-261016-0001");
+    expect(pdfString).toContain("Amara Silva");
+  });
 });
+

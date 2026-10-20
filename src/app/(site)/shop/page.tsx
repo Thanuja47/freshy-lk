@@ -10,12 +10,12 @@ const ALL_PRODUCTS = [
     slug: "yellowfin-tuna",
     name: "Yellowfin Tuna",
     localName: "Kelawalla",
-    pricePerKgCents: 165000,
-    offerPercent: 15,
+    pricePerKgCents: 180000,
+    offerPercent: null,
     storageType: "FRESH" as const,
     isAvailable: true,
     category: "fish",
-    imageUrl: "/placeholders/yellowfin-tuna.jpg",
+    imageUrl: "/products/yellowfin-tuna.jpg",
   },
   {
     id: "2",
@@ -27,7 +27,7 @@ const ALL_PRODUCTS = [
     storageType: "FRESH" as const,
     isAvailable: true,
     category: "fish",
-    imageUrl: "/placeholders/skipjack-tuna.jpg",
+    imageUrl: "/products/skipjack-tuna.jpg",
   },
   {
     id: "3",
@@ -39,7 +39,7 @@ const ALL_PRODUCTS = [
     storageType: "FRESH" as const,
     isAvailable: true,
     category: "fish",
-    imageUrl: "/placeholders/seer-fish.jpg",
+    imageUrl: "/products/seer-fish.jpg",
   },
   {
     id: "4",
@@ -51,7 +51,7 @@ const ALL_PRODUCTS = [
     storageType: "FRESH" as const,
     isAvailable: true,
     category: "fish",
-    imageUrl: "/placeholders/trevally.jpg",
+    imageUrl: "/products/trevally-paraw.jpg",
   },
   {
     id: "5",
@@ -63,7 +63,7 @@ const ALL_PRODUCTS = [
     storageType: "FRESH" as const,
     isAvailable: true,
     category: "seafood",
-    imageUrl: "/placeholders/tiger-prawns.jpg",
+    imageUrl: "/products/jumbo-tiger-prawns.jpg",
   },
   {
     id: "6",
@@ -75,7 +75,7 @@ const ALL_PRODUCTS = [
     storageType: "FRESH" as const,
     isAvailable: true,
     category: "seafood",
-    imageUrl: "/placeholders/mud-crab.jpg",
+    imageUrl: "/products/lagoon-mud-crab.jpg",
   },
   {
     id: "7",
@@ -87,7 +87,7 @@ const ALL_PRODUCTS = [
     storageType: "FRESH" as const,
     isAvailable: true,
     category: "seafood",
-    imageUrl: "/placeholders/cuttlefish.jpg",
+    imageUrl: "/products/cuttlefish-dallo.jpg",
   },
   {
     id: "8",
@@ -99,7 +99,7 @@ const ALL_PRODUCTS = [
     storageType: "FRESH" as const,
     isAvailable: false,
     category: "fish",
-    imageUrl: "/placeholders/sprats.jpg",
+    imageUrl: "/products/sprats-hurulla.jpg",
   },
 ];
 
@@ -139,7 +139,7 @@ export default function ShopPage() {
           Shop Catch of the Day
         </h1>
         <p className="text-xs sm:text-sm text-[#0D2137]/70 max-w-xl">
-          Order fresh fish online directly from Sri Lankan coastal waters. Fixed-weight packs &amp; custom preparations delivered chilled.
+          Order fresh fish online directly from Sri Lankan coastal waters. Fixed-weight packs &amp; custom preparations delivered across Sri Lanka.
         </p>
       </div>
 
@@ -244,7 +244,7 @@ export default function ShopPage() {
       {/* Result Count */}
       <div className="flex items-center justify-between text-xs font-bold text-[#0D2137]/60">
         <span>Showing {filteredProducts.length} items</span>
-        <span>Morning harbor rates</span>
+        <span>Updated daily rates</span>
       </div>
 
       {/* Product Grid */}

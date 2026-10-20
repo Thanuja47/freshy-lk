@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Clock, Save, Check, Truck, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Clock, Save, Check, Truck, Loader2 } from "lucide-react";
 import { getDeliveryCutoffMessage } from "@/lib/delivery";
+import { getZones, updateZoneAction } from "@/actions/zones";
 
 interface AdminZone {
   id: string;
@@ -13,30 +14,8 @@ interface AdminZone {
   leadDays: number;
   maxSameDayOrders: number | null;
   currentSameDayOrders: number;
+  baseFeeCents: number;
 }
-
-const SAMPLE_ZONES: AdminZone[] = [
-  {
-    id: "zone-colombo",
-    name: "Colombo & Suburbs",
-    districts: ["Colombo", "Gampaha", "Kalutara"],
-    cutoffTime: "12:00",
-    sameDayAvailable: true,
-    leadDays: 0,
-    maxSameDayOrders: 50,
-    currentSameDayOrders: 12,
-  },
-  {
-    name: "Western & Southern Outstation",
-    id: "zone-outstation",
-    districts: ["Galle", "Matara", "Kurunegala", "Kandy"],
-    cutoffTime: "12:00",
-    sameDayAvailable: false,
-    leadDays: 1,
-    maxSameDayOrders: null,
-    currentSameDayOrders: 0,
-  },
-];
 
 const fieldLabelStyle: React.CSSProperties = {
   display: "block",
@@ -63,8 +42,37 @@ const inputStyle: React.CSSProperties = {
 };
 
 export default function AdminZonesPage() {
-  const [zones, setZones] = useState<AdminZone[]>(SAMPLE_ZONES);
+  const [zones, setZones] = useState<AdminZone[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [savingZoneId, setSavingZoneId] = useState<string | null>(null);
   const [savedZoneId, setSavedZoneId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchZones() {
+      try {
+        const data = await getZones();
+        setZones(
+          data.map((z) => ({
+            id: z.id,
+            name: z.name,
+            districts: z.districts,
+            cutoffTime: z.cutoffTime,
+            sameDayAvailable: z.sameDayAvailable,
+            leadDays: z.leadDays,
+            maxSameDayOrders: z.maxSameDayOrders,
+            currentSameDayOrders: z.currentSameDayOrders,
+            baseFeeCents: z.baseFeeCents,
+          }))
+        );
+      } catch (err: unknown) {
+        setErrorMessage(err instanceof Error ? err.message : "Failed to load delivery zones");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchZones();
+  }, []);
 
   const updateZone = (id: string, updates: Partial<AdminZone>) => {
     setZones((prev) =>
@@ -72,11 +80,40 @@ export default function AdminZonesPage() {
     );
   };
 
-  const handleSave = (zoneId: string, zoneName: string) => {
-    setSavedZoneId(zoneId);
-    setTimeout(() => setSavedZoneId(null), 3000);
-    console.log(`Saving zone: ${zoneName}`);
+  const handleSave = async (zone: AdminZone) => {
+    setSavingZoneId(zone.id);
+    setErrorMessage(null);
+    try {
+      const res = await updateZoneAction({
+        id: zone.id,
+        cutoffTime: zone.cutoffTime,
+        sameDayAvailable: zone.sameDayAvailable,
+        leadDays: zone.leadDays,
+        maxSameDayOrders: zone.maxSameDayOrders,
+        baseFeeCents: zone.baseFeeCents,
+      });
+
+      if (res.success) {
+        setSavedZoneId(zone.id);
+        setTimeout(() => setSavedZoneId(null), 3000);
+      } else {
+        setErrorMessage(res.message || "Failed to update zone.");
+      }
+    } catch (err: unknown) {
+      setErrorMessage(err instanceof Error ? err.message : "Network error updating zone.");
+    } finally {
+      setSavingZoneId(null);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="py-24 flex flex-col items-center justify-center space-y-3">
+        <Loader2 className="w-8 h-8 animate-spin text-[#1E88E5]" />
+        <p className="text-sm font-medium text-[#6E6E73]">Loading delivery zones...</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: "900px" }} className="space-y-6">
@@ -95,9 +132,15 @@ export default function AdminZonesPage() {
           Delivery Zones
         </h1>
         <p style={{ fontSize: "14px", color: "#6E6E73", marginTop: "4px" }}>
-          Configure cut-off times, same-day availability, lead days, and daily order caps.
+          Configure cut-off times, same-day availability, lead days, and daily order caps. All changes persist directly to Supabase with full audit history.
         </p>
       </div>
+
+      {errorMessage && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+          {errorMessage}
+        </div>
+      )}
 
       <div className="space-y-5">
         {zones.map((zone) => {
@@ -105,7 +148,7 @@ export default function AdminZonesPage() {
             id: zone.id,
             name: zone.name,
             districts: zone.districts,
-            baseFeeCents: 35000,
+            baseFeeCents: zone.baseFeeCents,
             perKgFeeCents: 5000,
             freeOverCents: null,
             minOrderCents: 0,
@@ -122,6 +165,7 @@ export default function AdminZonesPage() {
           });
 
           const isSaved = savedZoneId === zone.id;
+          const isSaving = savingZoneId === zone.id;
           const capUsedPct =
             zone.maxSameDayOrders && zone.sameDayAvailable
               ? Math.round((zone.currentSameDayOrders / zone.maxSameDayOrders) * 100)
@@ -186,7 +230,8 @@ export default function AdminZonesPage() {
 
                 <button
                   type="button"
-                  onClick={() => handleSave(zone.id, zone.name)}
+                  disabled={isSaving}
+                  onClick={() => handleSave(zone)}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -198,11 +243,17 @@ export default function AdminZonesPage() {
                     padding: "8px 16px",
                     borderRadius: "10px",
                     border: "none",
-                    cursor: "pointer",
+                    cursor: isSaving ? "not-allowed" : "pointer",
+                    opacity: isSaving ? 0.7 : 1,
                     transition: "background 0.2s",
                   }}
                 >
-                  {isSaved ? (
+                  {isSaving ? (
+                    <>
+                      <Loader2 style={{ width: 14, height: 14 }} className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : isSaved ? (
                     <>
                       <Check style={{ width: 14, height: 14 }} />
                       Saved
@@ -281,6 +332,23 @@ export default function AdminZonesPage() {
                     onChange={(e) =>
                       updateZone(zone.id, {
                         maxSameDayOrders: e.target.value ? Number(e.target.value) : null,
+                      })
+                    }
+                    style={inputStyle}
+                  />
+                </div>
+
+                {/* Base Fee */}
+                <div>
+                  <label style={fieldLabelStyle}>Base Fee (LKR)</label>
+                  <input
+                    id={`fee-${zone.id}`}
+                    type="number"
+                    min={0}
+                    value={Math.round(zone.baseFeeCents / 100)}
+                    onChange={(e) =>
+                      updateZone(zone.id, {
+                        baseFeeCents: Math.round(Number(e.target.value) * 100),
                       })
                     }
                     style={inputStyle}
@@ -370,24 +438,6 @@ export default function AdminZonesPage() {
             </div>
           );
         })}
-      </div>
-
-      <div
-        style={{
-          background: "#FFF8E1",
-          border: "1px solid rgba(178,106,0,0.2)",
-          borderRadius: "12px",
-          padding: "12px 16px",
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-          fontSize: "13px",
-          color: "#B26A00",
-        }}
-      >
-        <AlertCircle style={{ width: 15, height: 15, flexShrink: 0 }} />
-        Zone data shown here is sample UI. Connect DB to persist changes.{" "}
-        <span style={{ fontWeight: 600 }}>UNVERIFIED-WITHOUT-DB</span>
       </div>
     </div>
   );

@@ -2,15 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { updateOrderStatus, dispatchOrder } from "@/actions/orders";
+import { updateOrderStatus, dispatchOrder, markOrderAsPaid } from "@/actions/orders";
 import type { OrderStatus } from "@prisma/client";
+import { CheckCircle2, Loader2, FileText } from "lucide-react";
+
 
 export default function OrderDetailActions({
   orderId,
   currentStatus,
+  paymentStatus = "PENDING",
+  invoiceNo,
 }: {
   orderId: string;
   currentStatus: OrderStatus;
+  paymentStatus?: string;
+  invoiceNo?: string | null;
 }) {
   const router = useRouter();
   const [isUpdating, setIsUpdating] = useState(false);
@@ -19,6 +25,20 @@ export default function OrderDetailActions({
   const [courierName, setCourierName] = useState("Prompt Express");
   const [trackingNo, setTrackingNo] = useState("");
   const [trackingUrl, setTrackingUrl] = useState("");
+
+  const handleMarkAsPaid = async () => {
+    if (!confirm("Confirm marking this order as PAID? This will automatically issue a gapless invoice and generate the invoice PDF.")) {
+      return;
+    }
+    setIsUpdating(true);
+    const res = await markOrderAsPaid(orderId);
+    setIsUpdating(false);
+    if (res.success) {
+      router.refresh();
+    } else {
+      alert(res.message);
+    }
+  };
 
   const handleStatusChange = async (nextStatus: OrderStatus, note?: string) => {
     setIsUpdating(true);
@@ -46,9 +66,45 @@ export default function OrderDetailActions({
 
   const isCancelled = currentStatus === "CANCELLED";
   const isDelivered = currentStatus === "DELIVERED";
+  const isPaid = paymentStatus === "PAID";
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {/* Invoice Download Button if invoice issued */}
+      {invoiceNo && (
+        <a
+          href={`/api/invoices/${invoiceNo}/pdf`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-700 text-white font-bold rounded-lg text-xs hover:bg-emerald-800 transition-colors shadow-2xs"
+        >
+          <FileText className="w-3.5 h-3.5" />
+          <span>Invoice {invoiceNo} (PDF)</span>
+        </a>
+      )}
+
+      {/* Mark As Paid Button */}
+      {!isPaid && !isCancelled && (
+        <button
+          type="button"
+          disabled={isUpdating}
+          onClick={handleMarkAsPaid}
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white font-bold rounded-lg text-xs hover:bg-green-700 transition-colors shadow-sm disabled:opacity-50"
+        >
+          {isUpdating ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Processing...</span>
+            </>
+          ) : (
+            <>
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Mark as Paid & Generate Invoice</span>
+            </>
+          )}
+        </button>
+      )}
+
       {/* Confirm Button */}
       {currentStatus === "PLACED" && (
         <button
@@ -60,6 +116,7 @@ export default function OrderDetailActions({
           Confirm Order
         </button>
       )}
+
 
       {/* Mark Packed Button */}
       {currentStatus === "CONFIRMED" && (

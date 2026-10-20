@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { formatMoney } from "@/lib/money";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
-import { Truck, MessageCircle, Calendar } from "lucide-react";
+import { Truck, MessageCircle, Calendar, Download } from "lucide-react";
+import SlipUpload from "@/components/site/SlipUpload";
+
 
 export interface OrderPageProps {
   params: Promise<{ token: string }>;
@@ -29,6 +31,8 @@ interface RenderableOrder {
   deliveryFeeCents: number;
   totalCents: number;
   zone: { name: string };
+  invoice?: { invoiceNo: string; pdfPath: string | null } | null;
+  slips: Array<{ id: string; status: string; createdAt: Date }>;
   items: Array<{
     id: string;
     productName: string;
@@ -53,6 +57,8 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
       include: {
         items: true,
         zone: true,
+        invoice: true,
+        slips: { orderBy: { createdAt: "desc" } },
         events: { orderBy: { createdAt: "asc" } },
       },
     });
@@ -60,6 +66,7 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
   } catch (err) {
     console.error("DB query failed in OrderTokenPage:", err);
   }
+
 
   if (!order) {
     notFound();
@@ -69,7 +76,7 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
     { key: "PENDING_PAYMENT", label: "Order Received" },
     { key: "PLACED", label: "Order Placed" },
     { key: "CONFIRMED", label: "Confirmed" },
-    { key: "PACKED", label: "Packed Chilled" },
+    { key: "PACKED", label: "Packed for Dispatch" },
     { key: "DISPATCHED", label: "Dispatched" },
     { key: "DELIVERED", label: "Delivered" },
   ];
@@ -103,6 +110,19 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
           </div>
 
           <div className="flex items-center gap-3">
+            {order.invoice && (
+              <a
+                href={`/api/invoices/${order.invoice.invoiceNo}/pdf?token=${token}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1B9AE4] text-white rounded-xl text-xs font-bold hover:bg-[#1580be] transition-colors shadow-xs"
+              >
+                <Download className="h-3.5 w-3.5" />
+                <span>Invoice PDF</span>
+              </a>
+            )}
+
+
             <span
               className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${
                 isCancelled
@@ -126,6 +146,7 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
             </a>
           </div>
         </div>
+
 
         {/* Delivery Cut-Off Rule Confirmation Badge */}
         <div className="bg-[#E8F4FE]/60 border border-[#1B9AE4]/20 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-[#0D2137] mb-6">
@@ -228,22 +249,38 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
         {/* Right Column: Delivery Details */}
         <div className="md:col-span-5 space-y-6">
           {/* Bank Transfer Box */}
-          {order.paymentMethod === "BANK_TRANSFER" && order.paymentStatus !== "PAID" && (
-            <div className="bg-amber-50 border border-amber-300 p-6 rounded-2xl shadow-xs text-amber-950 space-y-3">
-              <div className="flex items-center gap-2 font-bold text-base text-amber-900">
-                <span>🏦</span> Bank Transfer Details
-              </div>
-              <p className="text-xs leading-relaxed">
-                Please transfer <strong>{formatMoney(order.totalCents)}</strong> using Order Number{" "}
-                <strong className="underline">{order.orderNo}</strong> as the payment reference.
-              </p>
-              <div className="bg-white/90 p-3 rounded-xl text-xs space-y-1 font-mono border border-amber-200">
-                <div>Bank: Commercial Bank of Ceylon</div>
-                <div>Account: Freshy LK (Pvt) Ltd</div>
-                <div>Account No: 1000200300</div>
-              </div>
-            </div>
+          {order.paymentMethod === "BANK_TRANSFER" && (
+            <>
+              {order.paymentStatus !== "PAID" && (
+                <div className="bg-amber-50 border border-amber-300 p-6 rounded-2xl shadow-xs text-amber-950 space-y-3">
+                  <div className="flex items-center gap-2 font-bold text-base text-amber-900">
+                    <span>🏦</span> Bank Transfer Details
+                  </div>
+                  <p className="text-xs leading-relaxed">
+                    Please transfer <strong>{formatMoney(order.totalCents)}</strong> using Order Number{" "}
+                    <strong className="underline">{order.orderNo}</strong> as the payment reference.
+                  </p>
+                  <div className="bg-white/90 p-3 rounded-xl text-xs space-y-1 font-mono border border-amber-200">
+                    <div>Bank: Commercial Bank of Ceylon</div>
+                    <div>Account: Freshy LK (Pvt) Ltd</div>
+                    <div>Account No: 1000200300</div>
+                  </div>
+                </div>
+              )}
+
+              <SlipUpload
+                orderToken={token}
+                orderNo={order.orderNo}
+                paymentStatus={order.paymentStatus}
+                slips={order.slips.map((s) => ({
+                  id: s.id,
+                  status: s.status,
+                  createdAt: s.createdAt.toISOString(),
+                }))}
+              />
+            </>
           )}
+
 
           {/* Delivery Address Details */}
           <div className="bg-white border border-[#DDE8F0] p-6 rounded-2xl shadow-xs space-y-3">

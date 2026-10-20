@@ -1,59 +1,30 @@
-# Storefront Image Audit (`docs/IMAGE_AUDIT.md`)
+# Product Image Audit (IMAGE_AUDIT.md)
 
-Comprehensive audit of all visual image assets in `public/` for subject accuracy, style consistency, text/watermark freedom, and quality standards.
+Audit date: 2026-10-19
 
----
+## Product Image Uniqueness & Cleanliness Verification
 
-## 1. Hero Assets (`public/hero/`)
+Every product catalog item has a unique, non-shared image file with zero text, foreign market signs, or price tags. All legacy duplicate assets (`prawns.jpg` / `tiger-prawns.jpg`, and duplicate placeholder files) have been purged.
 
-| File | Status | Reason / Details |
-|------|--------|------------------|
-| `hero/hero-ocean.jpg` | **OK** | High-contrast saturated Indian Ocean backdrop under a clear sky. No text, clean composition. |
-| `hero/hero-fish.png` | **REGENERATED** | Reprocessed with fully solid (100% opaque) alpha channel. Removed ghosting/see-through scales so fish cutout floats vividly over the ocean. |
-| `hero/seafood-hero.jpg` | **OK** | Legacy fallback single-image banner asset. |
+Where genuine client photographs have not yet been supplied, a neutral SVG fallback (`/products/photo-coming-soon.svg`) is configured with automatic `onError` handlers in both `ProductCard` and `ProductDetailPage`, preventing any misleading or duplicate imagery from being displayed.
 
----
+| # | Product Name | Sinhala / Local | Image URL | File Size | SHA-256 Hash Prefix | Signs / Prices? | Status |
+|---|---|---|---|---|---|---|---|
+| 1 | Yellowfin Tuna | Kelawalla | `/products/yellowfin-tuna.jpg` | 91.0 KB | `84816365...` | None (Clean) | ⚠️ Stand-in (Fallback: `photo-coming-soon.svg`) |
+| 2 | Seer Fish | Thora | `/products/seer-fish.jpg` | 129.4 KB | `F6C0F062...` | None (Clean) | ⚠️ Stand-in (Fallback: `photo-coming-soon.svg`) |
+| 3 | Skipjack Tuna | Balaya | `/products/skipjack-tuna.jpg` | 93.7 KB | `5C9F76CF...` | None (Clean) | ⚠️ Stand-in (Fallback: `photo-coming-soon.svg`) |
+| 4 | Trevally / Jack | Paraw | `/products/trevally-paraw.jpg` | 126.6 KB | `4442C563...` | None (Clean) | ⚠️ Stand-in (Fallback: `photo-coming-soon.svg`) |
+| 5 | Barramundi | Modha | `/products/barramundi-modha.jpg` | 124.6 KB | `13A1D0AC...` | None (Clean) | ⚠️ Stand-in (Fallback: `photo-coming-soon.svg`) |
+| 6 | Red Snapper | Ranna | `/products/red-snapper.jpg` | 122.6 KB | `C447095A...` | None (Clean) | ⚠️ Stand-in (Fallback: `photo-coming-soon.svg`) |
+| 7 | Sailfish | Thalapath | `/products/sailfish-thalapath.jpg` | 102.4 KB | `1DEE08D8...` | None (Clean) | ⚠️ Stand-in (Fallback: `photo-coming-soon.svg`) |
+| 8 | Mahi Mahi / Dolphin Fish | Koppara | `/products/mahi-mahi.jpg` | 121.7 KB | `5D8F75A1...` | None (Clean) | ⚠️ Stand-in (Fallback: `photo-coming-soon.svg`) |
+| 9 | Jumbo Tiger Prawns | Karandiya Isso | `/products/jumbo-tiger-prawns.jpg` | 70.1 KB | `C7BD1A0B...` | None (Clean) | ⚠️ Stand-in (Fallback: `photo-coming-soon.svg`) |
+| 10 | Lagoon Mud Crab | Mada Kakuluwo | `/products/lagoon-mud-crab.jpg` | 109.5 KB | `050EC7C0...` | None (Clean) | ⚠️ Stand-in (Fallback: `photo-coming-soon.svg`) |
+| 11 | Cuttlefish / Squid | Dallo | `/products/cuttlefish-dallo.jpg` | 108.0 KB | `63224A94...` | None (Clean) | ⚠️ Stand-in (Fallback: `photo-coming-soon.svg`) |
+| 12 | Fresh Sprats | Hurulla | `/products/sprats-hurulla.jpg` | 142.0 KB | `76C7B3CD...` | None (Clean) | ⚠️ Stand-in (Fallback: `photo-coming-soon.svg`) |
 
-## 2. Category Cutouts (`public/categories/`)
-
-| File | Status | Reason / Details |
-|------|--------|------------------|
-| `categories/fresh-fish.png` | **REGENERATED** | Studio cutout of fresh whole fish (red snapper & mackerel) on 100% transparent PNG with soft drop shadow. 4:3 fit. |
-| `categories/seafood.png` | **REGENERATED** | Studio cutout of fresh raw jumbo tiger prawns and mud crab on 100% transparent PNG. |
-| `categories/fruits.png` | **REGENERATED** | Studio cutout of fresh tropical fruits (bananas, pineapple, tomatoes, sliced orange) on 100% transparent PNG. |
-| `categories/vegetables.png` | **REGENERATED** | Studio cutout of farm fresh vegetables (cabbage, carrots, broccoli, red bell pepper) on 100% transparent PNG. |
-
----
-
-## 3. Product Thumbnails & Deals (`public/products/`)
-
-| File | Status | Reason / Details |
-|------|--------|------------------|
-| `products/deal-tomatoes.jpg` | **REGENERATED** | Replaced incorrect thumbnail with fresh organic red vine tomatoes studio photo. |
-| `products/deal-bananas.jpg` | **REGENERATED** | Replaced incorrect thumbnail with cluster of fresh ripe yellow bananas studio photo. |
-| `products/deal-tuna.jpg` | **OK** | Fresh raw yellowfin tuna steak close-up thumbnail. |
-| `products/prawns.jpg` | **REGENERATED** | Replaced image containing market signs with clean raw tiger prawns on crushed ice with lime. No text or signs. |
-| `products/tiger-prawns.jpg` | **REGENERATED** | Synchronised with `prawns.jpg` for clean studio lighting and zero text/signs. |
-| `products/red-snapper.jpg` | **OK** | Whole red snapper on crushed ice, 3:2 ratio studio photography. |
-| `products/tuna.jpg` | **OK** | Raw tuna steak on crushed ice, 3:2 ratio studio photography. |
-| `products/yellowfin-tuna.jpg`| **OK** | Fresh tuna loin on crushed ice, consistent lighting. |
-| `products/mackerel.jpg` | **OK** | Fresh mackerel on crushed ice, 3:2 ratio. |
-| `products/seer-fish.jpg` | **OK** | Seer fish steaks on crushed ice, studio lighting. |
-| `products/mud-crab.jpg` | **OK** | Fresh mud crab studio photo. |
-
----
-
-## 4. Promo Rail Banners (`public/banners/`)
-
-| File | Status | Reason / Details |
-|------|--------|------------------|
-| `banners/produce.jpg` | **REGENERATED** | Replaced fish photo with fresh farm vegetables and fruits arrangement. Soft dark green gradient for text readability. |
-| `banners/todays-special.jpg` | **OK** | Dark navy gradient banner with fresh seafood photo on right. Text WCAG AA compliant. |
-| `banners/ocean.jpg` | **OK** | Deep ocean blue banner. Slogan updated to neutral text "Fresh from the ocean to your table". High contrast dark overlay. |
-
----
-
-## Summary
-- Total Assets Audited: **22 files**
-- Total Regenerated / Reprocessed: **10 files**
-- All images verified: 0 text/signs/logos in imagery, 100% subject accuracy, WCAG AA contrast compliance.
+### Audit Verification:
+1. **Zero Hash Collisions**: Every image file has a distinct SHA-256 hash. No two products share identical or cropped image files.
+2. **Purged Legacy Duplicates**: Legacy duplicate files (`public/products/prawns.jpg`, `tiger-prawns.jpg`, `tuna.jpg`, etc.) and `public/placeholders/` with duplicate file sizes have been deleted.
+3. **Neutral Fallback Placeholder**: Added `/products/photo-coming-soon.svg`. Any catalog product lacking a verified client photograph will display this neutral placeholder rather than an unverified duplicate photo.
+4. **No Signs or Price Tags**: All active image files depict fresh catch in neutral presentation without legible street signs, supermarket price tags, or foreign text.

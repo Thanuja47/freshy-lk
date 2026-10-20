@@ -16,9 +16,18 @@ import {
 import { normalizePhone } from "@/lib/constants";
 import { calculatePackPriceCents, getEffectivePricePerKgCents, calculatePrepFeeCents } from "@/lib/pricing";
 import { findZoneForDistrict, calculateDeliveryFee } from "@/lib/delivery";
+import { generateInvoice, type InvoiceSnapshot } from "@/lib/invoices";
+import { generateInvoicePdfBuffer } from "@/lib/pdf";
+import {
+  uploadBankSlipToStorage,
+  getSlipSignedUrl,
+  uploadInvoicePdfToStorage,
+} from "@/lib/storage";
+import { revalidatePath } from "next/cache";
 import type { OrderStatus, PaymentMethod, CustomerType } from "@prisma/client";
 
 export async function updateOrderStatus(
+
   orderId: string,
   nextStatus: OrderStatus,
   note?: string
@@ -371,3 +380,206 @@ export async function createManualOrder(input: ManualOrderInput) {
     return { success: false, message: err instanceof Error ? err.message : "Failed to create manual order." };
   }
 }
+
+/**
+ * Admin action: Marks order as paid, approves pending bank slips,
+ * generates gapless invoice number (FR-YYYY-NNNNNN), renders and stores real PDF.
+ */
+export async function markOrderAsPaid(orderId: string, note?: string) {
+  try {
+    const admin = await requireAdmin();
+
+    const order = await db.order.findUnique({
+      where: { id: orderId },
+      include: { slips: true },
+    });
+
+    if (!order) {
+      return { success: false, message: "Order not found." };
+    }
+
+    const { invoiceNo, nextStatus } = await db.$transaction(async (tx) => {
+      // 1. Determine next status (if PENDING_PAYMENT or PLACED, advance to CONFIRMED)
+      const nextStatus =
+        order.status === "PENDING_PAYMENT" || order.status === "PLACED"
+          ? ("CONFIRMED" as const)
+          : order.status;
+
+      await tx.order.update({
+        where: { id: orderId },
+        data: {
+          paymentStatus: "PAID",
+          status: nextStatus,
+          placedAt: !order.placedAt ? new Date() : order.placedAt,
+        },
+      });
+
+      // 2. Mark any pending BankSlip rows as APPROVED
+      await tx.bankSlip.updateMany({
+        where: { orderId, status: "PENDING" },
+        data: {
+          status: "APPROVED",
+          reviewedAt: new Date(),
+          reviewedById: admin.id !== "demo-owner-id" ? admin.id : undefined,
+          reviewNote: note || "Bank transfer slip verified and approved",
+        },
+      });
+
+      // 3. Generate gapless invoice (FR-YYYY-NNNNNN)
+      const inv = await generateInvoice(orderId, tx);
+
+      // 4. Record status event
+      await tx.orderStatusEvent.create({
+        data: {
+          orderId: order.id,
+          fromStatus: order.status,
+          toStatus: nextStatus,
+          note: note || `Payment verified as PAID. Invoice ${inv.invoiceNo} issued.`,
+          byAdminId: admin.id !== "demo-owner-id" ? admin.id : undefined,
+        },
+      });
+
+      // 5. Audit Log
+      await tx.auditLog.create({
+        data: {
+          adminId: admin.id !== "demo-owner-id" ? admin.id : undefined,
+          action: "order.mark_as_paid",
+          entity: "Order",
+          entityId: order.id,
+          diff: {
+            previousPaymentStatus: order.paymentStatus,
+            newPaymentStatus: "PAID",
+            invoiceNo: inv.invoiceNo,
+            nextStatus,
+            note,
+          },
+        },
+      });
+
+      return { invoiceNo: inv.invoiceNo, invoiceSnapshot: inv.snapshot as unknown as InvoiceSnapshot, nextStatus };
+    });
+
+    // 6. Generate real PDF binary and save to private storage
+    try {
+      const invRecord = await db.invoice.findUnique({ where: { orderId } });
+      if (invRecord && invRecord.snapshot) {
+        const pdfBuf = generateInvoicePdfBuffer(invRecord.snapshot as unknown as InvoiceSnapshot);
+        const { storagePath } = await uploadInvoicePdfToStorage(invoiceNo, pdfBuf);
+        await db.invoice.update({
+          where: { orderId },
+          data: { pdfPath: storagePath },
+        });
+      }
+    } catch (pdfErr) {
+      console.warn("Failed to generate or store invoice PDF in background:", pdfErr);
+    }
+
+    revalidatePath(`/admin/orders/${orderId}`);
+    revalidatePath("/admin/orders");
+    if (order.trackingToken) {
+      revalidatePath(`/order/${order.trackingToken}`);
+    }
+
+    return { success: true, invoiceNo, status: nextStatus };
+  } catch (err: unknown) {
+    console.error("markOrderAsPaid error:", err);
+    return { success: false, message: err instanceof Error ? err.message : "Failed to mark order as paid." };
+  }
+}
+
+/**
+ * Customer / Admin action: Uploads a bank transfer slip to private bucket.
+ */
+export async function uploadPaymentSlipAction(formData: FormData) {
+  try {
+    const token = formData.get("token") as string | null;
+    const orderId = formData.get("orderId") as string | null;
+    const file = formData.get("file") as File | null;
+
+    if (!file || file.size === 0) {
+      return { success: false, message: "Please select a valid payment slip file to upload." };
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      return { success: false, message: "File size exceeds 10 MB limit." };
+    }
+
+    const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+    if (!allowedMimeTypes.includes(file.type)) {
+      return { success: false, message: "Only JPG, PNG, WebP, or PDF files are accepted." };
+    }
+
+    let targetOrder = null;
+    if (token) {
+      targetOrder = await db.order.findUnique({ where: { trackingToken: token } });
+    } else if (orderId) {
+      targetOrder = await db.order.findUnique({ where: { id: orderId } });
+    }
+
+    if (!targetOrder) {
+      return { success: false, message: "Order not found." };
+    }
+
+    // Convert File to Buffer
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Upload to private storage
+    const { storagePath, sizeBytes } = await uploadBankSlipToStorage(
+      targetOrder.id,
+      file.name,
+      buffer,
+      file.type
+    );
+
+    // Create BankSlip record in DB
+    const slip = await db.bankSlip.create({
+      data: {
+        orderId: targetOrder.id,
+        storagePath,
+        mimeType: file.type,
+        sizeBytes,
+        status: "PENDING",
+      },
+    });
+
+    // Record timeline event
+    await db.orderStatusEvent.create({
+      data: {
+        orderId: targetOrder.id,
+        fromStatus: targetOrder.status,
+        toStatus: targetOrder.status,
+        note: `Bank transfer slip uploaded (${file.name})`,
+      },
+    });
+
+    if (targetOrder.trackingToken) {
+      revalidatePath(`/order/${targetOrder.trackingToken}`);
+    }
+    revalidatePath(`/admin/orders/${targetOrder.id}`);
+
+    return { success: true, slipId: slip.id, message: "Payment slip uploaded successfully." };
+  } catch (err: unknown) {
+    console.error("uploadPaymentSlipAction error:", err);
+    return { success: false, message: err instanceof Error ? err.message : "Failed to upload slip." };
+  }
+}
+
+/**
+ * Admin action: Generates signed URL to view a private bank slip.
+ */
+export async function getSlipSignedUrlAction(slipId: string) {
+  try {
+    await requireAdmin();
+    const slip = await db.bankSlip.findUnique({ where: { id: slipId } });
+    if (!slip) {
+      return { success: false, message: "Slip not found." };
+    }
+
+    const url = await getSlipSignedUrl(slip.storagePath);
+    return { success: true, url };
+  } catch (err: unknown) {
+    return { success: false, message: err instanceof Error ? err.message : "Failed to generate slip view URL." };
+  }
+}
+

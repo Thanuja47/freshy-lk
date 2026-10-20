@@ -81,7 +81,7 @@ export class DevFixtureAdminRepository implements IAdminRepository {
         trackStock: true,
         isAvailable: true,
         priceUpdatedAt: new Date().toISOString(),
-        imageUrl: "/placeholders/yellowfin-tuna.jpg",
+        imageUrl: "/products/yellowfin-tuna.jpg",
       },
       {
         id: "fixture-product-2",
@@ -93,7 +93,7 @@ export class DevFixtureAdminRepository implements IAdminRepository {
         trackStock: true,
         isAvailable: true,
         priceUpdatedAt: new Date().toISOString(),
-        imageUrl: "/placeholders/seer-fish.jpg",
+        imageUrl: "/products/seer-fish.jpg",
       },
       {
         id: "fixture-product-3",
@@ -105,7 +105,7 @@ export class DevFixtureAdminRepository implements IAdminRepository {
         trackStock: true,
         isAvailable: true,
         priceUpdatedAt: new Date().toISOString(),
-        imageUrl: "/placeholders/tiger-prawns.jpg",
+        imageUrl: "/products/jumbo-tiger-prawns.jpg",
       },
     ];
   }
@@ -237,8 +237,12 @@ export class DbAdminRepository implements IAdminRepository {
 export function getAdminRepository(): IAdminRepository {
   assertFixtureNotInProduction();
 
+  // The dev fixture is kept strictly for unit tests or when explicitly forced.
+  // In development, preview, and production, admin queries run against the real Prisma repository.
   const useFixture =
-    process.env.NODE_ENV !== "production" &&
+    (process.env.NODE_ENV === "test" ||
+      process.env.VITEST === "true" ||
+      process.env.ENABLE_DEV_FIXTURE === "true") &&
     env.NEXT_PUBLIC_APP_ENV !== "production";
 
   if (useFixture) {

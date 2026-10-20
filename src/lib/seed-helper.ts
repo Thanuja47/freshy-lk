@@ -13,7 +13,7 @@ export async function seedInitialDatabase() {
     create: {
       slug: "fish",
       name: "Fresh Fish",
-      description: "Wild caught ocean fish landed daily along Sri Lanka coastal harbors.",
+      description: "Wild caught ocean fish landed daily along Sri Lanka coastal landings.",
       sortOrder: 1,
     },
   });

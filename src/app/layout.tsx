@@ -32,6 +32,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${manrope.variable} ${plusJakarta.variable}`}>
+      <head>
+        <meta charSet="utf-8" />
+      </head>
       <body className="min-h-screen flex flex-col bg-[#F0F7FF] text-[#0D2137]">
         {children}
       </body>

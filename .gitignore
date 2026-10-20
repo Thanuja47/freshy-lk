@@ -38,4 +38,6 @@ Thumbs.db
 
 # scratch
 scratch/
+test-results/
+storage/
 

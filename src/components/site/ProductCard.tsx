@@ -34,7 +34,8 @@ export default function ProductCard({ product }: { product: MockProduct }) {
     ? Math.round(product.pricePerKgCents * (1 - (product.offerPercent ?? 0) / 100))
     : null;
 
-  const imagePath = product.imageUrl ?? `/placeholders/${product.slug}.jpg`;
+  const imagePath = product.imageUrl ?? `/products/${product.slug}.jpg`;
+  const [imgSrc, setImgSrc] = useState(imagePath);
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -68,11 +69,12 @@ export default function ProductCard({ product }: { product: MockProduct }) {
         style={{ paddingBottom: "75%" }}
       >
         <Image
-          src={imagePath}
+          src={imgSrc}
           alt={product.name}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className="object-cover group-hover:scale-105 transition-transform duration-300 absolute inset-0"
+          onError={() => setImgSrc("/products/photo-coming-soon.svg")}
         />
 
         {/* Storage type badge — top left */}

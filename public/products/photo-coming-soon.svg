@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F1F5F9" />
+      <stop offset="100%" stop-color="#E2E8F0" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#bg)" />
+  <g transform="translate(200, 130)" text-anchor="middle">
+    <!-- Camera / Image Icon -->
+    <circle cx="0" cy="-20" r="38" fill="#CBD5E1" />
+    <path d="M-18 -15 L-12 -25 L12 -25 L18 -15 L24 -15 A4 4 0 0 1 28 -11 L28 3 A4 4 0 0 1 24 7 L-24 7 A4 4 0 0 1 -28 3 L-28 -11 A4 4 0 0 1 -24 -15 Z" fill="#64748B" />
+    <circle cx="0" cy="-4" r="8" fill="#F1F5F9" stroke="#64748B" stroke-width="2.5" />
+    
+    <!-- Text -->
+    <text y="45" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600" fill="#475569">
+      Photo Coming Soon
+    </text>
+    <text y="65" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="400" fill="#94A3B8">
+      Awaiting genuine catch photo
+    </text>
+  </g>
+</svg>
