@@ -68,7 +68,11 @@ export async function saveCategory(input: CategoryInput) {
       });
     }
 
-    revalidateCatalogueCache();
+    try {
+      await revalidateCatalogueCache();
+    } catch {
+      // non-fatal
+    }
     revalidatePath("/admin/categories");
     revalidatePath("/shop");
     revalidatePath("/");
@@ -106,7 +110,11 @@ export async function deleteCategory(id: string) {
       },
     });
 
-    revalidateCatalogueCache();
+    try {
+      await revalidateCatalogueCache();
+    } catch {
+      // non-fatal
+    }
     revalidatePath("/admin/categories");
     revalidatePath("/shop");
     revalidatePath("/");

@@ -1,7 +1,7 @@
 // src/app/admin/(protected)/products/ProductsClient.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { formatMoney } from "@/lib/money";
 import { createProduct, duplicateProduct, deleteProduct } from "@/actions/products";
@@ -55,6 +55,11 @@ export default function ProductsClient({
   const [products, setProducts] = useState<ProductItem[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setProducts(initialProducts);
+  }, [initialProducts]);
 
   // Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -116,6 +121,20 @@ export default function ProductsClient({
 
     if (result.success) {
       setActionSuccess(`Product "${name}" added successfully!`);
+      const selectedCatObj = categories.find((c) => c.id === categoryId);
+      const newProd: ProductItem = {
+        id: result.productId || String(Date.now()),
+        name,
+        localName: localName || null,
+        storageType,
+        pricePerKgCents: priceCents,
+        stockGrams,
+        isAvailable: true,
+        isActive: true,
+        category: { name: selectedCatObj?.name || "General" },
+        packs: packEntries.map((p, idx) => ({ id: `new-pack-${idx}`, weightGrams: p.weightGrams, label: p.label })),
+      };
+      setProducts((prev) => [newProd, ...prev]);
       // Reset form
       setName("");
       setLocalName("");
@@ -126,7 +145,7 @@ export default function ProductsClient({
         setIsAddModalOpen(false);
         setActionSuccess(null);
         router.refresh();
-      }, 1200);
+      }, 500);
     } else {
       setActionError(result.message || "Failed to create product.");
     }
@@ -447,7 +466,7 @@ export default function ProductsClient({
                       type="number"
                       required
                       step="10"
-                      min="1"
+                      min="10"
                       value={pricePerKgRupees}
                       onChange={(e) => setPricePerKgRupees(e.target.value)}
                       placeholder="1850"

@@ -85,7 +85,11 @@ export async function createProduct(input: ProductFormInput) {
       return p;
     });
 
-    revalidateCatalogueCache();
+    try {
+      await revalidateCatalogueCache();
+    } catch {
+      // non-fatal
+    }
     revalidatePath("/admin/products");
     revalidatePath("/shop");
     revalidatePath("/fish");
@@ -154,7 +158,11 @@ export async function duplicateProduct(productId: string) {
       return p;
     });
 
-    revalidateCatalogueCache();
+    try {
+      await revalidateCatalogueCache();
+    } catch {
+      // non-fatal
+    }
     revalidatePath("/admin/products");
     revalidatePath("/shop");
     revalidatePath("/fish");
@@ -188,7 +196,11 @@ export async function deleteProduct(productId: string) {
       });
     });
 
-    revalidateCatalogueCache();
+    try {
+      await revalidateCatalogueCache();
+    } catch {
+      // non-fatal
+    }
     revalidatePath("/admin/products");
     revalidatePath("/admin/prices");
     revalidatePath("/shop");

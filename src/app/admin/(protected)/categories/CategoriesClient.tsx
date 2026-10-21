@@ -1,7 +1,7 @@
 // src/app/admin/(protected)/categories/CategoriesClient.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { saveCategory, deleteCategory } from "@/actions/categories";
 import {
@@ -41,6 +41,11 @@ export default function CategoriesClient({
 }) {
   const router = useRouter();
   const [categories, setCategories] = useState<CategoryItem[]>(initialCategories);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCategories(initialCategories);
+  }, [initialCategories]);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -109,11 +114,21 @@ export default function CategoriesClient({
 
     if (res.success) {
       setActionSuccess(editingId ? "Category updated successfully!" : "Category created successfully!");
+      if (res.category) {
+        const savedCat = res.category;
+        setCategories((prev) => {
+          if (editingId) {
+            return prev.map((c) => (c.id === editingId ? { ...c, ...savedCat, _count: c._count } : c));
+          } else {
+            return [...prev, { ...savedCat, _count: { products: 0 } }];
+          }
+        });
+      }
       setTimeout(() => {
         setIsModalOpen(false);
         setActionSuccess(null);
         router.refresh();
-      }, 1000);
+      }, 500);
     } else {
       setActionError(res.message || "Failed to save category.");
     }
