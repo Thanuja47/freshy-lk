@@ -8,7 +8,7 @@ export default defineConfig({
   workers: 1,
   timeout: 300000,
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || "https://freshy-q20dk2o4e-nirmalthanuja7-gmailcoms-projects.vercel.app",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || "https://freshy-27wjizgub-nirmalthanuja7-gmailcoms-projects.vercel.app",
     extraHTTPHeaders: bypassToken
       ? {
           "x-vercel-protection-bypass": bypassToken,
