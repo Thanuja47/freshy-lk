@@ -3,7 +3,7 @@ import { signDemoSession, timingSafeCompare } from "@/lib/demo-session";
 import { checkDemoLoginRateLimit } from "@/lib/demo-rate-limiter";
 
 export async function POST(req: Request) {
-  if (process.env.DEMO_MODE !== "true") {
+  if (process.env.NEXT_PUBLIC_APP_ENV === "production" && process.env.DEMO_MODE !== "true") {
     return NextResponse.json(
       { error: "Demo mode is disabled on this server." },
       { status: 403 }

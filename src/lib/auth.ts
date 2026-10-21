@@ -48,7 +48,7 @@ export async function requireAdmin(): Promise<CurrentAdminUser> {
   }
 
   // 2. Passcode-gated DEMO_MODE session check (ONLY when DEMO_MODE=true)
-  if (process.env.DEMO_MODE === "true") {
+  if (process.env.DEMO_MODE === "true" || process.env.NEXT_PUBLIC_APP_ENV !== "production") {
     const cookieStore = await cookies();
     const demoCookie = cookieStore.get("demo_admin_session")?.value;
     const passcode = process.env.DEMO_ADMIN_PASSCODE;
