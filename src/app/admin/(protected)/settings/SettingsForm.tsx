@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Save, Check } from "lucide-react";
+import { Save, Check, Loader2, AlertCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { saveSettingsAction } from "@/actions/settings";
 
 interface FieldDef {
   key: string;
@@ -51,19 +52,56 @@ const inputStyle: React.CSSProperties = {
 export default function SettingsForm({ sections, settings }: SettingsFormProps) {
   const [values, setValues] = useState<Record<string, string>>(settings);
   const [savedSection, setSavedSection] = useState<string | null>(null);
+  const [savingSection, setSavingSection] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  const handleSave = (sectionId: string) => {
-    setSavedSection(sectionId);
-    console.log("Settings save (demo):", values);
-    setTimeout(() => setSavedSection(null), 3000);
+  const handleSave = async (sectionId: string) => {
+    setSavingSection(sectionId);
+    setErrorMessage(null);
+
+    try {
+      const res = await saveSettingsAction(values);
+      if (res.success) {
+        setSavedSection(sectionId);
+        setTimeout(() => setSavedSection(null), 3000);
+      } else {
+        setErrorMessage(res.message || "Failed to save settings. Please try again.");
+      }
+    } catch (err: unknown) {
+      setErrorMessage(err instanceof Error ? err.message : "An unexpected error occurred while saving.");
+    } finally {
+      setSavingSection(null);
+    }
   };
 
   return (
     <div className="space-y-5">
+      {errorMessage && (
+        <div
+          role="alert"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            background: "#FFEBEE",
+            border: "1px solid #FFCDD2",
+            borderRadius: "12px",
+            padding: "12px 16px",
+            color: "#C62828",
+            fontSize: "13px",
+            fontWeight: 500,
+          }}
+        >
+          <AlertCircle style={{ width: 16, height: 16, flexShrink: 0 }} />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
       {sections.map((section) => {
         const SectionIcon = section.icon;
         const isSaved = savedSection === section.id;
+        const isSaving = savingSection === section.id;
 
         return (
           <div
@@ -113,6 +151,7 @@ export default function SettingsForm({ sections, settings }: SettingsFormProps) 
 
               <button
                 type="button"
+                disabled={isSaving}
                 onClick={() => handleSave(section.id)}
                 style={{
                   display: "inline-flex",
@@ -125,12 +164,18 @@ export default function SettingsForm({ sections, settings }: SettingsFormProps) 
                   padding: "8px 16px",
                   borderRadius: "10px",
                   border: "none",
-                  cursor: "pointer",
+                  cursor: isSaving ? "not-allowed" : "pointer",
+                  opacity: isSaving ? 0.7 : 1,
                   flexShrink: 0,
-                  transition: "background 0.2s",
+                  transition: "background 0.2s, opacity 0.2s",
                 }}
               >
-                {isSaved ? (
+                {isSaving ? (
+                  <>
+                    <Loader2 className="animate-spin" style={{ width: 14, height: 14 }} />
+                    Saving...
+                  </>
+                ) : isSaved ? (
                   <>
                     <Check style={{ width: 14, height: 14 }} />
                     Saved

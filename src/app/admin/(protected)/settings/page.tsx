@@ -1,89 +1,102 @@
+// src/app/admin/(protected)/settings/page.tsx
 import { db } from "@/lib/db";
-import { Settings, Store, Phone, Mail, MapPin, Globe, Building } from "lucide-react";
 import SettingsForm from "./SettingsForm";
+import { Building2, Receipt, Phone, ShieldCheck, CreditCard } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
-  let settings: Record<string, string> = {};
+  const defaultSettings: Record<string, string> = {
+    companyName: "Freshy LK (Pvt) Ltd",
+    supportPhone: "+94 77 123 4567",
+    supportEmail: "support@freshy.lk",
+    operatingAddress: "Negombo Harbor Road, Negombo, Sri Lanka",
+    invoicePrefix: "INV-",
+    vatNumber: "BR-984210",
+    invoiceFooter: "Thank you for choosing Freshy.lk! Direct from Sri Lankan coastal landings.",
+    bankName: "Commercial Bank of Ceylon",
+    bankAccountName: "Freshy LK (Pvt) Ltd",
+    bankAccountNumber: "8001234567",
+    bankBranch: "Negombo Branch",
+  };
+
+  const loadedSettings: Record<string, string> = {};
 
   try {
     const rows = await db.setting.findMany();
     for (const row of rows) {
-      settings[row.key] = row.value != null ? String(row.value) : "";
+      if (row.value != null) {
+        if (typeof row.value === "string") {
+          loadedSettings[row.key] = row.value;
+        } else {
+          loadedSettings[row.key] = String(row.value);
+        }
+      }
     }
   } catch (err) {
-    if (process.env.DEMO_MODE !== "true") {
-      throw err;
-    }
-    console.warn("DB offline in AdminSettingsPage fallback:", err);
-    settings = {
-      businessName: "Freshy.lk",
-      businessPhone: "+94 77 000 0000",
-      businessEmail: "hello@freshy.lk",
-      businessAddress: "No. 1, Main Street, Colombo 01",
-      websiteUrl: "https://freshy.lk",
-      vatNumber: "",
-      invoiceFooter: "Thank you for shopping fresh!",
-    };
+    console.warn("Could not load db settings, falling back to defaults:", err);
   }
+
+  const mergedSettings = { ...defaultSettings, ...loadedSettings };
 
   const sections = [
     {
-      id: "business",
-      title: "Business Details",
-      description: "Used on invoices and customer-facing communications.",
-      icon: Store,
+      id: "general",
+      title: "Store & Brand Information",
+      description: "Company details displayed on storefront, emails, and customer communications.",
+      icon: Building2,
       fields: [
-        { key: "businessName", label: "Business Name", icon: Building, placeholder: "Freshy.lk", type: "text" },
-        { key: "businessPhone", label: "Phone Number", icon: Phone, placeholder: "+94 77 000 0000", type: "tel" },
-        { key: "businessEmail", label: "Email Address", icon: Mail, placeholder: "hello@freshy.lk", type: "email" },
-        { key: "websiteUrl", label: "Website URL", icon: Globe, placeholder: "https://freshy.lk", type: "url" },
-        { key: "vatNumber", label: "VAT / BR Number", icon: Building, placeholder: "Optional", type: "text" },
+        { key: "companyName", label: "Business Legal Name", icon: Building2, placeholder: "Freshy LK (Pvt) Ltd", type: "text" },
+        { key: "operatingAddress", label: "Operating Hub Address", icon: Building2, placeholder: "Harbor Road, Negombo", type: "text" },
       ],
     },
     {
-      id: "address",
-      title: "Business Address",
-      description: "Printed on PDF invoices.",
-      icon: MapPin,
+      id: "contact",
+      title: "Customer Support & Contact",
+      description: "Primary support channels visible to buyers during checkout and order tracking.",
+      icon: Phone,
       fields: [
-        { key: "businessAddress", label: "Street Address", icon: MapPin, placeholder: "No. 1, Main Street, Colombo 01", type: "text" },
+        { key: "supportPhone", label: "Helpline Phone Number", icon: Phone, placeholder: "+94 77 123 4567", type: "tel" },
+        { key: "supportEmail", label: "Support Email", icon: Phone, placeholder: "orders@freshy.lk", type: "email" },
       ],
     },
     {
-      id: "invoice",
-      title: "Invoice Settings",
-      description: "Text printed at the bottom of every PDF invoice.",
-      icon: Settings,
+      id: "bank",
+      title: "Bank Transfer Payment Details",
+      description: "Bank details provided to customers choosing Direct Bank Transfer payment method.",
+      icon: CreditCard,
       fields: [
-        { key: "invoiceFooter", label: "Invoice Footer Note", icon: Settings, placeholder: "Thank you for shopping fresh!", type: "text" },
+        { key: "bankName", label: "Bank Name", icon: CreditCard, placeholder: "Commercial Bank of Ceylon", type: "text" },
+        { key: "bankAccountName", label: "Account Name", icon: Building2, placeholder: "Freshy LK (Pvt) Ltd", type: "text" },
+        { key: "bankAccountNumber", label: "Account Number", icon: CreditCard, placeholder: "1000200300", type: "text" },
+        { key: "bankBranch", label: "Branch Name", icon: Building2, placeholder: "Colombo Main Branch", type: "text" },
+      ],
+    },
+    {
+      id: "invoicing",
+      title: "Invoicing & Receipts",
+      description: "Receipt numbering prefixes, tax registrations, and customer invoice footnotes.",
+      icon: Receipt,
+      fields: [
+        { key: "invoicePrefix", label: "Invoice Number Prefix", icon: Receipt, placeholder: "INV-", type: "text" },
+        { key: "vatNumber", label: "Business Registration / VAT No", icon: ShieldCheck, placeholder: "PV-123456 / VAT-894210", type: "text" },
+        { key: "invoiceFooter", label: "Footer Thank-You Message", icon: Receipt, placeholder: "Thank you for buying fresh from Freshy.lk!", type: "text" },
       ],
     },
   ];
 
   return (
-    <div className="space-y-6" style={{ maxWidth: "720px" }}>
-      {/* Page Header */}
+    <div className="space-y-6">
       <div>
-        <h1
-          style={{
-            fontFamily: "-apple-system, 'SF Pro Text', Inter, system-ui, sans-serif",
-            fontSize: "28px",
-            fontWeight: 600,
-            letterSpacing: "-0.02em",
-            color: "#1D1D1F",
-            margin: 0,
-          }}
-        >
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#1D1D1F]">
           Settings
         </h1>
-        <p style={{ fontSize: "14px", color: "#6E6E73", marginTop: "4px" }}>
-          Business information and invoice configuration.
+        <p className="text-sm text-[#6E6E73] mt-1">
+          Configure business details, customer support channels, bank transfer details, and invoice formats.
         </p>
       </div>
 
-      <SettingsForm sections={sections} settings={settings} />
+      <SettingsForm sections={sections} settings={mergedSettings} />
     </div>
   );
 }

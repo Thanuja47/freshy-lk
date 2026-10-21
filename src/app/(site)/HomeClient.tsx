@@ -47,7 +47,7 @@ const CATEGORIES = [
     sinhala: "මිරිදිය මාළු",
     sub: "Landed Daily",
     href: "/fish",
-    image: "/categories/fish.png",
+    image: "/categories/fresh-fish.png",
     bg: "#E8F4FE",
     accent: "#1B9AE4",
     comingSoon: false,

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getCachedCatalogue, mapProductToCard } from "@/lib/catalogue";
 import ShopClient from "./ShopClient";
 import type { Metadata } from "next";
@@ -19,5 +20,9 @@ export default async function ShopPage() {
     };
   });
 
-  return <ShopClient initialProducts={initialProducts} />;
+  return (
+    <Suspense fallback={<div className="max-w-[1400px] mx-auto p-8 text-center text-gray-500">Loading catalog...</div>}>
+      <ShopClient initialProducts={initialProducts} />
+    </Suspense>
+  );
 }

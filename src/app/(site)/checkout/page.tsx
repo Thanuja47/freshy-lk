@@ -10,6 +10,7 @@ import { SRI_LANKA_DISTRICTS } from "@/lib/constants";
 import { calculatePackPriceCents, calculatePrepFeeCents } from "@/lib/pricing";
 import { findZoneForDistrict, calculateDeliveryFee, getCutoffCountdown, getDeliveryCutoffMessage, getEarliestDeliveryDate, formatDateYYYYMMDD } from "@/lib/delivery";
 import { createOrder, getPaymentGatewayConfig, type CheckoutInput } from "@/actions/checkout";
+import { uploadPaymentSlipAction } from "@/actions/orders";
 import { Lock, ArrowRight, Clock, Calendar } from "lucide-react";
 
 interface SavedCustomerDetails {
@@ -119,6 +120,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<"BANK_TRANSFER" | "CARD_ONLINE">("BANK_TRANSFER");
   const [hasPayHere, setHasPayHere] = useState<boolean>(true);
   const [orderSuccessToken, setOrderSuccessToken] = useState<string | null>(null);
+  const [slipFile, setSlipFile] = useState<File | null>(null);
 
   useEffect(() => {
     getPaymentGatewayConfig()
@@ -264,6 +266,16 @@ export default function CheckoutPage() {
       const result = await createOrder(payload);
 
       if (result.status === "SUCCESS") {
+        if (slipFile && result.trackingToken) {
+          try {
+            const slipFormData = new FormData();
+            slipFormData.append("token", result.trackingToken);
+            slipFormData.append("file", slipFile);
+            await uploadPaymentSlipAction(slipFormData);
+          } catch (slipErr) {
+            console.warn("Slip upload error on checkout:", slipErr);
+          }
+        }
         try {
           const detailsToSave: SavedCustomerDetails = {
             customerName,
@@ -677,11 +689,36 @@ export default function CheckoutPage() {
                   onChange={() => setPaymentMethod("BANK_TRANSFER")}
                   className="mt-1 text-[#1B9AE4] focus:ring-[#1B9AE4]"
                 />
-                <div>
+                <div className="flex-1">
                   <div className="font-bold text-sm text-[#0D2137]">Direct Bank Transfer</div>
                   <p className="text-xs text-[#0D2137]/70 mt-0.5">
-                    Pay via online banking or deposit slip. Bank details provided upon confirmation.
+                    Pay via online banking or deposit slip.
                   </p>
+                  {paymentMethod === "BANK_TRANSFER" && (
+                    <div className="mt-3 pt-3 border-t border-[#1B9AE4]/20 space-y-2.5">
+                      <div className="bg-white/80 p-2.5 rounded-lg border border-[#1B9AE4]/20 font-mono text-xs space-y-0.5 text-[#0D2137]">
+                        <div><span className="font-semibold text-gray-500">Bank:</span> Commercial Bank of Ceylon</div>
+                        <div><span className="font-semibold text-gray-500">Account:</span> Freshy LK (Pvt) Ltd</div>
+                        <div><span className="font-semibold text-gray-500">Account No:</span> 1000200300</div>
+                        <div><span className="font-semibold text-gray-500">Branch:</span> Colombo Main Branch</div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-xs font-semibold text-[#0D2137]">
+                          Attach Transfer Receipt / Slip (Optional)
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,application/pdf"
+                          onChange={(e) => setSlipFile(e.target.files?.[0] || null)}
+                          className="w-full text-xs text-[#0D2137] file:mr-2.5 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#1B9AE4] file:text-white hover:file:bg-[#1580C2] cursor-pointer"
+                        />
+                        <p className="text-[11px] text-[#0D2137]/60">
+                          {slipFile ? `Selected: ${slipFile.name}` : "You can also upload your slip anytime after placing the order."}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </label>
 

@@ -2,18 +2,21 @@
 import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import path from "path";
+import { randomUUID } from "crypto";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://whlvaunweyjmlwhjgwhj.supabase.co";
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 export function getStorageAdminClient() {
-  if (!serviceRoleKey) {
+  if (!serviceRoleKey || serviceRoleKey.startsWith("placeholder") || serviceRoleKey.length < 20) {
     return null;
   }
-  return createClient(supabaseUrl, serviceRoleKey);
+  try {
+    return createClient(supabaseUrl, serviceRoleKey);
+  } catch {
+    return null;
+  }
 }
-
-import { randomUUID } from "crypto";
 
 /**
  * Validates file magic bytes to verify true file format.
@@ -96,37 +99,48 @@ export async function uploadBankSlipToStorage(
 
   const supabase = getStorageAdminClient();
   if (supabase) {
-    const { error } = await supabase.storage
-      .from("payment-slips")
-      .upload(storagePath, fileBuffer, {
-        contentType: mimeCheck.detectedMime || mimeType,
-        upsert: false,
-      });
+    try {
+      const { error } = await supabase.storage
+        .from("payment-slips")
+        .upload(storagePath, fileBuffer, {
+          contentType: mimeCheck.detectedMime || mimeType,
+          upsert: false,
+        });
 
-    if (error) {
-      console.warn("Supabase storage upload failed, saving to local fallback:", error);
-      saveLocalFallback(storagePath, fileBuffer);
+      if (error) {
+        console.warn("Supabase storage upload failed, saving to local fallback:", error);
+      }
+    } catch (err) {
+      console.warn("Supabase storage upload threw error, saving to local fallback:", err);
     }
-  } else {
-    saveLocalFallback(storagePath, fileBuffer);
   }
+
+  // Always save to local fallback for maximum reliability
+  saveLocalFallback(storagePath, fileBuffer);
 
   return { storagePath, sizeBytes };
 }
-
 
 /**
  * Generates a signed URL for viewing an uploaded slip in the private bucket.
  */
 export async function getSlipSignedUrl(storagePath: string, expiresIn = 3600): Promise<string> {
+  if (storagePath.startsWith("data:")) {
+    return storagePath;
+  }
+
   const supabase = getStorageAdminClient();
   if (supabase) {
-    const { data, error } = await supabase.storage
-      .from("payment-slips")
-      .createSignedUrl(storagePath, expiresIn);
+    try {
+      const { data, error } = await supabase.storage
+        .from("payment-slips")
+        .createSignedUrl(storagePath, expiresIn);
 
-    if (!error && data?.signedUrl) {
-      return data.signedUrl;
+      if (!error && data?.signedUrl) {
+        return data.signedUrl;
+      }
+    } catch (err) {
+      console.warn("Supabase createSignedUrl error, falling back to local route:", err);
     }
   }
 
@@ -145,20 +159,23 @@ export async function uploadInvoicePdfToStorage(
   const supabase = getStorageAdminClient();
 
   if (supabase) {
-    const { error } = await supabase.storage
-      .from("invoices")
-      .upload(storagePath, pdfBuffer, {
-        contentType: "application/pdf",
-        upsert: true,
-      });
+    try {
+      const { error } = await supabase.storage
+        .from("invoices")
+        .upload(storagePath, pdfBuffer, {
+          contentType: "application/pdf",
+          upsert: true,
+        });
 
-    if (error) {
-      console.warn("Supabase invoice storage upload failed, saving to local fallback:", error);
-      saveLocalFallback(storagePath, pdfBuffer);
+      if (error) {
+        console.warn("Supabase invoice storage upload failed, saving to local fallback:", error);
+      }
+    } catch (err) {
+      console.warn("Supabase invoice storage threw error, saving to local fallback:", err);
     }
-  } else {
-    saveLocalFallback(storagePath, pdfBuffer);
   }
+
+  saveLocalFallback(storagePath, pdfBuffer);
 
   return { storagePath };
 }

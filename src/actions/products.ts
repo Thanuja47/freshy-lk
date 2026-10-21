@@ -34,6 +34,12 @@ const productSchema = z.object({
 
 export type ProductFormInput = z.infer<typeof productSchema>;
 
+export const updateProductSchema = productSchema.extend({
+  id: z.string().uuid("Product ID required"),
+});
+
+export type UpdateProductInput = z.infer<typeof updateProductSchema>;
+
 export async function createProduct(input: ProductFormInput) {
   try {
     const admin = await requireAdmin();
@@ -100,6 +106,80 @@ export async function createProduct(input: ProductFormInput) {
   } catch (err: unknown) {
     console.error("createProduct error:", err);
     return { success: false, message: err instanceof Error ? err.message : "Failed to create product." };
+  }
+}
+
+export async function updateProduct(input: UpdateProductInput) {
+  try {
+    const admin = await requireAdmin();
+    const parsed = updateProductSchema.parse(input);
+
+    const updated = await db.$transaction(async (tx) => {
+      const p = await tx.product.update({
+        where: { id: parsed.id },
+        data: {
+          name: parsed.name,
+          localName: parsed.localName || null,
+          categoryId: parsed.categoryId,
+          storageType: parsed.storageType as StorageType,
+          pricePerKgCents: parsed.pricePerKgCents,
+          trackStock: parsed.trackStock,
+          stockGrams: parsed.stockGrams,
+          isAvailable: parsed.isAvailable,
+          isActive: parsed.isActive,
+          shortDesc: parsed.shortDesc || null,
+          description: parsed.description || null,
+          tips: parsed.tips || null,
+          catchType: parsed.catchType || null,
+          origin: parsed.origin || null,
+        },
+      });
+
+      if (parsed.packs && parsed.packs.length > 0) {
+        await tx.productPack.deleteMany({
+          where: { productId: parsed.id },
+        });
+        await tx.productPack.createMany({
+          data: parsed.packs.map((pack, idx) => ({
+            productId: parsed.id,
+            weightGrams: pack.weightGrams,
+            label: pack.label,
+            sortOrder: idx,
+            isActive: true,
+          })),
+        });
+      }
+
+      await tx.auditLog.create({
+        data: {
+          adminId: admin.id !== "demo-owner-id" ? admin.id : undefined,
+          action: "product.update",
+          entity: "Product",
+          entityId: p.id,
+          diff: { name: p.name, pricePerKgCents: p.pricePerKgCents, stockGrams: p.stockGrams },
+        },
+      });
+
+      return p;
+    });
+
+    try {
+      await revalidateCatalogueCache();
+    } catch {
+      // non-fatal
+    }
+    revalidatePath("/admin/products");
+    revalidatePath("/admin/prices");
+    revalidatePath("/shop");
+    revalidatePath("/fish");
+    revalidatePath("/seafood");
+    revalidatePath("/offers");
+    revalidatePath("/");
+
+    return { success: true, productId: updated.id };
+  } catch (err: unknown) {
+    console.error("updateProduct error:", err);
+    return { success: false, message: err instanceof Error ? err.message : "Failed to update product." };
   }
 }
 
@@ -215,4 +295,3 @@ export async function deleteProduct(productId: string) {
     return { success: false, message: err instanceof Error ? err.message : "Failed to delete product." };
   }
 }
-

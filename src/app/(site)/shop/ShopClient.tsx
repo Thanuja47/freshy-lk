@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import ProductCard, { type MockProduct } from "@/components/site/ProductCard";
 import { Search, ArrowUpDown, Sparkles } from "lucide-react";
 
@@ -9,10 +10,17 @@ export interface ShopProductItem extends MockProduct {
 }
 
 export default function ShopClient({ initialProducts }: { initialProducts: ShopProductItem[] }) {
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const searchParams = useSearchParams();
+  const qParam = searchParams.get("q") || "";
+  const catParam = searchParams.get("category") || "all";
+
+  const [localCategory, setLocalCategory] = useState<string | null>(null);
   const [storageFilter, setStorageFilter] = useState<"ALL" | "FRESH" | "FROZEN">("ALL");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [localSearch, setLocalSearch] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"PRICE_ASC" | "PRICE_DESC" | "NAME">("NAME");
+
+  const selectedCategory = localCategory !== null ? localCategory : catParam;
+  const searchQuery = localSearch !== null ? localSearch : qParam;
 
   const filteredProducts = initialProducts
     .filter((p) => {
@@ -56,7 +64,7 @@ export default function ShopClient({ initialProducts }: { initialProducts: ShopP
           {/* Category Chips */}
           <div className="flex items-center space-x-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
             <button
-              onClick={() => setSelectedCategory("all")}
+              onClick={() => setLocalCategory("all")}
               className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${
                 selectedCategory === "all"
                   ? "bg-[#1B9AE4] text-white shadow-xs"
@@ -66,7 +74,7 @@ export default function ShopClient({ initialProducts }: { initialProducts: ShopP
               All Catch ({initialProducts.length})
             </button>
             <button
-              onClick={() => setSelectedCategory("fish")}
+              onClick={() => setLocalCategory("fish")}
               className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${
                 selectedCategory === "fish"
                   ? "bg-[#1B9AE4] text-white shadow-xs"
@@ -76,7 +84,7 @@ export default function ShopClient({ initialProducts }: { initialProducts: ShopP
               Fresh Fish
             </button>
             <button
-              onClick={() => setSelectedCategory("seafood")}
+              onClick={() => setLocalCategory("seafood")}
               className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${
                 selectedCategory === "seafood"
                   ? "bg-[#1B9AE4] text-white shadow-xs"
@@ -86,7 +94,7 @@ export default function ShopClient({ initialProducts }: { initialProducts: ShopP
               Seafood &amp; Shellfish
             </button>
             <button
-              onClick={() => setSelectedCategory("deals")}
+              onClick={() => setLocalCategory("deals")}
               className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${
                 selectedCategory === "deals"
                   ? "bg-[#FF5722] text-white shadow-xs"
@@ -125,7 +133,7 @@ export default function ShopClient({ initialProducts }: { initialProducts: ShopP
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => setLocalSearch(e.target.value)}
                 placeholder="Search..."
                 className="w-full pl-9 pr-3 py-2 text-xs bg-gray-50 border border-[#DDE8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B9AE4]"
               />

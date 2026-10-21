@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { formatMoney } from "@/lib/money";
-import { createProduct, duplicateProduct, deleteProduct } from "@/actions/products";
+import { createProduct, updateProduct, duplicateProduct, deleteProduct } from "@/actions/products";
 import {
   Plus,
   Fish,
@@ -13,6 +13,7 @@ import {
   Search,
   Copy,
   Trash2,
+  Edit2,
   X,
   Loader2,
   CheckCircle2,
@@ -34,6 +35,7 @@ interface ProductItem {
   stockGrams: number;
   isActive: boolean;
   isAvailable: boolean;
+  shortDesc?: string | null;
   category: { id?: string; name: string };
   packs: Array<{ id: string; label: string; weightGrams?: number }>;
 }
@@ -62,7 +64,8 @@ export default function ProductsClient({
   }, [initialProducts]);
 
   // Modal State
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -75,7 +78,53 @@ export default function ProductsClient({
   const [pricePerKgRupees, setPricePerKgRupees] = useState("");
   const [stockKg, setStockKg] = useState("10");
   const [shortDesc, setShortDesc] = useState("");
+  const [isAvailable, setIsAvailable] = useState(true);
+  const [isActive, setIsActive] = useState(true);
   const [selectedPacks, setSelectedPacks] = useState<number[]>([500, 1000]);
+
+  const openAddModal = () => {
+    setEditingProduct(null);
+    setName("");
+    setLocalName("");
+    setCategoryId(categories[0]?.id || "");
+    setStorageType("FRESH");
+    setPricePerKgRupees("");
+    setStockKg("10");
+    setShortDesc("");
+    setIsAvailable(true);
+    setIsActive(true);
+    setSelectedPacks([500, 1000]);
+    setActionError(null);
+    setActionSuccess(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (prod: ProductItem) => {
+    setEditingProduct(prod);
+    setName(prod.name);
+    setLocalName(prod.localName || "");
+    const matchingCat = categories.find((c) => c.id === prod.category.id || c.name === prod.category.name);
+    setCategoryId(matchingCat ? matchingCat.id : (categories[0]?.id || ""));
+    setStorageType(prod.storageType);
+    setPricePerKgRupees(String(prod.pricePerKgCents / 100));
+    setStockKg(String(prod.stockGrams / 1000));
+    setShortDesc(prod.shortDesc || "");
+    setIsAvailable(prod.isAvailable);
+    setIsActive(prod.isActive);
+
+    const weights = prod.packs
+      .map((p) => {
+        if (p.weightGrams) return p.weightGrams;
+        if (p.label.toLowerCase().includes("kg")) return parseFloat(p.label) * 1000;
+        return parseInt(p.label);
+      })
+      .filter((w) => !isNaN(w) && w > 0);
+    setSelectedPacks(weights.length > 0 ? weights : [500, 1000]);
+
+    setActionError(null);
+    setActionSuccess(null);
+    setIsModalOpen(true);
+  };
 
   const handlePackToggle = (weight: number) => {
     setSelectedPacks((prev) =>
@@ -83,7 +132,7 @@ export default function ProductsClient({
     );
   };
 
-  const handleAddSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setActionError(null);
     setActionSuccess(null);
@@ -97,57 +146,106 @@ export default function ProductsClient({
     }
 
     const stockGrams = Math.round(parseFloat(stockKg || "0") * 1000);
-
     const packEntries = selectedPacks.map((w) => ({
       weightGrams: w,
       label: w >= 1000 ? `${w / 1000} kg` : `${w} g`,
     }));
 
-    const result = await createProduct({
-      name,
-      localName: localName || undefined,
-      categoryId,
-      storageType,
-      pricePerKgCents: priceCents,
-      trackStock: true,
-      stockGrams,
-      isAvailable: true,
-      isActive: true,
-      shortDesc: shortDesc || undefined,
-      packs: packEntries,
-    });
-
-    setIsSubmitting(false);
-
-    if (result.success) {
-      setActionSuccess(`Product "${name}" added successfully!`);
-      const selectedCatObj = categories.find((c) => c.id === categoryId);
-      const newProd: ProductItem = {
-        id: result.productId || String(Date.now()),
+    if (editingProduct) {
+      // Update
+      const result = await updateProduct({
+        id: editingProduct.id,
         name,
-        localName: localName || null,
+        localName: localName || undefined,
+        categoryId,
         storageType,
         pricePerKgCents: priceCents,
+        trackStock: true,
+        stockGrams,
+        isAvailable,
+        isActive,
+        shortDesc: shortDesc || undefined,
+        packs: packEntries,
+      });
+
+      setIsSubmitting(false);
+
+      if (result.success) {
+        setActionSuccess(`Product "${name}" updated successfully!`);
+        const selectedCatObj = categories.find((c) => c.id === categoryId);
+        setProducts((prev) =>
+          prev.map((p) =>
+            p.id === editingProduct.id
+              ? {
+                  ...p,
+                  name,
+                  localName: localName || null,
+                  storageType,
+                  pricePerKgCents: priceCents,
+                  stockGrams,
+                  isAvailable,
+                  isActive,
+                  shortDesc: shortDesc || null,
+                  category: { id: categoryId, name: selectedCatObj?.name || p.category.name },
+                  packs: packEntries.map((pe, idx) => ({
+                    id: `pack-${idx}-${Date.now()}`,
+                    weightGrams: pe.weightGrams,
+                    label: pe.label,
+                  })),
+                }
+              : p
+          )
+        );
+        setTimeout(() => {
+          setIsModalOpen(false);
+          setActionSuccess(null);
+          router.refresh();
+        }, 500);
+      } else {
+        setActionError(result.message || "Failed to update product.");
+      }
+    } else {
+      // Create
+      const result = await createProduct({
+        name,
+        localName: localName || undefined,
+        categoryId,
+        storageType,
+        pricePerKgCents: priceCents,
+        trackStock: true,
         stockGrams,
         isAvailable: true,
         isActive: true,
-        category: { name: selectedCatObj?.name || "General" },
-        packs: packEntries.map((p, idx) => ({ id: `new-pack-${idx}`, weightGrams: p.weightGrams, label: p.label })),
-      };
-      setProducts((prev) => [newProd, ...prev]);
-      // Reset form
-      setName("");
-      setLocalName("");
-      setPricePerKgRupees("");
-      setStockKg("10");
-      setShortDesc("");
-      setTimeout(() => {
-        setIsAddModalOpen(false);
-        setActionSuccess(null);
-        router.refresh();
-      }, 500);
-    } else {
-      setActionError(result.message || "Failed to create product.");
+        shortDesc: shortDesc || undefined,
+        packs: packEntries,
+      });
+
+      setIsSubmitting(false);
+
+      if (result.success) {
+        setActionSuccess(`Product "${name}" added successfully!`);
+        const selectedCatObj = categories.find((c) => c.id === categoryId);
+        const newProd: ProductItem = {
+          id: result.productId || String(Date.now()),
+          name,
+          localName: localName || null,
+          storageType,
+          pricePerKgCents: priceCents,
+          stockGrams,
+          isAvailable: true,
+          isActive: true,
+          category: { id: categoryId, name: selectedCatObj?.name || "General" },
+          packs: packEntries.map((p, idx) => ({ id: `new-pack-${idx}`, weightGrams: p.weightGrams, label: p.label })),
+        };
+        setProducts((prev) => [newProd, ...prev]);
+        setTimeout(() => {
+          setIsModalOpen(false);
+          setActionSuccess(null);
+          router.refresh();
+        }, 500);
+      } else {
+        setActionError(result.message || "Failed to create product.");
+      }
     }
   };
 
@@ -198,102 +296,115 @@ export default function ProductsClient({
         </div>
         <button
           type="button"
-          onClick={() => {
-            setActionError(null);
-            setActionSuccess(null);
-            setIsAddModalOpen(true);
-          }}
-          className="inline-flex items-center gap-2 bg-[#1E88E5] text-white font-semibold text-sm px-4 py-2.5 rounded-xl hover:bg-[#1565C0] transition-colors shadow-sm self-start sm:self-auto cursor-pointer"
+          onClick={openAddModal}
+          className="inline-flex items-center gap-2 bg-[#1E88E5] hover:bg-[#1565C0] text-white px-4 py-2.5 rounded-2xl font-medium text-sm transition-all shadow-xs cursor-pointer self-start sm:self-auto"
         >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
+          <Plus className="w-4 h-4" />
           <span>Add Product</span>
         </button>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: "Total Products", value: products.length, icon: Fish, color: "text-[#1E88E5]" },
-          { label: "Active", value: products.filter((p) => p.isActive && p.isAvailable).length, icon: Fish, color: "text-[#2E7D32]" },
-          { label: "Sold Out", value: products.filter((p) => !p.isAvailable).length, icon: Package, color: "text-[#B26A00]" },
-          { label: "Hidden", value: products.filter((p) => !p.isActive).length, icon: Thermometer, color: "text-[#6E6E73]" },
-        ].map(({ label, value, icon: Icon, color }) => (
-          <div
-            key={label}
-            className="bg-white border border-black/[0.06] rounded-2xl p-4 shadow-xs space-y-1"
-          >
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#6E6E73]">
-              <Icon className={`w-4 h-4 ${color}`} />
-              <span>{label}</span>
-            </div>
-            <div className="text-2xl font-bold text-[#1D1D1F] tabular-nums">{value}</div>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white p-5 rounded-2xl border border-black/[0.06] shadow-xs flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-[#E3F2FD] flex items-center justify-center text-[#1E88E5]">
+            <Fish className="w-6 h-6" />
           </div>
-        ))}
+          <div>
+            <div className="text-2xl font-bold text-[#1D1D1F] tracking-tight">{products.length}</div>
+            <div className="text-xs text-[#6E6E73] font-medium">Total Products</div>
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-black/[0.06] shadow-xs flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-[#E8F5E9] flex items-center justify-center text-[#2E7D32]">
+            <Package className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-[#1D1D1F] tracking-tight">
+              {products.reduce((acc, p) => acc + p.packs.length, 0)}
+            </div>
+            <div className="text-xs text-[#6E6E73] font-medium">Active Pack Configs</div>
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-black/[0.06] shadow-xs flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-[#FFF3E0] flex items-center justify-center text-[#B26A00]">
+            <Thermometer className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-[#1D1D1F] tracking-tight">
+              {products.filter((p) => p.storageType === "FRESH").length} /{" "}
+              {products.filter((p) => p.storageType === "FROZEN").length}
+            </div>
+            <div className="text-xs text-[#6E6E73] font-medium">Fresh / Frozen Items</div>
+          </div>
+        </div>
       </div>
 
-      {/* Search & Category Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-black/[0.06] shadow-xs">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-[#6E6E73] absolute left-3 top-2.5" />
+      {/* Filter and Search Bar */}
+      <div className="bg-white p-4 rounded-2xl border border-black/[0.06] shadow-xs flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6E6E73]" />
           <input
             type="text"
-            placeholder="Search products by name..."
+            placeholder="Search products by name or local name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-[#F5F5F7]/80 border border-black/[0.06] rounded-xl text-xs text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 focus:bg-white transition-all font-medium"
+            className="w-full pl-9 pr-4 py-2 bg-[#F5F5F7] border border-black/[0.06] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 text-[#1D1D1F]"
           />
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-          {categoryNames.map((cat) => (
+        <div className="flex gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+          {categoryNames.map((catName) => (
             <button
-              key={cat}
+              key={catName}
               type="button"
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                selectedCategory === cat
-                  ? "bg-[#1E88E5] text-white shadow-xs"
-                  : "bg-[#F5F5F7] text-[#6E6E73] hover:text-[#1D1D1F] hover:bg-black/[0.06]"
+              onClick={() => setSelectedCategory(catName)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                selectedCategory === catName
+                  ? "bg-[#1D1D1F] text-white shadow-xs"
+                  : "bg-[#F5F5F7] text-[#6E6E73] hover:text-[#1D1D1F]"
               }`}
             >
-              {cat}
+              {catName}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white border border-black/[0.06] rounded-2xl shadow-xs overflow-hidden">
+      {/* Products Table */}
+      <div className="bg-white rounded-2xl border border-black/[0.06] shadow-xs overflow-hidden">
         {filteredProducts.length === 0 ? (
-          <div className="py-16 text-center space-y-2">
-            <Fish className="w-10 h-10 text-[#6E6E73]/40 mx-auto" />
-            <div className="font-semibold text-[#1D1D1F]">No products match filter</div>
-            <p className="text-xs text-[#6E6E73]">Try another search term or category tab.</p>
+          <div className="p-12 text-center">
+            <Fish className="w-12 h-12 text-[#6E6E73]/40 mx-auto mb-3" />
+            <h3 className="text-base font-semibold text-[#1D1D1F]">No products found</h3>
+            <p className="text-xs text-[#6E6E73] mt-1">Try adjusting your filters or search terms.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left text-sm">
-              <thead>
-                <tr className="border-b border-black/[0.06] bg-[#F5F5F7] text-[11px] font-semibold uppercase tracking-wider text-[#6E6E73]">
-                  <th className="py-3 px-4">Product</th>
+            <table className="w-full text-left text-sm">
+              <thead className="bg-[#F5F5F7] border-b border-black/[0.06] text-[#6E6E73] text-xs uppercase tracking-wider font-semibold">
+                <tr>
+                  <th className="py-3 px-4">Product Name</th>
                   <th className="py-3 px-4">Category</th>
                   <th className="py-3 px-4">Storage</th>
-                  <th className="py-3 px-4">Base Price / kg</th>
-                  <th className="py-3 px-4">Packs</th>
+                  <th className="py-3 px-4">Price / kg</th>
+                  <th className="py-3 px-4">Available Packs</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/[0.04]">
                 {filteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-[#F5F5F7]/40 transition-colors">
+                  <tr key={product.id} className="hover:bg-black/[0.015] transition-colors">
                     <td className="py-3.5 px-4">
                       <div className="font-semibold text-[#1D1D1F]">{product.name}</div>
                       {product.localName && (
-                        <div className="text-xs text-[#1E88E5] font-medium">{product.localName}</div>
+                        <div className="text-xs text-[#6E6E73]">{product.localName}</div>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-[#6E6E73] font-medium">
+                    <td className="py-3.5 px-4 text-[#1D1D1F] font-medium">
                       {product.category.name}
                     </td>
                     <td className="py-3.5 px-4">
@@ -334,7 +445,15 @@ export default function ProductsClient({
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(product)}
+                          title="Edit product"
+                          className="p-1.5 hover:bg-[#1E88E5]/10 rounded-lg text-[#6E6E73] hover:text-[#1E88E5] transition-colors cursor-pointer"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleDuplicate(product.id, product.name)}
@@ -361,18 +480,24 @@ export default function ProductsClient({
         )}
       </div>
 
-      {/* Add Product Modal */}
-      {isAddModalOpen && (
+      {/* Add / Edit Product Modal */}
+      {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-black/[0.08] space-y-5 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-black/[0.08] space-y-5 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-black/[0.06] pb-3">
               <div>
-                <h2 className="text-lg font-semibold text-[#1D1D1F]">Add New Product</h2>
-                <p className="text-xs text-[#6E6E73]">Add fish, seafood, or item to your storefront</p>
+                <h2 className="text-lg font-semibold text-[#1D1D1F]">
+                  {editingProduct ? "Edit Product" : "Add New Product"}
+                </h2>
+                <p className="text-xs text-[#6E6E73]">
+                  {editingProduct
+                    ? "Update product details, pricing, stock, and pack sizes"
+                    : "Add fish, seafood, or item to your storefront"}
+                </p>
               </div>
               <button
                 type="button"
-                onClick={() => setIsAddModalOpen(false)}
+                onClick={() => setIsModalOpen(false)}
                 className="p-1.5 rounded-full hover:bg-black/[0.06] text-[#6E6E73] cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -393,7 +518,7 @@ export default function ProductsClient({
               </div>
             )}
 
-            <form onSubmit={handleAddSubmit} className="space-y-4 text-xs font-medium text-[#1D1D1F]">
+            <form onSubmit={handleSubmit} className="space-y-4 text-xs font-medium text-[#1D1D1F]">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[#6E6E73] uppercase tracking-wider font-semibold mb-1">
@@ -490,6 +615,29 @@ export default function ProductsClient({
                 </div>
               </div>
 
+              {editingProduct && (
+                <div className="grid grid-cols-2 gap-3 p-3 bg-[#F5F5F7] rounded-xl">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isAvailable}
+                      onChange={(e) => setIsAvailable(e.target.checked)}
+                      className="w-4 h-4 rounded text-[#1E88E5] focus:ring-[#1E88E5]"
+                    />
+                    <span className="text-xs font-semibold text-[#1D1D1F]">In Stock (Available)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isActive}
+                      onChange={(e) => setIsActive(e.target.checked)}
+                      className="w-4 h-4 rounded text-[#1E88E5] focus:ring-[#1E88E5]"
+                    />
+                    <span className="text-xs font-semibold text-[#1D1D1F]">Published (Active)</span>
+                  </label>
+                </div>
+              )}
+
               <div>
                 <label className="block text-[#6E6E73] uppercase tracking-wider font-semibold mb-1.5">
                   Available Pack Sizes
@@ -537,7 +685,7 @@ export default function ProductsClient({
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-black/[0.06]">
                 <button
                   type="button"
-                  onClick={() => setIsAddModalOpen(false)}
+                  onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 rounded-xl text-xs font-semibold text-[#6E6E73] hover:bg-black/[0.06] transition-colors cursor-pointer"
                 >
                   Cancel
@@ -553,7 +701,7 @@ export default function ProductsClient({
                       <span>Saving...</span>
                     </>
                   ) : (
-                    <span>Create Product</span>
+                    <span>{editingProduct ? "Update Product" : "Create Product"}</span>
                   )}
                 </button>
               </div>
