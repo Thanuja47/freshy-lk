@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { revalidateCatalogueCache } from "@/lib/cache";
+import { revalidatePath } from "next/cache";
 import type { StorageType } from "@prisma/client";
 
 const productSchema = z.object({
@@ -85,6 +86,12 @@ export async function createProduct(input: ProductFormInput) {
     });
 
     revalidateCatalogueCache();
+    revalidatePath("/admin/products");
+    revalidatePath("/shop");
+    revalidatePath("/fish");
+    revalidatePath("/seafood");
+    revalidatePath("/offers");
+    revalidatePath("/");
     return { success: true, productId: newProduct.id };
   } catch (err: unknown) {
     console.error("createProduct error:", err);
@@ -148,8 +155,52 @@ export async function duplicateProduct(productId: string) {
     });
 
     revalidateCatalogueCache();
+    revalidatePath("/admin/products");
+    revalidatePath("/shop");
+    revalidatePath("/fish");
+    revalidatePath("/seafood");
+    revalidatePath("/offers");
+    revalidatePath("/");
     return { success: true, productId: duplicated.id };
   } catch (err: unknown) {
     return { success: false, message: err instanceof Error ? err.message : "Failed to duplicate product." };
   }
 }
+
+export async function deleteProduct(productId: string) {
+  try {
+    const admin = await requireAdmin();
+
+    await db.$transaction(async (tx) => {
+      // Soft-delete by setting isActive to false
+      await tx.product.update({
+        where: { id: productId },
+        data: { isActive: false, isAvailable: false },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          adminId: admin.id !== "demo-owner-id" ? admin.id : undefined,
+          action: "product.delete",
+          entity: "Product",
+          entityId: productId,
+        },
+      });
+    });
+
+    revalidateCatalogueCache();
+    revalidatePath("/admin/products");
+    revalidatePath("/admin/prices");
+    revalidatePath("/shop");
+    revalidatePath("/fish");
+    revalidatePath("/seafood");
+    revalidatePath("/offers");
+    revalidatePath("/");
+
+    return { success: true };
+  } catch (err: unknown) {
+    console.error("deleteProduct error:", err);
+    return { success: false, message: err instanceof Error ? err.message : "Failed to delete product." };
+  }
+}
+

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { formatMoney } from "@/lib/money";
 import { getLowStockThresholdGrams } from "@/lib/settings";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
+import DashboardLiveHeader from "./DashboardLiveHeader";
 import {
   Clock,
   TrendingUp,
@@ -209,23 +210,12 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-8 font-sans">
-      {/* 1. Header with Cut-off Countdown */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#1D1D1F]">
-            {greeting}, Admin
-          </h1>
-          <p className="text-[13px] text-[#6E6E73] mt-1">{formattedDate}</p>
-        </div>
-
-        {/* Cutoff Pill */}
-        <div className="inline-flex items-center gap-2.5 bg-white border border-black/[0.06] px-4 py-2 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] self-start md:self-auto">
-          <Clock className="w-4 h-4 text-[#1E88E5]" />
-          <span className="text-xs font-medium text-[#1D1D1F]">
-            Next Delivery Cut-off: <strong className="font-semibold text-[#1E88E5]">{cutoffTimeStr}</strong>
-          </span>
-        </div>
-      </div>
+      {/* 1. Header with Live Status & Cut-off Countdown */}
+      <DashboardLiveHeader
+        greeting={greeting}
+        formattedDate={formattedDate}
+        cutoffTimeStr={cutoffTimeStr}
+      />
 
       {/* 2. Stat Row Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
