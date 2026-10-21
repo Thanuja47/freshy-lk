@@ -2,8 +2,9 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { formatMoney } from "@/lib/money";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
-import { Truck, MessageCircle, Calendar, Download } from "lucide-react";
+import { Truck, MessageCircle, Calendar, Download, CreditCard } from "lucide-react";
 import SlipUpload from "@/components/site/SlipUpload";
+import { buildPayHereCheckoutForm, getPayHereActionUrl, isPayHereConfigured } from "@/lib/payhere";
 
 
 export interface OrderPageProps {
@@ -52,8 +53,13 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
   let order: RenderableOrder | null = null;
 
   try {
-    const dbOrder = await db.order.findUnique({
-      where: { trackingToken: token },
+    const dbOrder = await db.order.findFirst({
+      where: {
+        OR: [
+          { trackingToken: token },
+          { orderNo: token },
+        ],
+      },
       include: {
         items: true,
         zone: true,
@@ -73,7 +79,7 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
   }
 
   const statusSteps = [
-    { key: "PENDING_PAYMENT", label: "Order Received" },
+    { key: "PENDING_PAYMENT", label: "Payment Pending" },
     { key: "PLACED", label: "Order Placed" },
     { key: "CONFIRMED", label: "Confirmed" },
     { key: "PACKED", label: "Packed for Dispatch" },
@@ -248,6 +254,85 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
 
         {/* Right Column: Delivery Details */}
         <div className="md:col-span-5 space-y-6">
+          {/* Payment Status Success Banner */}
+          {order.paymentStatus === "PAID" && (
+            <div className="bg-emerald-50 border border-emerald-300 p-6 rounded-2xl shadow-xs text-emerald-950 space-y-3">
+              <div className="flex items-center gap-2 font-bold text-base text-emerald-900">
+                <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs">✓</span>
+                <span>Payment Received & Verified</span>
+              </div>
+              <p className="text-xs leading-relaxed text-emerald-800">
+                Your payment of <strong>{formatMoney(order.totalCents)}</strong> has been verified.
+              </p>
+              {order.invoice && (
+                <div className="pt-2">
+                  <a
+                    href={`/api/invoices/${order.invoice.invoiceNo}/pdf`}
+                    className="inline-flex items-center gap-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-4 py-2.5 rounded-xl transition shadow-xs"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download Invoice ({order.invoice.invoiceNo})</span>
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* PayHere Card Payment Section (Available for PENDING_PAYMENT or CARD_ONLINE orders) */}
+          {order.paymentStatus !== "PAID" && (
+            <div className="bg-white border border-[#DDE8F0] p-6 rounded-2xl shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-[#DDE8F0] pb-3">
+                <div className="flex items-center gap-2 font-bold text-base text-[#0D2137]">
+                  <CreditCard className="w-5 h-5 text-[#1B9AE4]" />
+                  <span>Card Payment (PayHere)</span>
+                </div>
+                <span className="text-[11px] bg-blue-50 text-[#1B9AE4] font-semibold px-2 py-0.5 rounded-full">
+                  Instant
+                </span>
+              </div>
+
+              {isPayHereConfigured() ? (
+                <form method="POST" action={getPayHereActionUrl()} className="space-y-3">
+                  {Object.entries(
+                    buildPayHereCheckoutForm({
+                      orderNo: order.orderNo,
+                      trackingToken: token,
+                      amountCents: order.totalCents,
+                      customerName: order.customerName,
+                      email: order.email || "customer@freshy.lk",
+                      phone: order.phone,
+                      addressLine1: order.addressLine1,
+                      city: order.city,
+                      itemsSummary: order.items
+                        .map((it) => `${it.productName} (${it.packLabel}) x ${it.quantity}`)
+                        .join(", "),
+                    })
+                  ).map(([k, v]) => (
+                    <input key={k} type="hidden" name={k} value={v} />
+                  ))}
+
+                  <p className="text-xs text-[#0D2137]/70">
+                    Pay securely with Visa, MasterCard, or online banking via PayHere.
+                  </p>
+
+                  <button
+                    type="submit"
+                    className="w-full bg-[#1B9AE4] hover:bg-[#1580C2] text-white font-bold py-3 px-4 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 text-sm cursor-pointer"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    <span>Pay now by card ({formatMoney(order.totalCents)})</span>
+                  </button>
+                </form>
+              ) : (
+                <div className="text-xs text-[#0D2137]/60 italic p-3 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                  Card payments are not available yet.
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Bank Transfer Box */}
           {order.paymentMethod === "BANK_TRANSFER" && (
             <>

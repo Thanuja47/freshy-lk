@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const bypassToken = process.env.PLAYWRIGHT_PROTECTION_BYPASS;
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: false,
@@ -7,9 +9,11 @@ export default defineConfig({
   timeout: 300000,
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL || "https://freshy-rhrlieupv-nirmalthanuja7-gmailcoms-projects.vercel.app",
-    extraHTTPHeaders: {
-      "x-vercel-protection-bypass": "PaHMvUyqaVRYb4mh1Rdnl9H9fz67uc5K",
-    },
+    extraHTTPHeaders: bypassToken
+      ? {
+          "x-vercel-protection-bypass": bypassToken,
+        }
+      : {},
     trace: "on-first-retry",
   },
   projects: [

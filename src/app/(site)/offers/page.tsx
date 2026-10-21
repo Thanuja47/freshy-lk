@@ -2,20 +2,19 @@ import { Metadata } from "next";
 import Link from "next/link";
 import ProductCard from "@/components/site/ProductCard";
 import { ArrowLeft, Tag } from "lucide-react";
+import { getActiveOfferProducts, mapProductToCard } from "@/lib/catalogue";
 
 export const metadata: Metadata = {
   title: "Today's Catch Offers & Discounts | Freshy.lk",
   description: "Special seasonal discounts on fresh fish and seafood. Limited quantities daily direct from harbor landings.",
 };
 
-const OFFER_PRODUCTS = [
-  { id: "61af5f38-2383-4191-9d7c-5a612605930d", slug: "yellowfin-tuna", name: "Yellowfin Tuna", localName: "Kelawalla", pricePerKgCents: 165000, offerPercent: 15, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/yellowfin-tuna.jpg" },
-  { id: "ac49d9d9-376b-4af5-95dc-0f3b52651b0a", slug: "seer-fish", name: "Seer Fish", localName: "Thora", pricePerKgCents: 280000, offerPercent: 10, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/seer-fish.jpg" },
-  { id: "6dd25d7b-b9d9-4e94-9d6a-4e8004ffc63a", slug: "cuttlefish", name: "Cuttlefish", localName: "Dallo", pricePerKgCents: 190000, offerPercent: 5, storageType: "FRESH" as const, isAvailable: true, category: "seafood", imageUrl: "/products/cuttlefish-dallo.jpg" },
-  { id: "1038d16a-ffa3-4c69-a8b3-b065a90a089b", slug: "mahi-mahi", name: "Mahi Mahi", localName: "Koppara", pricePerKgCents: 155000, offerPercent: 5, storageType: "FRESH" as const, isAvailable: true, category: "fish", imageUrl: "/products/mahi-mahi.jpg" },
-];
+export const revalidate = 60;
 
-export default function OffersPage() {
+export default async function OffersPage() {
+  const products = await getActiveOfferProducts();
+  const cardProducts = products.map(mapProductToCard);
+
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 space-y-8">
       <div>
@@ -37,11 +36,27 @@ export default function OffersPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        {OFFER_PRODUCTS.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      {cardProducts.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          {cardProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      ) : (
+        <div className="bg-gray-50 border border-dashed border-[#DDE8F0] p-12 rounded-2xl text-center space-y-3">
+          <Tag className="w-8 h-8 text-[#0D2137]/40 mx-auto" />
+          <h2 className="text-base font-bold text-[#0D2137]">No Active Offers Today</h2>
+          <p className="text-xs text-[#0D2137]/60 max-w-sm mx-auto">
+            Check back during harbor morning landing times for daily limited discounts!
+          </p>
+          <Link
+            href="/shop"
+            className="inline-block bg-[#1B9AE4] text-white font-bold text-xs px-5 py-2.5 rounded-xl hover:bg-[#1580C2] transition"
+          >
+            Browse All Fish &amp; Seafood
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

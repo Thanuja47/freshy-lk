@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { revalidateCatalogueCache } from "@/lib/cache";
+import { revalidatePath } from "next/cache";
 
 const updatePriceInputSchema = z.object({
   productId: z.string().uuid(),
@@ -48,7 +49,7 @@ export async function updateProductPriceAndStock(
     try {
       product = await db.product.findUnique({
         where: { id: parsed.productId },
-        select: { id: true, name: true, pricePerKgCents: true, stockGrams: true, isAvailable: true },
+        select: { id: true, name: true, slug: true, pricePerKgCents: true, stockGrams: true, isAvailable: true },
       });
     } catch {
       // Ignore DB error in demo mode
@@ -133,6 +134,14 @@ export async function updateProductPriceAndStock(
 
     // Instant storefront cache revalidation
     revalidateCatalogueCache();
+    revalidatePath("/shop");
+    revalidatePath("/fish");
+    revalidatePath("/seafood");
+    revalidatePath("/offers");
+    revalidatePath("/");
+    if (product.slug) {
+      revalidatePath(`/product/${product.slug}`);
+    }
 
     return {
       status: "SUCCESS",

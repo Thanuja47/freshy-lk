@@ -9,7 +9,7 @@ import { formatMoney } from "@/lib/money";
 import { SRI_LANKA_DISTRICTS } from "@/lib/constants";
 import { calculatePackPriceCents, calculatePrepFeeCents } from "@/lib/pricing";
 import { findZoneForDistrict, calculateDeliveryFee, getCutoffCountdown, getDeliveryCutoffMessage, getEarliestDeliveryDate, formatDateYYYYMMDD } from "@/lib/delivery";
-import { createOrder, type CheckoutInput } from "@/actions/checkout";
+import { createOrder, getPaymentGatewayConfig, type CheckoutInput } from "@/actions/checkout";
 import { Lock, ArrowRight, Clock, Calendar } from "lucide-react";
 
 interface SavedCustomerDetails {
@@ -117,7 +117,19 @@ export default function CheckoutPage() {
   });
 
   const [paymentMethod, setPaymentMethod] = useState<"BANK_TRANSFER" | "CARD_ONLINE">("BANK_TRANSFER");
+  const [hasPayHere, setHasPayHere] = useState<boolean>(true);
   const [orderSuccessToken, setOrderSuccessToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    getPaymentGatewayConfig()
+      .then((cfg) => {
+        setHasPayHere(cfg.hasPayHere);
+        if (!cfg.hasPayHere) {
+          setPaymentMethod("BANK_TRANSFER");
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Calculate cart subtotal & prep total
   const subtotalCents = items.reduce((acc: number, item: CartItem) => {
@@ -673,28 +685,34 @@ export default function CheckoutPage() {
                 </div>
               </label>
 
-              <label
-                className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
-                  paymentMethod === "CARD_ONLINE"
-                    ? "border-[#1B9AE4] bg-[#E8F4FE]/60 ring-2 ring-[#1B9AE4]/20"
-                    : "border-[#DDE8F0] bg-white"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="CARD_ONLINE"
-                  checked={paymentMethod === "CARD_ONLINE"}
-                  onChange={() => setPaymentMethod("CARD_ONLINE")}
-                  className="mt-1 text-[#1B9AE4] focus:ring-[#1B9AE4]"
-                />
-                <div>
-                  <div className="font-bold text-sm text-[#0D2137]">Visa / MasterCard / PayHere</div>
-                  <p className="text-xs text-[#0D2137]/70 mt-0.5">
-                    Instant secure card payment processing gateway.
-                  </p>
+              {hasPayHere ? (
+                <label
+                  className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
+                    paymentMethod === "CARD_ONLINE"
+                      ? "border-[#1B9AE4] bg-[#E8F4FE]/60 ring-2 ring-[#1B9AE4]/20"
+                      : "border-[#DDE8F0] bg-white"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="CARD_ONLINE"
+                    checked={paymentMethod === "CARD_ONLINE"}
+                    onChange={() => setPaymentMethod("CARD_ONLINE")}
+                    className="mt-1 text-[#1B9AE4] focus:ring-[#1B9AE4]"
+                  />
+                  <div>
+                    <div className="font-bold text-sm text-[#0D2137]">Visa / MasterCard / PayHere</div>
+                    <p className="text-xs text-[#0D2137]/70 mt-0.5">
+                      Instant secure card payment processing gateway.
+                    </p>
+                  </div>
+                </label>
+              ) : (
+                <div className="text-xs text-[#0D2137]/60 italic p-3 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                  Card payments are not available yet
                 </div>
-              </label>
+              )}
             </div>
           </div>
         </div>

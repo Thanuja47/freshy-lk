@@ -82,60 +82,42 @@ describe("Money & Pricing Engine (Section 7.1)", () => {
       expect(formatMoney(offerPrice)).toBe("Rs. 1,402.50");
     });
 
-    it("renders identical price across shop, product page, cart, checkout, order, invoice and admin", () => {
-      const basePriceCents = 165000;
-      const offerPercent = 15;
-      const offerPricePerKgCents = getOfferPricePerKgCents({ pricePerKgCents: basePriceCents, offerPercent });
+    it("computes exact price across multi-pack weights and offer combinations", () => {
+      // Scenario A: 1,650.00 base with 15% offer = 1,402.50/kg
+      const tunaBaseCents = 165000;
+      const tunaOfferCents = getOfferPricePerKgCents({ pricePerKgCents: tunaBaseCents, offerPercent: 15 });
+      expect(tunaOfferCents).toBe(140250);
 
-      // 1. Shop card price
-      const shopDisplay = formatMoney(offerPricePerKgCents);
-      expect(shopDisplay).toBe("Rs. 1,402.50");
+      // 500g pack -> exactly 70,125 cents (Rs. 701.25)
+      const tuna500gPack = calculatePackPriceCents(tunaOfferCents, 500);
+      expect(tuna500gPack).toBe(70125);
+      expect(formatMoney(tuna500gPack)).toBe("Rs. 701.25");
 
-      // 2. Product detail page (1 kg pack)
-      const packWeightGrams = 1000;
-      const productPagePackPrice = calculatePackPriceCents(offerPricePerKgCents, packWeightGrams);
-      const productPageDisplay = formatMoney(productPagePackPrice);
-      expect(productPageDisplay).toBe("Rs. 1,402.50");
+      // 1000g pack -> exactly 140,250 cents (Rs. 1,402.50)
+      const tuna1kgPack = calculatePackPriceCents(tunaOfferCents, 1000);
+      expect(tuna1kgPack).toBe(140250);
+      expect(formatMoney(tuna1kgPack)).toBe("Rs. 1,402.50");
 
-      // 3. Cart subtotal (1 item x 1 kg)
-      const cartLineTotal = productPagePackPrice * 1;
-      const cartDisplay = formatMoney(cartLineTotal);
-      expect(cartDisplay).toBe("Rs. 1,402.50");
+      // 2000g pack -> exactly 280,500 cents (Rs. 2,805.00)
+      const tuna2kgPack = calculatePackPriceCents(tunaOfferCents, 2000);
+      expect(tuna2kgPack).toBe(280500);
+      expect(formatMoney(tuna2kgPack)).toBe("Rs. 2,805.00");
 
-      // 4. Checkout summary line total
-      const checkoutTotals = calculateOrderTotals(
-        [{ lineTotalCents: cartLineTotal, prepFeeCents: 0 }],
-        0 // zero delivery for pure goods comparison
+      // Scenario B: Order total with prep fee and delivery fee
+      // 2 packs of 500g tuna (140,250 cents goods) + Cleaned prep (Rs. 100/kg = Rs. 100) + Rs. 350 delivery
+      const prepFee = calculatePrepFeeCents(10000, "PER_KG", 500, 2);
+      expect(prepFee).toBe(10000); // 1kg total weight = 10,000 cents
+
+      const orderTotals = calculateOrderTotals(
+        [{ lineTotalCents: tuna500gPack * 2, prepFeeCents: prepFee }],
+        35000 // Rs. 350.00 delivery
       );
-      const checkoutDisplay = formatMoney(checkoutTotals.subtotalCents);
-      expect(checkoutDisplay).toBe("Rs. 1,402.50");
 
-      // 5. Order confirmation line total
-      const orderLineTotal = cartLineTotal;
-      const orderDisplay = formatMoney(orderLineTotal);
-      expect(orderDisplay).toBe("Rs. 1,402.50");
-
-      // 6. Invoice goods total
-      const invoiceDisplay = formatMoney(orderLineTotal);
-      expect(invoiceDisplay).toBe("Rs. 1,402.50");
-
-      // 7. Admin order view
-      const adminDisplay = formatMoney(orderLineTotal);
-      expect(adminDisplay).toBe("Rs. 1,402.50");
-
-      // All 7 touchpoints render identical price string
-      expect(shopDisplay)
-        .toBe(productPageDisplay);
-      expect(productPageDisplay)
-        .toBe(cartDisplay);
-      expect(cartDisplay)
-        .toBe(checkoutDisplay);
-      expect(checkoutDisplay)
-        .toBe(orderDisplay);
-      expect(orderDisplay)
-        .toBe(invoiceDisplay);
-      expect(invoiceDisplay)
-        .toBe(adminDisplay);
+      expect(orderTotals.subtotalCents).toBe(140250);
+      expect(orderTotals.prepTotalCents).toBe(10000);
+      expect(orderTotals.deliveryFeeCents).toBe(35000);
+      expect(orderTotals.totalCents).toBe(185250);
+      expect(formatMoney(orderTotals.totalCents)).toBe("Rs. 1,852.50");
     });
   });
 });

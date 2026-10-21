@@ -1,0 +1,315 @@
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { formatMoney, roundPriceCents } from "@/lib/money";
+import { calculatePackPriceCents, calculatePrepFeeCents, getEffectivePricePerKgCents } from "@/lib/pricing";
+import { useCartStore, type CartStore } from "@/store/cart";
+import { ShoppingBag, CheckCircle, Sparkles, Sun, Moon, Truck } from "lucide-react";
+import type { DbProductWithRelations } from "@/lib/catalogue";
+
+export default function ProductDetailClient({ product }: { product: DbProductWithRelations }) {
+  const addItem = useCartStore((state: CartStore) => state.addItem);
+
+  // Fallback defaults if packs or preps are empty
+  const defaultPacks = product.packs && product.packs.length > 0
+    ? product.packs
+    : [{ id: "pack-1000", weightGrams: 1000, label: "1 kg", isActive: true, sortOrder: 0 }];
+
+  const defaultPreps = product.preps && product.preps.length > 0
+    ? product.preps.map((p) => ({
+        id: p.prepOption.id,
+        name: p.prepOption.name,
+        feeCents: p.feeOverrideCents ?? p.prepOption.feeCents,
+        feeType: p.prepOption.feeType,
+        isDefault: p.prepOption.isDefault,
+      }))
+    : [{ id: "prep-whole", name: "Whole (Uncleaned)", feeCents: 0, feeType: "FLAT" as const, isDefault: true }];
+
+  // Find 1kg pack or first pack
+  const initialPack = defaultPacks.find((p) => p.weightGrams === 1000) || defaultPacks[0];
+  const initialPrep = defaultPreps.find((pr) => pr.isDefault) || defaultPreps[0];
+
+  const [selectedPack, setSelectedPack] = useState(initialPack);
+  const [selectedPrep, setSelectedPrep] = useState(initialPrep);
+  const [quantity, setQuantity] = useState(1);
+  const [addedNotice, setAddedNotice] = useState(false);
+
+  const initialImageUrl = product.images?.[0]?.url || `/products/${product.slug}.jpg`;
+  const [imgSrc, setImgSrc] = useState(initialImageUrl);
+
+  // Calculate discount rate if present using shared rounding rule
+  const activePricePerKg = product.offerPercent && product.offerPercent > 0
+    ? roundPriceCents(product.pricePerKgCents * (1 - product.offerPercent / 100))
+    : product.pricePerKgCents;
+
+  const totalGrams = selectedPack.weightGrams * quantity;
+
+  // Pricing calculations with wholesale tiers
+  const { pricePerKgCents, tierLabel } = getEffectivePricePerKgCents(
+    activePricePerKg,
+    product.tiers || [],
+    totalGrams
+  );
+
+  const basePackPrice = calculatePackPriceCents(pricePerKgCents, selectedPack.weightGrams);
+  const prepFee = calculatePrepFeeCents(
+    selectedPrep.feeCents,
+    selectedPrep.feeType,
+    selectedPack.weightGrams,
+    quantity
+  );
+  const lineTotalCents = basePackPrice * quantity + prepFee;
+
+  const handleAddToCart = () => {
+    addItem({
+      productId: product.id,
+      productSlug: product.slug,
+      productName: product.name,
+      localName: product.localName || undefined,
+      imageUrl: initialImageUrl,
+      storageType: product.storageType,
+      pricePerKgCents: pricePerKgCents,
+      priceVersion: product.priceVersion,
+      weightGrams: selectedPack.weightGrams,
+      packLabel: selectedPack.label,
+      quantity: quantity,
+      prepOptionId: selectedPrep.id,
+      prepName: selectedPrep.name,
+      prepFeeCents: selectedPrep.feeCents,
+      prepFeeType: selectedPrep.feeType,
+    });
+
+    setAddedNotice(true);
+    setTimeout(() => setAddedNotice(false), 3000);
+  };
+
+  return (
+    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 pt-4 pb-28 md:pb-12 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Column: Product Image Gallery */}
+        <div className="lg:col-span-6 space-y-4">
+          <div className="relative aspect-[4/3] rounded-3xl overflow-hidden border border-[#DDE8F0] bg-[#E8F4FE] shadow-xs">
+            <Image
+              src={imgSrc}
+              alt={product.name}
+              fill
+              priority
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              onError={() => setImgSrc("/products/photo-coming-soon.svg")}
+            />
+            {product.offerPercent && product.offerPercent > 0 && (
+              <span className="absolute top-4 left-4 bg-[#FF5722] text-white text-xs font-extrabold px-3 py-1 rounded-full uppercase shadow-md">
+                -{product.offerPercent}% OFF
+              </span>
+            )}
+            <span className="absolute top-4 right-4 bg-white/90 backdrop-blur-xs text-[#1B9AE4] border border-[#1B9AE4]/20 text-xs font-bold px-3 py-1 rounded-full uppercase shadow-xs">
+              {product.storageType === "FRESH" ? "Fresh" : "Frozen"}
+            </span>
+          </div>
+
+          {/* Product facts (only rendered if present) */}
+          {(product.origin || product.catchType) && (
+            <div className="grid grid-cols-2 gap-3 bg-white border border-[#DDE8F0] rounded-2xl p-4 text-xs text-[#0D2137]">
+              {product.origin && (
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-[#0D2137]/50 block">Origin</span>
+                  <span className="font-bold text-[#0D2137]">{product.origin}</span>
+                </div>
+              )}
+              {product.catchType && (
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-[#0D2137]/50 block">Catch Type</span>
+                  <span className="font-bold text-[#0D2137]">{product.catchType}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Product Details & Selection */}
+        <div className="lg:col-span-6 space-y-5">
+          <div>
+            <div className="inline-flex items-center space-x-1.5 bg-[#1B9AE4]/10 border border-[#1B9AE4]/20 px-3 py-1 rounded-full text-xs font-bold text-[#1B9AE4] mb-2">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Fresh Coastal Catch</span>
+            </div>
+            <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-[#0D2137]">{product.name}</h1>
+            {product.localName && (
+              <p className="text-[#1B9AE4] font-bold text-base mt-0.5">{product.localName}</p>
+            )}
+            {product.shortDesc && (
+              <p className="text-xs sm:text-sm text-[#0D2137]/70 mt-2 leading-relaxed">{product.shortDesc}</p>
+            )}
+          </div>
+
+          {/* Price Box */}
+          <div className="bg-[#E8F4FE]/60 border border-[#1B9AE4]/20 p-4 rounded-2xl flex items-center justify-between">
+            <div>
+              <span className="text-[10px] text-[#0D2137]/60 font-bold uppercase tracking-wider block">Price per kg</span>
+              {product.offerPercent && product.offerPercent > 0 ? (
+                <div className="flex items-baseline space-x-2">
+                  <span className="text-2xl font-extrabold text-[#0D2137]">
+                    {formatMoney(activePricePerKg)}
+                  </span>
+                  <span className="text-sm text-[#0D2137]/40 line-through">
+                    {formatMoney(product.pricePerKgCents)}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-2xl font-extrabold text-[#0D2137]">
+                  {formatMoney(pricePerKgCents)}
+                </span>
+              )}
+            </div>
+
+            {tierLabel && (
+              <span className="text-xs font-bold text-[#27A04E] bg-[#27A04E]/10 border border-[#27A04E]/20 px-3 py-1 rounded-full">
+                {tierLabel} Applied
+              </span>
+            )}
+          </div>
+
+          {/* 12 PM Delivery Cut-off Rule Banner */}
+          <div className="bg-white border border-[#DDE8F0] p-3.5 rounded-2xl flex items-center justify-between gap-3 text-xs text-[#0D2137] shadow-xs">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-full bg-[#E8F4FE] text-[#1B9AE4] flex items-center justify-center shrink-0">
+                <Truck className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2 font-bold">
+                  <span className="flex items-center text-[#27A04E] space-x-1">
+                    <Sun className="h-3.5 w-3.5" />
+                    <span>Before 12 PM: same-day</span>
+                  </span>
+                  <span className="text-[#0D2137]/40">|</span>
+                  <span className="flex items-center text-[#0D2137]/70 space-x-1">
+                    <Moon className="h-3.5 w-3.5 text-[#1B9AE4]" />
+                    <span>After 12 PM: next-day</span>
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#0D2137]/60 mt-0.5">
+                  Courier dispatch to your location
+                </p>
+              </div>
+            </div>
+
+            <Link href="/delivery" className="text-[11px] font-bold text-[#1B9AE4] hover:underline shrink-0">
+              Details &rarr;
+            </Link>
+          </div>
+
+          {/* 1. Pack Picker */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
+              1. Select Pack Size
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {defaultPacks.map((pack) => {
+                const packPrice = calculatePackPriceCents(pricePerKgCents, pack.weightGrams);
+                const isSelected = selectedPack.weightGrams === pack.weightGrams;
+                return (
+                  <button
+                    key={pack.weightGrams}
+                    onClick={() => setSelectedPack(pack)}
+                    className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
+                      isSelected
+                        ? "border-[#1B9AE4] bg-[#1B9AE4]/10 text-[#0D2137] font-bold ring-2 ring-[#1B9AE4]/20"
+                        : "border-[#DDE8F0] bg-white text-[#0D2137]/80 hover:border-[#1B9AE4]"
+                    }`}
+                  >
+                    <span className="block text-sm font-bold">{pack.label}</span>
+                    <span className="block text-xs font-semibold text-[#1B9AE4] mt-0.5">{formatMoney(packPrice)}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 2. Prep Picker */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
+              2. Select Preparation Cut
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {defaultPreps.map((prep) => {
+                const isSelected = selectedPrep.id === prep.id;
+                return (
+                  <button
+                    key={prep.id}
+                    onClick={() => setSelectedPrep(prep)}
+                    className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                      isSelected
+                        ? "border-[#1B9AE4] bg-[#1B9AE4]/10 text-[#0D2137] font-bold ring-2 ring-[#1B9AE4]/20"
+                        : "border-[#DDE8F0] bg-white text-[#0D2137]/80 hover:border-[#1B9AE4]"
+                    }`}
+                  >
+                    <span className="text-xs font-bold">{prep.name}</span>
+                    <span className="text-[11px] text-[#1B9AE4] mt-1 font-semibold">
+                      {prep.feeCents === 0 ? "Free Prep" : `+${formatMoney(prep.feeCents)} / kg`}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Quantity Stepper */}
+          <div className="flex items-center justify-between border-t border-b border-[#DDE8F0] py-3">
+            <label className="text-xs font-bold uppercase tracking-wider text-[#0D2137]">Quantity:</label>
+            <div className="flex items-center border border-[#DDE8F0] rounded-xl overflow-hidden bg-white">
+              <button
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="w-10 h-10 bg-gray-50 hover:bg-gray-100 font-bold text-lg flex items-center justify-center text-[#0D2137] cursor-pointer"
+              >
+                -
+              </button>
+              <span className="w-12 text-center text-sm font-bold text-[#0D2137]">{quantity}</span>
+              <button
+                onClick={() => setQuantity(quantity + 1)}
+                className="w-10 h-10 bg-gray-50 hover:bg-gray-100 font-bold text-lg flex items-center justify-center text-[#0D2137] cursor-pointer"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          {/* Desktop Add to Cart */}
+          <div className="hidden md:block space-y-3 pt-2">
+            <button
+              onClick={handleAddToCart}
+              className="w-full bg-[#0D2137] hover:bg-[#1B9AE4] text-white py-4 px-6 rounded-2xl font-bold text-base flex items-center justify-center space-x-2 transition-all shadow-md hover:shadow-lg cursor-pointer"
+            >
+              <ShoppingBag className="h-5 w-5" />
+              <span>Add to Cart ({formatMoney(lineTotalCents)})</span>
+            </button>
+
+            {addedNotice && (
+              <div className="bg-[#27A04E]/10 text-[#27A04E] border border-[#27A04E]/20 text-xs font-bold p-3 rounded-2xl text-center flex items-center justify-center space-x-2 animate-fade-up">
+                <CheckCircle className="h-4 w-4" />
+                <span>Added to cart successfully!</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Sticky Add to Cart Bar */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-[#DDE8F0] z-50 md:hidden flex items-center justify-between gap-4 shadow-xl">
+        <div>
+          <span className="block text-[10px] text-[#0D2137]/60 font-bold uppercase">Total</span>
+          <span className="text-xl font-extrabold text-[#0D2137]">{formatMoney(lineTotalCents)}</span>
+        </div>
+        <button
+          onClick={handleAddToCart}
+          className="bg-[#0D2137] hover:bg-[#1B9AE4] text-white px-6 py-3.5 rounded-2xl font-bold text-sm flex items-center space-x-2 transition-all shadow-md cursor-pointer"
+        >
+          <ShoppingBag className="h-4 w-4" />
+          <span>Add to Cart</span>
+        </button>
+      </div>
+    </div>
+  );
+}

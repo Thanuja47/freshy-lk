@@ -4,7 +4,8 @@
 
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { calculatePackPriceCents, getEffectivePricePerKgCents, calculatePrepFeeCents } from "@/lib/pricing";
+import { calculatePackPriceCents, calculatePrepFeeCents } from "@/lib/pricing";
+import { getEffectivePrice } from "@/lib/offers";
 import { findZoneForDistrict, calculateDeliveryFee, validateStorageCompatibility, getEarliestDeliveryDate, formatDateYYYYMMDD } from "@/lib/delivery";
 import { reserveStock } from "@/lib/stock";
 import { normalizePhone } from "@/lib/constants";
@@ -88,6 +89,12 @@ function generateTrackingToken(): string {
     token += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return token;
+}
+
+export async function getPaymentGatewayConfig(): Promise<{ hasPayHere: boolean }> {
+  return {
+    hasPayHere: Boolean(process.env.PAYHERE_MERCHANT_ID && process.env.PAYHERE_MERCHANT_SECRET),
+  };
 }
 
 export async function createOrder(input: CheckoutInput): Promise<CheckoutActionResult> {
@@ -179,6 +186,7 @@ interface ValidatedItem {
   packWeightGrams: number;
   quantity: number;
   pricePerKgCents: number;
+  offerPricePerKgCents?: number | null;
   tierLabel: string | null;
   prepName: string | null;
   prepFeeCents: number;
@@ -213,11 +221,9 @@ interface ValidatedItem {
       }
 
       const totalGrams = productTotalGrams.get(item.productId) ?? 0;
-      const { pricePerKgCents: freshPricePerKgCents, tierLabel } = getEffectivePricePerKgCents(
-        product.pricePerKgCents,
-        product.tiers,
-        totalGrams
-      );
+      const effective = getEffectivePrice(product, totalGrams);
+      const freshPricePerKgCents = effective.pricePerKgCents;
+      const tierLabel = effective.label;
 
       if (freshPricePerKgCents !== item.cartPricePerKgCents) {
         hasPriceChange = true;
@@ -254,6 +260,7 @@ interface ValidatedItem {
         packWeightGrams: item.packWeightGrams,
         quantity: item.quantity,
         pricePerKgCents: freshPricePerKgCents,
+        offerPricePerKgCents: effective.isOffer ? effective.pricePerKgCents : null,
         tierLabel,
         prepName: prepName ?? null,
         prepFeeCents,

@@ -116,10 +116,31 @@ export function mapPayHereStatus(statusCode: string | number): PayHereStatusResu
 }
 
 /**
+ * Returns true if PayHere merchant ID and secret are configured in environment
+ */
+export function isPayHereConfigured(): boolean {
+  return Boolean(
+    (process.env.PAYHERE_MERCHANT_ID || env.PAYHERE_MERCHANT_ID) &&
+    (process.env.PAYHERE_MERCHANT_SECRET || env.PAYHERE_MERCHANT_SECRET)
+  );
+}
+
+/**
+ * Returns PayHere submission URL based on PAYHERE_MODE (live vs sandbox)
+ */
+export function getPayHereActionUrl(): string {
+  const mode = process.env.PAYHERE_MODE || env.PAYHERE_MODE || "sandbox";
+  return mode === "live"
+    ? "https://www.payhere.lk/pay/checkout"
+    : "https://sandbox.payhere.lk/pay/checkout";
+}
+
+/**
  * Prepares complete checkout form fields with hash for client-side submit
  */
 export function buildPayHereCheckoutForm(input: {
   orderNo: string;
+  trackingToken?: string;
   amountCents: number;
   customerName: string;
   email: string;
@@ -128,9 +149,9 @@ export function buildPayHereCheckoutForm(input: {
   city: string;
   itemsSummary: string;
 }): PayHereCheckoutParams {
-  const merchantId = env.PAYHERE_MERCHANT_ID || "123456";
-  const merchantSecret = env.PAYHERE_MERCHANT_SECRET || "sandbox_secret";
-  const siteUrl = env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const merchantId = process.env.PAYHERE_MERCHANT_ID || env.PAYHERE_MERCHANT_ID || "123456";
+  const merchantSecret = process.env.PAYHERE_MERCHANT_SECRET || env.PAYHERE_MERCHANT_SECRET || "sandbox_secret";
+  const siteUrl = env.NEXT_PUBLIC_SITE_URL || (typeof window !== "undefined" ? window.location.origin : "https://freshy.lk");
 
   const [firstName, ...lastNameParts] = input.customerName.trim().split(" ");
   const lastName = lastNameParts.join(" ") || "Customer";
@@ -139,10 +160,12 @@ export function buildPayHereCheckoutForm(input: {
   const amountStr = formatPayHereAmount(input.amountCents);
   const hash = generatePayHereHash(merchantId, input.orderNo, input.amountCents, currency, merchantSecret);
 
+  const targetToken = input.trackingToken || input.orderNo;
+
   return {
     merchant_id: merchantId,
-    return_url: `${siteUrl}/order/${input.orderNo}?payment=success`,
-    cancel_url: `${siteUrl}/order/${input.orderNo}?payment=cancel`,
+    return_url: `${siteUrl}/order/${targetToken}?payment=status`,
+    cancel_url: `${siteUrl}/order/${targetToken}?payment=cancelled`,
     notify_url: `${siteUrl}/api/webhooks/payhere`,
     order_id: input.orderNo,
     items: input.itemsSummary,
