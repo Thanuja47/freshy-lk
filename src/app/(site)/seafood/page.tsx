@@ -4,9 +4,17 @@ import ProductCard from "@/components/site/ProductCard";
 import { ArrowLeft } from "lucide-react";
 import { getProductsByCategory, mapProductToCard } from "@/lib/catalogue";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://freshy.lk";
+
 export const metadata: Metadata = {
-  title: "Crab, Prawns & Calamari Seafood | Freshy.lk",
-  description: "Fresh Jumbo Tiger Prawns, Lagoon Mud Crab, and Cuttlefish prepped fresh daily across Sri Lanka.",
+  title: "Fresh Prawns, Crabs & Seafood Sri Lanka | Freshy.lk",
+  description: "Order fresh Jumbo Tiger Prawns, Lagoon Mud Crab, Cuttlefish and seafood online. Prepped fresh daily and delivered across Sri Lanka.",
+  alternates: { canonical: `${SITE_URL}/seafood` },
+  openGraph: {
+    title: "Fresh Prawns, Crabs & Seafood Sri Lanka | Freshy.lk",
+    description: "Fresh Jumbo Tiger Prawns, Lagoon Mud Crab, Cuttlefish prepped daily. Delivered across Sri Lanka.",
+    url: `${SITE_URL}/seafood`,
+  },
 };
 
 export const revalidate = 60;

@@ -13,6 +13,7 @@ const categorySchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   slug: z.string().min(2, "Slug must be at least 2 characters").regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
   description: z.string().optional(),
+  imageUrl: z.string().nullable().optional(),
   sortOrder: z.number().int().default(0),
   isActive: z.boolean().default(true),
 });
@@ -32,40 +33,50 @@ export async function saveCategory(input: CategoryInput) {
           name: parsed.name,
           slug: parsed.slug,
           description: parsed.description || null,
+          imageUrl: parsed.imageUrl !== undefined ? parsed.imageUrl : undefined,
           sortOrder: parsed.sortOrder,
           isActive: parsed.isActive,
         },
       });
 
-      await db.auditLog.create({
-        data: {
-          adminId: admin.id !== "demo-owner-id" ? admin.id : undefined,
-          action: "category.update",
-          entity: "Category",
-          entityId: saved.id,
-          diff: { name: saved.name, slug: saved.slug },
-        },
-      });
+      try {
+        await db.auditLog.create({
+          data: {
+            adminId: admin.id !== "demo-owner-id" ? admin.id : undefined,
+            action: "category.update",
+            entity: "Category",
+            entityId: saved.id,
+            diff: { name: saved.name, slug: saved.slug },
+          },
+        });
+      } catch (logErr) {
+        console.warn("Audit log warning on category.update:", logErr);
+      }
     } else {
       saved = await db.category.create({
         data: {
           name: parsed.name,
           slug: parsed.slug,
           description: parsed.description || null,
+          imageUrl: parsed.imageUrl || null,
           sortOrder: parsed.sortOrder,
           isActive: parsed.isActive,
         },
       });
 
-      await db.auditLog.create({
-        data: {
-          adminId: admin.id !== "demo-owner-id" ? admin.id : undefined,
-          action: "category.create",
-          entity: "Category",
-          entityId: saved.id,
-          diff: { name: saved.name, slug: saved.slug },
-        },
-      });
+      try {
+        await db.auditLog.create({
+          data: {
+            adminId: admin.id !== "demo-owner-id" ? admin.id : undefined,
+            action: "category.create",
+            entity: "Category",
+            entityId: saved.id,
+            diff: { name: saved.name, slug: saved.slug },
+          },
+        });
+      } catch (logErr) {
+        console.warn("Audit log warning on category.create:", logErr);
+      }
     }
 
     try {

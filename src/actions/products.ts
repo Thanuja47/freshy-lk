@@ -25,6 +25,7 @@ const productSchema = z.object({
   catchType: z.string().optional(),
   origin: z.string().optional(),
   offerPercent: z.number().int().min(1).max(50).nullable().optional(),
+  imageUrl: z.string().nullable().optional(),
   packs: z.array(
     z.object({
       weightGrams: z.number().int().positive(),
@@ -61,6 +62,7 @@ export async function createProduct(input: ProductFormInput) {
           storageType: parsed.storageType as StorageType,
           pricePerKgCents: parsed.pricePerKgCents,
           offerPercent: parsed.offerPercent ?? null,
+          imageUrl: parsed.imageUrl ?? null,
           trackStock: parsed.trackStock,
           stockGrams: parsed.stockGrams,
           isAvailable: parsed.isAvailable,
@@ -130,6 +132,7 @@ export async function updateProduct(input: UpdateProductInput) {
           storageType: parsed.storageType as StorageType,
           pricePerKgCents: parsed.pricePerKgCents,
           offerPercent: parsed.offerPercent !== undefined ? parsed.offerPercent : null,
+          imageUrl: parsed.imageUrl !== undefined ? parsed.imageUrl : undefined,
           trackStock: parsed.trackStock,
           stockGrams: parsed.stockGrams,
           isAvailable: parsed.isAvailable,

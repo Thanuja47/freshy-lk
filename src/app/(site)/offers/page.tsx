@@ -4,9 +4,17 @@ import ProductCard from "@/components/site/ProductCard";
 import { ArrowLeft, Tag } from "lucide-react";
 import { getActiveOfferProducts, mapProductToCard } from "@/lib/catalogue";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://freshy.lk";
+
 export const metadata: Metadata = {
-  title: "Today's Catch Offers & Discounts | Freshy.lk",
-  description: "Special seasonal discounts on fresh fish and seafood. Limited quantities daily direct from harbor landings.",
+  title: "Fish & Seafood Deals & Discounts | Freshy.lk",
+  description: "Special seasonal discounts on fresh fish and seafood. Limited quantities daily from harbor landings. Don't miss today's deals!",
+  alternates: { canonical: `${SITE_URL}/offers` },
+  openGraph: {
+    title: "Fish & Seafood Deals | Freshy.lk",
+    description: "Special seasonal discounts on fresh fish and seafood. Limited quantities daily.",
+    url: `${SITE_URL}/offers`,
+  },
 };
 
 export const revalidate = 60;

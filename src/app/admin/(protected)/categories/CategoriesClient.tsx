@@ -15,12 +15,15 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import Image from "next/image";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 interface CategoryItem {
   id: string;
   slug: string;
   name: string;
   description: string | null;
+  imageUrl: string | null;
   sortOrder: number;
   _count: { products: number };
 }
@@ -59,6 +62,7 @@ export default function CategoriesClient({
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [sortOrder, setSortOrder] = useState(0);
+  const [imageUrl, setImageUrl] = useState("");
 
   const openAddModal = () => {
     setEditingId(null);
@@ -66,6 +70,7 @@ export default function CategoriesClient({
     setSlug("");
     setDescription("");
     setSortOrder(categories.length);
+    setImageUrl("");
     setActionError(null);
     setActionSuccess(null);
     setIsModalOpen(true);
@@ -77,6 +82,7 @@ export default function CategoriesClient({
     setSlug(cat.slug);
     setDescription(cat.description || "");
     setSortOrder(cat.sortOrder);
+    setImageUrl(cat.imageUrl || "");
     setActionError(null);
     setActionSuccess(null);
     setIsModalOpen(true);
@@ -108,6 +114,7 @@ export default function CategoriesClient({
       description: description || undefined,
       sortOrder,
       isActive: true,
+      imageUrl: imageUrl || null,
     });
 
     setIsSubmitting(false);
@@ -193,9 +200,19 @@ export default function CategoriesClient({
               <div className="flex items-start justify-between">
                 <div
                   style={{ background: accent.bg }}
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center"
+                  className="w-11 h-11 rounded-2xl flex items-center justify-center overflow-hidden"
                 >
-                  <Folder style={{ color: accent.text }} className="w-5 h-5" />
+                  {cat.imageUrl ? (
+                    <Image
+                      src={cat.imageUrl}
+                      alt={cat.name}
+                      width={44}
+                      height={44}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Folder style={{ color: accent.text }} className="w-5 h-5" />
+                  )}
                 </div>
                 <span
                   style={{ background: accent.bg, color: accent.text }}
@@ -324,6 +341,14 @@ export default function CategoriesClient({
                   className="w-full px-3 py-2 bg-[#F5F5F7] border border-black/[0.08] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 text-xs"
                 />
               </div>
+
+              <ImageUpload
+                value={imageUrl}
+                onChange={setImageUrl}
+                folder="categories"
+                label="Category Image"
+                aspectRatio="landscape"
+              />
 
               <div>
                 <label className="block text-[#6E6E73] uppercase tracking-wider font-semibold mb-1">

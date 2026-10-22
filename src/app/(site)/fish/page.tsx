@@ -1,12 +1,20 @@
-import { Metadata } from "next";
+﻿import { Metadata } from "next";
 import Link from "next/link";
 import ProductCard from "@/components/site/ProductCard";
 import { ArrowLeft } from "lucide-react";
 import { getProductsByCategory, mapProductToCard } from "@/lib/catalogue";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://freshy.lk";
+
 export const metadata: Metadata = {
-  title: "Fresh Sea Fish | Freshy.lk",
-  description: "Browse premium Sri Lankan sea fish landed daily. Yellowfin Tuna, Seer Fish, Trevally, Sailfish, Mahi Mahi, Barramundi and more.",
+  title: "Fresh Sea Fish Delivery Sri Lanka | Freshy.lk",
+  description: "Order premium Sri Lankan sea fish online - Yellowfin Tuna, Seer Fish, Trevally, Sailfish, Mahi Mahi, Barramundi and more. Direct from coastal landings.",
+  alternates: { canonical: `${SITE_URL}/fish` },
+  openGraph: {
+    title: "Fresh Sea Fish Delivery Sri Lanka | Freshy.lk",
+    description: "Order premium Sri Lankan sea fish online. Tuna, Seer, Trevally, Sailfish and more. Direct from coastal landings.",
+    url: `${SITE_URL}/fish`,
+  },
 };
 
 export const revalidate = 60;

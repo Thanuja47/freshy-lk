@@ -3,9 +3,17 @@ import { getCachedCatalogue, mapProductToCard } from "@/lib/catalogue";
 import ShopClient from "./ShopClient";
 import type { Metadata } from "next";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://freshy.lk";
+
 export const metadata: Metadata = {
-  title: "Shop Catch of the Day | Freshy.lk",
-  description: "Browse fresh fish and seafood landed daily. Order online for delivery across Sri Lanka.",
+  title: "Shop Fresh Fish & Seafood | Freshy.lk",
+  description: "Browse fresh fish and seafood landed daily. Order online for delivery across Sri Lanka. Same-day delivery in Colombo and surrounding areas.",
+  alternates: { canonical: `${SITE_URL}/shop` },
+  openGraph: {
+    title: "Shop Fresh Fish & Seafood | Freshy.lk",
+    description: "Browse fresh fish and seafood landed daily. Same-day delivery in Colombo.",
+    url: `${SITE_URL}/shop`,
+  },
 };
 
 export const revalidate = 60;

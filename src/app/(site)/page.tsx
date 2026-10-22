@@ -3,9 +3,20 @@ import { isOfferActive, getOfferPricePerKgCents } from "@/lib/offers";
 import HomeClient, { type HomeProductItem, type HomeDealItem } from "./HomeClient";
 import type { Metadata } from "next";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://freshy.lk";
+
 export const metadata: Metadata = {
-  title: "Freshy.lk | Fresh Seafood & Fish - Sri Lanka",
-  description: "Order fresh fish and seafood online. Direct from Sri Lankan coastal landings, custom prepped and delivered fresh to your door.",
+  title: "Freshy.lk | Fresh Seafood & Fish Delivery — Sri Lanka",
+  description:
+    "Sri Lanka's freshest seafood delivered to your door. Order fish, prawns, crab, and seafood online. Direct from coastal landings, same-day delivery in Colombo.",
+  alternates: { canonical: SITE_URL },
+  openGraph: {
+    title: "Freshy.lk | Fresh Seafood & Fish Delivery — Sri Lanka",
+    description:
+      "Sri Lanka's freshest seafood delivered to your door. Order fish, prawns, crab, and seafood online.",
+    url: SITE_URL,
+    images: [{ url: "/brand/og-image.png", width: 1200, height: 630 }],
+  },
 };
 
 export const revalidate = 60;

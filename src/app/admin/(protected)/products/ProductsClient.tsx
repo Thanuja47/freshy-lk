@@ -19,6 +19,8 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import Image from "next/image";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 interface CategoryOption {
   id: string;
@@ -36,6 +38,7 @@ interface ProductItem {
   isActive: boolean;
   isAvailable: boolean;
   shortDesc?: string | null;
+  imageUrl?: string | null;
   category: { id?: string; name: string };
   packs: Array<{ id: string; label: string; weightGrams?: number }>;
   offerPercent?: number | null;
@@ -83,6 +86,7 @@ export default function ProductsClient({
   const [isAvailable, setIsAvailable] = useState(true);
   const [isActive, setIsActive] = useState(true);
   const [selectedPacks, setSelectedPacks] = useState<number[]>([500, 1000]);
+  const [productImageUrl, setProductImageUrl] = useState("");
 
   const openAddModal = () => {
     setEditingProduct(null);
@@ -97,6 +101,7 @@ export default function ProductsClient({
     setIsAvailable(true);
     setIsActive(true);
     setSelectedPacks([500, 1000]);
+    setProductImageUrl("");
     setActionError(null);
     setActionSuccess(null);
     setIsModalOpen(true);
@@ -115,6 +120,7 @@ export default function ProductsClient({
     setShortDesc(prod.shortDesc || "");
     setIsAvailable(prod.isAvailable);
     setIsActive(prod.isActive);
+    setProductImageUrl(prod.imageUrl || "");
 
     const weights = prod.packs
       .map((p) => {
@@ -173,6 +179,7 @@ export default function ProductsClient({
         isActive,
         shortDesc: shortDesc || undefined,
         packs: packEntries,
+        imageUrl: productImageUrl || null,
       });
 
       setIsSubmitting(false);
@@ -194,6 +201,7 @@ export default function ProductsClient({
                   isAvailable,
                   isActive,
                   shortDesc: shortDesc || null,
+                  imageUrl: productImageUrl || null,
                   category: { id: categoryId, name: selectedCatObj?.name || p.category.name },
                   packs: packEntries.map((pe, idx) => ({
                     id: `pack-${idx}-${Date.now()}`,
@@ -227,6 +235,7 @@ export default function ProductsClient({
         isActive: true,
         shortDesc: shortDesc || undefined,
         packs: packEntries,
+        imageUrl: productImageUrl || null,
       });
 
       setIsSubmitting(false);
@@ -244,6 +253,7 @@ export default function ProductsClient({
           stockGrams,
           isAvailable: true,
           isActive: true,
+          imageUrl: productImageUrl || null,
           category: { id: categoryId, name: selectedCatObj?.name || "General" },
           packs: packEntries.map((p, idx) => ({ id: `new-pack-${idx}`, weightGrams: p.weightGrams, label: p.label })),
         };
@@ -409,10 +419,23 @@ export default function ProductsClient({
                 {filteredProducts.map((product) => (
                   <tr key={product.id} className="hover:bg-black/[0.015] transition-colors">
                     <td className="py-3.5 px-4">
-                      <div className="font-semibold text-[#1D1D1F]">{product.name}</div>
-                      {product.localName && (
-                        <div className="text-xs text-[#6E6E73]">{product.localName}</div>
-                      )}
+                      <div className="flex items-center gap-2.5">
+                        {product.imageUrl && (
+                          <Image
+                            src={product.imageUrl}
+                            alt={product.name}
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                          />
+                        )}
+                        <div>
+                          <div className="font-semibold text-[#1D1D1F]">{product.name}</div>
+                          {product.localName && (
+                            <div className="text-xs text-[#6E6E73]">{product.localName}</div>
+                          )}
+                        </div>
+                      </div>
                     </td>
                     <td className="py-3.5 px-4 text-[#1D1D1F] font-medium">
                       {product.category.name}
@@ -718,6 +741,13 @@ export default function ProductsClient({
                   className="w-full px-3 py-2 bg-[#F5F5F7] border border-black/[0.08] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 text-xs"
                 />
               </div>
+
+              <ImageUpload
+                value={productImageUrl}
+                onChange={setProductImageUrl}
+                folder="products"
+                label="Product Image"
+              />
 
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-black/[0.06]">
                 <button

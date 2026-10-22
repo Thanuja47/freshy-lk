@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import { formatMoney } from "@/lib/money";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
 import { Truck, MessageCircle, Calendar, Download, CreditCard } from "lucide-react";
-import SlipUpload from "@/components/site/SlipUpload";
 import { buildPayHereCheckoutForm, getPayHereActionUrl, isPayHereConfigured } from "@/lib/payhere";
 
 
@@ -371,16 +370,17 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
                 </div>
               )}
 
-              <SlipUpload
-                orderToken={token}
-                orderNo={order.orderNo}
-                paymentStatus={order.paymentStatus}
-                slips={order.slips.map((s) => ({
-                  id: s.id,
-                  status: s.status,
-                  createdAt: s.createdAt.toISOString(),
-                }))}
-              />
+              {order.slips.length > 0 && (
+                <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl shadow-xs text-xs space-y-1.5">
+                  <div className="flex items-center gap-2 font-bold text-emerald-800">
+                    <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">✓</span>
+                    <span>Bank Transfer Slip Attached</span>
+                  </div>
+                  <p className="text-emerald-700 leading-relaxed text-[11px]">
+                    Your payment receipt was attached with your order. Our team will verify the transfer shortly.
+                  </p>
+                </div>
+              )}
             </>
           )}
 

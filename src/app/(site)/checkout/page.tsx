@@ -878,7 +878,7 @@ export default function CheckoutPage() {
                               className="w-full text-xs text-[#0D2137] file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#1B9AE4] file:text-white hover:file:bg-[#1580C2] cursor-pointer"
                             />
                             <p className="text-[11px] text-[#0D2137]/60">
-                              {slipFile ? `Attached: ${slipFile.name}` : "You can also upload your slip anytime on the order tracking screen."}
+                              {slipFile ? `Attached: ${slipFile.name}` : "Attach your payment receipt or mobile banking transfer confirmation screenshot."}
                             </p>
                           </div>
                         </div>
