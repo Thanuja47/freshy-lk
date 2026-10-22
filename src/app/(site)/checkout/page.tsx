@@ -11,7 +11,7 @@ import { calculatePackPriceCents, calculatePrepFeeCents } from "@/lib/pricing";
 import { findZoneForDistrict, calculateDeliveryFee, getCutoffCountdown, getDeliveryCutoffMessage, getEarliestDeliveryDate, formatDateYYYYMMDD } from "@/lib/delivery";
 import { createOrder, getPaymentGatewayConfig, type CheckoutInput } from "@/actions/checkout";
 import { uploadPaymentSlipAction } from "@/actions/orders";
-import { Lock, ArrowRight, Clock, Calendar } from "lucide-react";
+import { Lock, ArrowRight, ArrowLeft, Clock, Calendar } from "lucide-react";
 
 interface SavedCustomerDetails {
   customerName: string;
@@ -73,7 +73,7 @@ function loadSavedCustomerDetails(): SavedCustomerDetails {
 
 export default function CheckoutPage() {
   const router = useRouter();
-    const formId = useId();
+  const formId = useId();
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const { items, clearCart } = useCartStore();
@@ -85,6 +85,7 @@ export default function CheckoutPage() {
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [priceChangeNotice, setPriceChangeNotice] = useState<{
     newSubtotalCents: number;
     newTotalCents: number;
@@ -122,6 +123,14 @@ export default function CheckoutPage() {
   const [orderSuccessToken, setOrderSuccessToken] = useState<string | null>(null);
   const [slipFile, setSlipFile] = useState<File | null>(null);
 
+  // Dynamic Bank Details from Settings
+  const [bankSettings, setBankSettings] = useState({
+    bankName: "Commercial Bank of Ceylon",
+    bankAccountName: "Freshy LK (Pvt) Ltd",
+    bankAccountNumber: "1000200300",
+    bankBranch: "Colombo Main Branch",
+  });
+
   useEffect(() => {
     getPaymentGatewayConfig()
       .then((cfg) => {
@@ -131,7 +140,67 @@ export default function CheckoutPage() {
         }
       })
       .catch(() => {});
+
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && (data.bankName || data.bankAccountNumber)) {
+          setBankSettings({
+            bankName: data.bankName || "Commercial Bank of Ceylon",
+            bankAccountName: data.bankAccountName || "Freshy LK (Pvt) Ltd",
+            bankAccountNumber: data.bankAccountNumber || "1000200300",
+            bankBranch: data.bankBranch || "Colombo Main Branch",
+          });
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  // Step Validation Helpers
+  const validateStep1 = () => {
+    if (!customerName.trim() || customerName.trim().length < 2) {
+      setErrorMessage("Please enter your full name.");
+      return false;
+    }
+    const cleanPhone = phone.replace(/[^0-9]/g, "");
+    if (cleanPhone.length < 9) {
+      setErrorMessage("Please enter a valid phone number (at least 9 digits).");
+      return false;
+    }
+    setErrorMessage(null);
+    return true;
+  };
+
+  const validateStep2 = () => {
+    if (!city.trim() || city.trim().length < 2) {
+      setErrorMessage("Please enter your City / Town.");
+      return false;
+    }
+    if (!addressLine1.trim() || addressLine1.trim().length < 3) {
+      setErrorMessage("Please enter your Street Address.");
+      return false;
+    }
+    setErrorMessage(null);
+    return true;
+  };
+
+  const handleNextToAddress = () => {
+    if (validateStep1()) {
+      setCurrentStep(2);
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 120, behavior: "smooth" });
+      }
+    }
+  };
+
+  const handleNextToPayment = () => {
+    if (validateStep1() && validateStep2()) {
+      setCurrentStep(3);
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 120, behavior: "smooth" });
+      }
+    }
+  };
 
   // Calculate cart subtotal & prep total
   const subtotalCents = items.reduce((acc: number, item: CartItem) => {
@@ -160,7 +229,7 @@ export default function CheckoutPage() {
   const [zones, setZones] = useState<import("@/lib/delivery").DeliveryZoneLike[]>([]);
 
   useEffect(() => {
-    fetch('/api/delivery-zones')
+    fetch("/api/delivery-zones")
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data.zones)) setZones(data.zones);
@@ -204,7 +273,7 @@ export default function CheckoutPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-6">
         <div className="w-20 h-20 bg-[#E8F4FE] text-[#1B9AE4] rounded-3xl flex items-center justify-center mx-auto shadow-xs border border-[#1B9AE4]/20">
-          ðŸ›’
+          🛒
         </div>
         <h1 className="font-heading font-extrabold text-3xl text-[#0D2137]">Your Cart is Empty</h1>
         <p className="text-xs sm:text-sm text-[#0D2137]/70">Please add fresh fish to your cart before proceeding to checkout.</p>
@@ -227,6 +296,16 @@ export default function CheckoutPage() {
     if (e && typeof e.preventDefault === "function") {
       e.preventDefault();
     }
+
+    if (!validateStep1()) {
+      setCurrentStep(1);
+      return;
+    }
+    if (!validateStep2()) {
+      setCurrentStep(2);
+      return;
+    }
+
     setErrorMessage(null);
     setPriceChangeNotice(null);
     setDeliveryDateChangedNotice(null);
@@ -322,7 +401,6 @@ export default function CheckoutPage() {
         setErrorMessage(typeof result.message === "string" ? result.message : "An unexpected error occurred. Please try again or call us.");
       }
     } catch (err: unknown) {
-      // Ensure errorMessage is always a plain string (never an object) to avoid React #441
       const rawMsg = err instanceof Error ? err.message : "";
       const safeMsg = typeof rawMsg === "string" && rawMsg.length > 0
         ? rawMsg
@@ -341,23 +419,58 @@ export default function CheckoutPage() {
         <p className="text-xs sm:text-sm text-[#0D2137]/70">No account required. Fast delivery across Sri Lanka.</p>
       </div>
 
-      {/* 3-Step Indicator Bar */}
-      <div className="grid grid-cols-3 gap-2 bg-white p-3 rounded-2xl border border-[#DDE8F0] text-xs font-bold text-[#0D2137] shadow-xs">
-        <div className="flex items-center space-x-2 justify-center py-2 bg-[#E8F4FE] text-[#1B9AE4] rounded-xl border border-[#1B9AE4]/20">
-          <span className="w-5 h-5 bg-[#1B9AE4] text-white rounded-full flex items-center justify-center text-[10px] font-extrabold">1</span>
-          <span className="hidden sm:inline">Contact Info</span>
-        </div>
-        <div className="flex items-center space-x-2 justify-center py-2 bg-gray-50 text-[#0D2137]/70 rounded-xl">
-          <span className="w-5 h-5 bg-gray-200 text-[#0D2137] rounded-full flex items-center justify-center text-[10px] font-extrabold">2</span>
-          <span className="hidden sm:inline">Delivery Address</span>
-        </div>
-        <div className="flex items-center space-x-2 justify-center py-2 bg-gray-50 text-[#0D2137]/70 rounded-xl">
-          <span className="w-5 h-5 bg-gray-200 text-[#0D2137] rounded-full flex items-center justify-center text-[10px] font-extrabold">3</span>
-          <span className="hidden sm:inline">Payment Method</span>
-        </div>
+      {/* Interactive 3-Step Wizard Indicator */}
+      <div className="flex items-center bg-white p-2.5 rounded-2xl border border-[#DDE8F0] shadow-xs">
+        {[
+          { step: 1, label: "Contact Info" },
+          { step: 2, label: "Delivery Address" },
+          { step: 3, label: "Payment Method" },
+        ].map(({ step, label }, idx) => {
+          const isActive = currentStep === step;
+          const isCompleted = currentStep > step;
+          return (
+            <div key={step} className="flex items-center flex-1">
+              <button
+                type="button"
+                onClick={() => {
+                  if (step === 1) setCurrentStep(1);
+                  else if (step === 2 && validateStep1()) setCurrentStep(2);
+                  else if (step === 3 && validateStep1() && validateStep2()) setCurrentStep(3);
+                }}
+                className={`flex items-center gap-2 flex-1 justify-center py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  isActive
+                    ? "bg-[#E8F4FE] text-[#1B9AE4] border border-[#1B9AE4]/30 shadow-xs"
+                    : isCompleted
+                    ? "text-[#2E7D32] hover:bg-emerald-50"
+                    : "text-[#0D2137]/40 hover:text-[#0D2137]"
+                }`}
+              >
+                <span
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold flex-shrink-0 ${
+                    isCompleted
+                      ? "bg-[#2E7D32] text-white"
+                      : isActive
+                      ? "bg-[#1B9AE4] text-white"
+                      : "bg-gray-200 text-[#0D2137]/60"
+                  }`}
+                >
+                  {isCompleted ? "✓" : step}
+                </span>
+                <span className="hidden sm:inline">{label}</span>
+              </button>
+              {idx < 2 && (
+                <div
+                  className={`w-4 sm:w-8 h-0.5 flex-shrink-0 mx-1 transition-colors ${
+                    currentStep > idx + 1 ? "bg-[#2E7D32]" : "bg-gray-200"
+                  }`}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Delivery Date Change Notice Banner (Point 8.e) */}
+      {/* Notices */}
       {deliveryDateChangedNotice && (
         <div className="p-5 bg-blue-50 border border-blue-200 text-[#0D2137] rounded-2xl space-y-3 shadow-xs">
           <div className="flex items-center space-x-2 text-[#1B9AE4] font-bold">
@@ -377,7 +490,7 @@ export default function CheckoutPage() {
               setDeliveryDateChangedNotice(null);
               handleSubmit(e, newDate, newIdemKey);
             }}
-            className="px-5 py-2.5 bg-[#0D2137] hover:bg-[#1B9AE4] text-white rounded-xl text-xs font-bold transition-colors"
+            className="px-5 py-2.5 bg-[#0D2137] hover:bg-[#1B9AE4] text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
           >
             Confirm New Delivery Date ({deliveryDateChangedNotice.newEarliestDate}) &amp; Place Order
           </button>
@@ -385,11 +498,11 @@ export default function CheckoutPage() {
       )}
 
       {errorMessage && (
-        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-start gap-3 text-sm">
-          <span className="text-xl">âš ï¸</span>
+        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl flex items-start gap-3 text-sm animate-in fade-in">
+          <span className="text-xl">⚠️</span>
           <div>
-            <p className="font-bold">Unable to complete checkout</p>
-            <p className="text-xs text-red-600">{errorMessage}</p>
+            <p className="font-bold">Please check your details</p>
+            <p className="text-xs text-red-600 mt-0.5">{errorMessage}</p>
           </div>
         </div>
       )}
@@ -410,7 +523,7 @@ export default function CheckoutPage() {
               setPriceChangeNotice(null);
               handleSubmit(e, deliveryDate, newIdemKey);
             }}
-            className="px-5 py-2.5 bg-amber-800 text-white rounded-xl text-xs font-bold hover:bg-amber-900 transition-colors"
+            className="px-5 py-2.5 bg-amber-800 text-white rounded-xl text-xs font-bold hover:bg-amber-900 transition-colors cursor-pointer"
           >
             I Accept Updated Prices &mdash; Place Order
           </button>
@@ -418,340 +531,408 @@ export default function CheckoutPage() {
       )}
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Main Form Section */}
+        {/* Main Step Content */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Section 1: Customer Contact Info */}
-          <div className="bg-white border border-[#DDE8F0] p-6 rounded-2xl space-y-5 shadow-xs">
-            <h2 className="font-heading text-xl font-bold text-[#0D2137] flex items-center gap-2">
-              <span className="w-7 h-7 bg-[#E8F4FE] text-[#1B9AE4] text-sm rounded-xl flex items-center justify-center font-extrabold">
-                1
-              </span>
-              Contact Information
-            </h2>
+          {/* STEP 1: Customer Contact Info */}
+          {currentStep === 1 && (
+            <div className="bg-white border border-[#DDE8F0] p-6 rounded-2xl space-y-5 shadow-xs animate-in fade-in duration-200">
+              <div className="flex items-center justify-between border-b border-[#DDE8F0] pb-3">
+                <h2 className="font-heading text-xl font-bold text-[#0D2137] flex items-center gap-2">
+                  <span className="w-7 h-7 bg-[#E8F4FE] text-[#1B9AE4] text-sm rounded-xl flex items-center justify-center font-extrabold">
+                    1
+                  </span>
+                  Contact Information
+                </h2>
+                <span className="text-xs text-[#0D2137]/50 font-medium">Step 1 of 3</span>
+              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label htmlFor={`${formId}-customerName`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
-                  Full Name *
-                </label>
-                <input
-                  id={`${formId}-customerName`}
-                  type="text"
-                  required
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="e.g. Kasun Perera"
-                  className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-medium"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label htmlFor={`${formId}-customerName`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
+                    Full Name *
+                  </label>
+                  <input
+                    id={`${formId}-customerName`}
+                    type="text"
+                    required
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="e.g. Kasun Perera"
+                    className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor={`${formId}-phone`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
+                    Mobile Phone Number *
+                  </label>
+                  <input
+                    id={`${formId}-phone`}
+                    type="tel"
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="e.g. 077 123 4567"
+                    className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-medium"
+                  />
+                </div>
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor={`${formId}-phone`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
-                  Mobile Phone Number *
+                <label htmlFor={`${formId}-email`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
+                  Email Address (Optional)
                 </label>
                 <input
-                  id={`${formId}-phone`}
-                  type="tel"
-                  required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="e.g. 077 123 4567"
-                  className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-medium"
+                  id={`${formId}-email`}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="For PDF tax invoice and dispatch updates"
+                  className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-medium"
                 />
               </div>
-            </div>
 
-            <div className="space-y-1.5">
-              <label htmlFor={`${formId}-email`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
-                Email Address (Optional)
-              </label>
-              <input
-                id={`${formId}-email`}
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="For PDF receipt"
-                className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-medium"
-              />
-            </div>
+              {/* Business Toggle */}
+              <div className="pt-2 border-t border-[#DDE8F0]">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#0D2137]">
+                  <input
+                    type="checkbox"
+                    checked={customerType === "BUSINESS"}
+                    onChange={(e) => setCustomerType(e.target.checked ? "BUSINESS" : "INDIVIDUAL")}
+                    className="w-4 h-4 text-[#1B9AE4] border-[#DDE8F0] rounded focus:ring-[#1B9AE4]"
+                  />
+                  Ordering for a business / restaurant (Optional VAT/BR invoice)
+                </label>
 
-            {/* Business Toggle */}
-            <div className="pt-2 border-t border-[#DDE8F0]">
-              <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#0D2137]">
-                <input
-                  type="checkbox"
-                  checked={customerType === "BUSINESS"}
-                  onChange={(e) => setCustomerType(e.target.checked ? "BUSINESS" : "INDIVIDUAL")}
-                  className="w-4 h-4 text-[#1B9AE4] border-[#DDE8F0] rounded focus:ring-[#1B9AE4]"
-                />
-                Ordering for a business / restaurant (Optional VAT/BR invoice)
-              </label>
-
-              {customerType === "BUSINESS" && (
-                <div className="mt-3 p-4 bg-gray-50 border border-[#DDE8F0] rounded-xl space-y-3">
-                  <div>
-                    <label htmlFor={`${formId}-companyName`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137] mb-1">
-                      Company / Restaurant Name
-                    </label>
-                    <input
-                      id={`${formId}-companyName`}
-                      type="text"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="e.g. Ceylon Seafood Bistro"
-                      className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-white focus:outline-none focus:ring-2 focus:ring-[#1B9AE4]"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {customerType === "BUSINESS" && (
+                  <div className="mt-3 p-4 bg-gray-50 border border-[#DDE8F0] rounded-xl space-y-3">
                     <div>
-                      <label htmlFor={`${formId}-brNumber`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137] mb-1">
-                        BR Number
+                      <label htmlFor={`${formId}-companyName`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137] mb-1">
+                        Company / Restaurant Name
                       </label>
                       <input
-                        id={`${formId}-brNumber`}
+                        id={`${formId}-companyName`}
                         type="text"
-                        value={brNumber}
-                        onChange={(e) => setBrNumber(e.target.value)}
-                        placeholder="Business Reg No"
+                        value={companyName}
+                        onChange={(e) => setCompanyName(e.target.value)}
+                        placeholder="e.g. Ceylon Seafood Bistro"
                         className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-white focus:outline-none focus:ring-2 focus:ring-[#1B9AE4]"
                       />
                     </div>
-                    <div>
-                      <label htmlFor={`${formId}-vatNumber`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137] mb-1">
-                        VAT Number
-                      </label>
-                      <input
-                        id={`${formId}-vatNumber`}
-                        type="text"
-                        value={vatNumber}
-                        onChange={(e) => setVatNumber(e.target.value)}
-                        placeholder="VAT Reg No"
-                        className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-white focus:outline-none focus:ring-2 focus:ring-[#1B9AE4]"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Section 2: Delivery Details */}
-          <div className="bg-white border border-[#DDE8F0] p-6 rounded-2xl space-y-5 shadow-xs">
-            <h2 className="font-heading text-xl font-bold text-[#0D2137] flex items-center gap-2">
-              <span className="w-7 h-7 bg-[#E8F4FE] text-[#1B9AE4] text-sm rounded-xl flex items-center justify-center font-extrabold">
-                2
-              </span>
-              Delivery Address &amp; Cut-off Rule
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label htmlFor={`${formId}-district`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
-                  District *
-                </label>
-                <select
-                  id={`${formId}-district`}
-                  value={district}
-                  onChange={(e) => {
-                  const newDistrict = e.target.value;
-                  setDistrict(newDistrict);
-                  const z = findZoneForDistrict(zones, newDistrict);
-                  if (z) setDeliveryDate(formatDateYYYYMMDD(getEarliestDeliveryDate(z)));
-                }}
-                  className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-bold"
-                >
-                  {SRI_LANKA_DISTRICTS.map((dist) => (
-                    <option key={dist} value={dist}>
-                      {dist} District
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label htmlFor={`${formId}-city`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
-                  City / Town *
-                </label>
-                <input
-                  id={`${formId}-city`}
-                  type="text"
-                  required
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="e.g. Nugegoda"
-                  className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-medium"
-                />
-              </div>
-            </div>
-
-            {/* Live Cutoff Rule Banner & Countdown (Point 8.d) */}
-            <div className="bg-[#E8F4FE]/60 border border-[#1B9AE4]/20 p-4 rounded-xl space-y-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-[#0D2137]">{cutoffRuleMessage.headline}</span>
-                <span className="text-[10px] bg-white border border-[#1B9AE4]/20 text-[#1B9AE4] font-bold px-2 py-0.5 rounded-full">
-                  {district} Zone
-                </span>
-              </div>
-              <p className="text-[#0D2137]/70 text-[11px]">{cutoffRuleMessage.subtext}</p>
-
-              {/* Live Countdown if < 2 hours remaining */}
-              {countdown?.formattedText && (
-                <div className="inline-flex items-center space-x-1.5 bg-[#FF5722] text-white font-bold text-[11px] px-2.5 py-1 rounded-lg animate-pulse mt-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>{countdown.formattedText}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <label htmlFor={`${formId}-addressLine1`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
-                Street Address *
-              </label>
-              <input
-                id={`${formId}-addressLine1`}
-                type="text"
-                required
-                value={addressLine1}
-                onChange={(e) => setAddressLine1(e.target.value)}
-                placeholder="House No, Street / Road Name"
-                className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-medium"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label htmlFor={`${formId}-addressLine2`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
-                  Address Line 2 (Optional)
-                </label>
-                <input
-                  id={`${formId}-addressLine2`}
-                  type="text"
-                  value={addressLine2}
-                  onChange={(e) => setAddressLine2(e.target.value)}
-                  placeholder="Apartment, suite, landmark"
-                  className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-medium"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label htmlFor={`${formId}-deliveryDate`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
-                  Earliest Delivery Date *
-                </label>
-                <input
-                  id={`${formId}-deliveryDate`}
-                  type="date"
-                  required
-                  min={earliestDateYMD}
-                  value={deliveryDate}
-                  onChange={(e) => setDeliveryDate(e.target.value)}
-                  className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-bold"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label htmlFor={`${formId}-deliveryNote`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
-                Delivery Instructions (Optional)
-              </label>
-              <textarea
-                id={`${formId}-deliveryNote`}
-                rows={2}
-                value={deliveryNote}
-                onChange={(e) => setDeliveryNote(e.target.value)}
-                placeholder="e.g. Leave with gate security, call before arrival"
-                className="w-full p-3 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1B9AE4]"
-              />
-            </div>
-          </div>
-
-          {/* Section 3: Payment Method */}
-          <div className="bg-white border border-[#DDE8F0] p-6 rounded-2xl space-y-5 shadow-xs">
-            <h2 className="font-heading text-xl font-bold text-[#0D2137] flex items-center gap-2">
-              <span className="w-7 h-7 bg-[#E8F4FE] text-[#1B9AE4] text-sm rounded-xl flex items-center justify-center font-extrabold">
-                3
-              </span>
-              Payment Method
-            </h2>
-
-            <div className="space-y-3">
-              <label
-                className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
-                  paymentMethod === "BANK_TRANSFER"
-                    ? "border-[#1B9AE4] bg-[#E8F4FE]/60 ring-2 ring-[#1B9AE4]/20"
-                    : "border-[#DDE8F0] bg-white"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="BANK_TRANSFER"
-                  checked={paymentMethod === "BANK_TRANSFER"}
-                  onChange={() => setPaymentMethod("BANK_TRANSFER")}
-                  className="mt-1 text-[#1B9AE4] focus:ring-[#1B9AE4]"
-                />
-                <div className="flex-1">
-                  <div className="font-bold text-sm text-[#0D2137]">Direct Bank Transfer</div>
-                  <p className="text-xs text-[#0D2137]/70 mt-0.5">
-                    Pay via online banking or deposit slip.
-                  </p>
-                  {paymentMethod === "BANK_TRANSFER" && (
-                    <div className="mt-3 pt-3 border-t border-[#1B9AE4]/20 space-y-2.5">
-                      <div className="bg-white/80 p-2.5 rounded-lg border border-[#1B9AE4]/20 font-mono text-xs space-y-0.5 text-[#0D2137]">
-                        <div><span className="font-semibold text-gray-500">Bank:</span> Commercial Bank of Ceylon</div>
-                        <div><span className="font-semibold text-gray-500">Account:</span> Freshy LK (Pvt) Ltd</div>
-                        <div><span className="font-semibold text-gray-500">Account No:</span> 1000200300</div>
-                        <div><span className="font-semibold text-gray-500">Branch:</span> Colombo Main Branch</div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="block text-xs font-semibold text-[#0D2137]">
-                          Attach Transfer Receipt / Slip (Optional)
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label htmlFor={`${formId}-brNumber`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137] mb-1">
+                          BR Number
                         </label>
                         <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp,application/pdf"
-                          onChange={(e) => setSlipFile(e.target.files?.[0] || null)}
-                          className="w-full text-xs text-[#0D2137] file:mr-2.5 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#1B9AE4] file:text-white hover:file:bg-[#1580C2] cursor-pointer"
+                          id={`${formId}-brNumber`}
+                          type="text"
+                          value={brNumber}
+                          onChange={(e) => setBrNumber(e.target.value)}
+                          placeholder="Business Reg No"
+                          className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-white focus:outline-none focus:ring-2 focus:ring-[#1B9AE4]"
                         />
-                        <p className="text-[11px] text-[#0D2137]/60">
-                          {slipFile ? `Selected: ${slipFile.name}` : "You can also upload your slip anytime after placing the order."}
-                        </p>
+                      </div>
+                      <div>
+                        <label htmlFor={`${formId}-vatNumber`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137] mb-1">
+                          VAT Number
+                        </label>
+                        <input
+                          id={`${formId}-vatNumber`}
+                          type="text"
+                          value={vatNumber}
+                          onChange={(e) => setVatNumber(e.target.value)}
+                          placeholder="VAT Reg No"
+                          className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-white focus:outline-none focus:ring-2 focus:ring-[#1B9AE4]"
+                        />
                       </div>
                     </div>
-                  )}
-                </div>
-              </label>
+                  </div>
+                )}
+              </div>
 
-              {hasPayHere ? (
+              {/* Step 1 Next Button */}
+              <div className="pt-4 border-t border-[#DDE8F0] flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleNextToAddress}
+                  className="w-full sm:w-auto px-6 py-3.5 bg-[#1B9AE4] hover:bg-[#1580C2] text-white font-bold text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>Continue to Delivery Address</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 2: Delivery Address & Cut-off Rule */}
+          {currentStep === 2 && (
+            <div className="bg-white border border-[#DDE8F0] p-6 rounded-2xl space-y-5 shadow-xs animate-in fade-in duration-200">
+              <div className="flex items-center justify-between border-b border-[#DDE8F0] pb-3">
+                <h2 className="font-heading text-xl font-bold text-[#0D2137] flex items-center gap-2">
+                  <span className="w-7 h-7 bg-[#E8F4FE] text-[#1B9AE4] text-sm rounded-xl flex items-center justify-center font-extrabold">
+                    2
+                  </span>
+                  Delivery Address &amp; Schedule
+                </h2>
+                <span className="text-xs text-[#0D2137]/50 font-medium">Step 2 of 3</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label htmlFor={`${formId}-district`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
+                    District *
+                  </label>
+                  <select
+                    id={`${formId}-district`}
+                    value={district}
+                    onChange={(e) => {
+                      const newDistrict = e.target.value;
+                      setDistrict(newDistrict);
+                      const z = findZoneForDistrict(zones, newDistrict);
+                      if (z) setDeliveryDate(formatDateYYYYMMDD(getEarliestDeliveryDate(z)));
+                    }}
+                    className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-bold"
+                  >
+                    {SRI_LANKA_DISTRICTS.map((dist) => (
+                      <option key={dist} value={dist}>
+                        {dist} District
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor={`${formId}-city`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
+                    City / Town *
+                  </label>
+                  <input
+                    id={`${formId}-city`}
+                    type="text"
+                    required
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="e.g. Nugegoda / Negombo"
+                    className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Live Cutoff Rule Banner & Countdown */}
+              <div className="bg-[#E8F4FE]/60 border border-[#1B9AE4]/20 p-4 rounded-xl space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[#0D2137]">{cutoffRuleMessage.headline}</span>
+                  <span className="text-[10px] bg-white border border-[#1B9AE4]/20 text-[#1B9AE4] font-bold px-2 py-0.5 rounded-full">
+                    {district} Zone
+                  </span>
+                </div>
+                <p className="text-[#0D2137]/70 text-[11px]">{cutoffRuleMessage.subtext}</p>
+
+                {countdown?.formattedText && (
+                  <div className="inline-flex items-center space-x-1.5 bg-[#FF5722] text-white font-bold text-[11px] px-2.5 py-1 rounded-lg animate-pulse mt-1">
+                    <Clock className="h-3.5 w-3.5" />
+                    <span>{countdown.formattedText}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor={`${formId}-addressLine1`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
+                  Street Address *
+                </label>
+                <input
+                  id={`${formId}-addressLine1`}
+                  type="text"
+                  required
+                  value={addressLine1}
+                  onChange={(e) => setAddressLine1(e.target.value)}
+                  placeholder="House No, Street / Road Name"
+                  className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-medium"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label htmlFor={`${formId}-addressLine2`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
+                    Address Line 2 (Optional)
+                  </label>
+                  <input
+                    id={`${formId}-addressLine2`}
+                    type="text"
+                    value={addressLine2}
+                    onChange={(e) => setAddressLine2(e.target.value)}
+                    placeholder="Apartment, suite, landmark"
+                    className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor={`${formId}-deliveryDate`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
+                    Earliest Delivery Date *
+                  </label>
+                  <input
+                    id={`${formId}-deliveryDate`}
+                    type="date"
+                    required
+                    min={earliestDateYMD}
+                    value={deliveryDate}
+                    onChange={(e) => setDeliveryDate(e.target.value)}
+                    className="w-full h-12 px-4 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1B9AE4] font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor={`${formId}-deliveryNote`} className="block text-xs font-bold uppercase tracking-wider text-[#0D2137]">
+                  Delivery Instructions (Optional)
+                </label>
+                <textarea
+                  id={`${formId}-deliveryNote`}
+                  rows={2}
+                  value={deliveryNote}
+                  onChange={(e) => setDeliveryNote(e.target.value)}
+                  placeholder="e.g. Leave with gate security, call before arrival"
+                  className="w-full p-3 border border-[#DDE8F0] rounded-xl text-xs text-[#0D2137] bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1B9AE4]"
+                />
+              </div>
+
+              {/* Step 2 Back & Next Buttons */}
+              <div className="pt-4 border-t border-[#DDE8F0] flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(1)}
+                  className="px-5 py-3 text-xs font-bold text-[#0D2137]/70 hover:text-[#0D2137] hover:bg-gray-100 rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back to Contact</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextToPayment}
+                  className="px-6 py-3.5 bg-[#1B9AE4] hover:bg-[#1580C2] text-white font-bold text-sm rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                >
+                  <span>Continue to Payment</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: Payment Method */}
+          {currentStep === 3 && (
+            <div className="bg-white border border-[#DDE8F0] p-6 rounded-2xl space-y-5 shadow-xs animate-in fade-in duration-200">
+              <div className="flex items-center justify-between border-b border-[#DDE8F0] pb-3">
+                <h2 className="font-heading text-xl font-bold text-[#0D2137] flex items-center gap-2">
+                  <span className="w-7 h-7 bg-[#E8F4FE] text-[#1B9AE4] text-sm rounded-xl flex items-center justify-center font-extrabold">
+                    3
+                  </span>
+                  Payment Method
+                </h2>
+                <span className="text-xs text-[#0D2137]/50 font-medium">Step 3 of 3</span>
+              </div>
+
+              <div className="space-y-3">
+                {/* Direct Bank Transfer Option */}
                 <label
-                  className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
-                    paymentMethod === "CARD_ONLINE"
-                      ? "border-[#1B9AE4] bg-[#E8F4FE]/60 ring-2 ring-[#1B9AE4]/20"
+                  className={`block p-4 rounded-xl border cursor-pointer transition-all ${
+                    paymentMethod === "BANK_TRANSFER"
+                      ? "border-[#1B9AE4] bg-[#E8F4FE]/40 ring-2 ring-[#1B9AE4]/20"
                       : "border-[#DDE8F0] bg-white"
                   }`}
                 >
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="CARD_ONLINE"
-                    checked={paymentMethod === "CARD_ONLINE"}
-                    onChange={() => setPaymentMethod("CARD_ONLINE")}
-                    className="mt-1 text-[#1B9AE4] focus:ring-[#1B9AE4]"
-                  />
-                  <div>
-                    <div className="font-bold text-sm text-[#0D2137]">Visa / MasterCard / PayHere</div>
-                    <p className="text-xs text-[#0D2137]/70 mt-0.5">
-                      Instant secure card payment processing gateway.
-                    </p>
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="BANK_TRANSFER"
+                      checked={paymentMethod === "BANK_TRANSFER"}
+                      onChange={() => setPaymentMethod("BANK_TRANSFER")}
+                      className="mt-1 text-[#1B9AE4] focus:ring-[#1B9AE4]"
+                    />
+                    <div className="flex-1">
+                      <div className="font-bold text-sm text-[#0D2137]">Direct Bank Transfer</div>
+                      <p className="text-xs text-[#0D2137]/70 mt-0.5">
+                        Transfer to our official corporate account via mobile banking or cash deposit slip.
+                      </p>
+
+                      {paymentMethod === "BANK_TRANSFER" && (
+                        <div className="mt-3 pt-3 border-t border-[#1B9AE4]/20 space-y-3 animate-in fade-in duration-150">
+                          <div className="bg-white p-3 rounded-xl border border-[#1B9AE4]/20 font-mono text-xs space-y-1 text-[#0D2137] shadow-xs">
+                            <div className="text-[11px] font-bold text-[#1B9AE4] uppercase tracking-wider mb-1">
+                              Corporate Bank Account Details
+                            </div>
+                            <div><span className="font-semibold text-gray-500">Bank:</span> {bankSettings.bankName}</div>
+                            <div><span className="font-semibold text-gray-500">Account:</span> {bankSettings.bankAccountName}</div>
+                            <div><span className="font-semibold text-gray-500">Account No:</span> <strong className="text-[#0D2137]">{bankSettings.bankAccountNumber}</strong></div>
+                            <div><span className="font-semibold text-gray-500">Branch:</span> {bankSettings.bankBranch}</div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="block text-xs font-semibold text-[#0D2137]">
+                              Attach Transfer Receipt / Slip (Optional)
+                            </label>
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp,application/pdf"
+                              onChange={(e) => setSlipFile(e.target.files?.[0] || null)}
+                              className="w-full text-xs text-[#0D2137] file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#1B9AE4] file:text-white hover:file:bg-[#1580C2] cursor-pointer"
+                            />
+                            <p className="text-[11px] text-[#0D2137]/60">
+                              {slipFile ? `Attached: ${slipFile.name}` : "You can also upload your slip anytime on the order tracking screen."}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </label>
-              ) : (
-                <div className="text-xs text-[#0D2137]/60 italic p-3 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                  Card payments are not available yet
-                </div>
-              )}
+
+                {/* Card Payment Option */}
+                {hasPayHere ? (
+                  <label
+                    className={`block p-4 rounded-xl border cursor-pointer transition-all ${
+                      paymentMethod === "CARD_ONLINE"
+                        ? "border-[#1B9AE4] bg-[#E8F4FE]/40 ring-2 ring-[#1B9AE4]/20"
+                        : "border-[#DDE8F0] bg-white"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="CARD_ONLINE"
+                        checked={paymentMethod === "CARD_ONLINE"}
+                        onChange={() => setPaymentMethod("CARD_ONLINE")}
+                        className="mt-1 text-[#1B9AE4] focus:ring-[#1B9AE4]"
+                      />
+                      <div>
+                        <div className="font-bold text-sm text-[#0D2137]">Visa / MasterCard / PayHere</div>
+                        <p className="text-xs text-[#0D2137]/70 mt-0.5">
+                          Instant secure card payment processing gateway.
+                        </p>
+                      </div>
+                    </div>
+                  </label>
+                ) : (
+                  <div className="text-xs text-[#0D2137]/60 italic p-3 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    Card payments currently undergoing scheduled gateway maintenance.
+                  </div>
+                )}
+              </div>
+
+              {/* Step 3 Back to Step 2 */}
+              <div className="pt-4 border-t border-[#DDE8F0] flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(2)}
+                  className="px-5 py-3 text-xs font-bold text-[#0D2137]/70 hover:text-[#0D2137] hover:bg-gray-100 rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back to Address</span>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Order Summary Sidebar */}
@@ -823,20 +1004,45 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-4 bg-[#0D2137] hover:bg-[#1B9AE4] text-white font-bold text-base rounded-xl transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  Processing Order...
-                </>
-              ) : (
-                `Place Order (${formatMoney(estimatedTotalCents)})`
-              )}
-            </button>
+            {/* Dynamic Step Action Button */}
+            {currentStep === 1 && (
+              <button
+                type="button"
+                onClick={handleNextToAddress}
+                className="w-full py-4 bg-[#0D2137] hover:bg-[#1B9AE4] text-white font-bold text-base rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Continue to Delivery Address</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
+
+            {currentStep === 2 && (
+              <button
+                type="button"
+                onClick={handleNextToPayment}
+                className="w-full py-4 bg-[#0D2137] hover:bg-[#1B9AE4] text-white font-bold text-base rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Continue to Payment Method</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
+
+            {currentStep === 3 && (
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-4 bg-[#0D2137] hover:bg-[#1B9AE4] text-white font-bold text-base rounded-xl transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <span>Processing Order...</span>
+                  </>
+                ) : (
+                  <span>Place Order ({formatMoney(estimatedTotalCents)})</span>
+                )}
+              </button>
+            )}
 
             <p className="text-center text-[11px] text-[#0D2137]/60 mt-2 flex items-center justify-center space-x-1">
               <Lock className="h-3.5 w-3.5 text-[#1B9AE4]" />
@@ -848,5 +1054,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
-

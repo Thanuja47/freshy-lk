@@ -24,6 +24,7 @@ const productSchema = z.object({
   tips: z.string().optional(),
   catchType: z.string().optional(),
   origin: z.string().optional(),
+  offerPercent: z.number().int().min(1).max(50).nullable().optional(),
   packs: z.array(
     z.object({
       weightGrams: z.number().int().positive(),
@@ -59,6 +60,7 @@ export async function createProduct(input: ProductFormInput) {
           categoryId: parsed.categoryId,
           storageType: parsed.storageType as StorageType,
           pricePerKgCents: parsed.pricePerKgCents,
+          offerPercent: parsed.offerPercent ?? null,
           trackStock: parsed.trackStock,
           stockGrams: parsed.stockGrams,
           isAvailable: parsed.isAvailable,
@@ -78,15 +80,19 @@ export async function createProduct(input: ProductFormInput) {
         },
       });
 
-      await tx.auditLog.create({
-        data: {
-          adminId: admin.id !== "demo-owner-id" ? admin.id : undefined,
-          action: "product.create",
-          entity: "Product",
-          entityId: p.id,
-          diff: { name: p.name, categoryId: p.categoryId },
-        },
-      });
+      try {
+        await tx.auditLog.create({
+          data: {
+            adminId: admin.id !== "demo-owner-id" ? admin.id : undefined,
+            action: "product.create",
+            entity: "Product",
+            entityId: p.id,
+            diff: { name: p.name, categoryId: p.categoryId },
+          },
+        });
+      } catch (logErr) {
+        console.warn("Audit log creation warning:", logErr);
+      }
 
       return p;
     });
@@ -123,6 +129,7 @@ export async function updateProduct(input: UpdateProductInput) {
           categoryId: parsed.categoryId,
           storageType: parsed.storageType as StorageType,
           pricePerKgCents: parsed.pricePerKgCents,
+          offerPercent: parsed.offerPercent !== undefined ? parsed.offerPercent : null,
           trackStock: parsed.trackStock,
           stockGrams: parsed.stockGrams,
           isAvailable: parsed.isAvailable,
@@ -150,15 +157,19 @@ export async function updateProduct(input: UpdateProductInput) {
         });
       }
 
-      await tx.auditLog.create({
-        data: {
-          adminId: admin.id !== "demo-owner-id" ? admin.id : undefined,
-          action: "product.update",
-          entity: "Product",
-          entityId: p.id,
-          diff: { name: p.name, pricePerKgCents: p.pricePerKgCents, stockGrams: p.stockGrams },
-        },
-      });
+      try {
+        await tx.auditLog.create({
+          data: {
+            adminId: admin.id !== "demo-owner-id" ? admin.id : undefined,
+            action: "product.update",
+            entity: "Product",
+            entityId: p.id,
+            diff: { name: p.name, pricePerKgCents: p.pricePerKgCents, stockGrams: p.stockGrams },
+          },
+        });
+      } catch (logErr) {
+        console.warn("Audit log update warning:", logErr);
+      }
 
       return p;
     });

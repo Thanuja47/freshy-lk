@@ -121,7 +121,7 @@ export function generateInvoicePdfBuffer(snapshot: InvoiceSnapshot): Buffer {
   }
 
   // Totals Area
-  curY -= 10;
+  curY -= 12;
   drawLine(340, curY, 555, curY, "0.8 0.8 0.8", 1);
   curY -= 16;
 
@@ -138,13 +138,14 @@ export function generateInvoicePdfBuffer(snapshot: InvoiceSnapshot): Buffer {
   drawText("Delivery Fee:", 350, curY, 9, "F1", "0.3 0.3 0.3");
   drawText(`Rs. ${(snapshot.deliveryFeeCents / 100).toFixed(2)}`, 480, curY, 9, "F1", "0.2 0.2 0.2");
 
-  curY -= 16;
-  drawRect(340, curY - 5, 215, 22, "0.93 0.96 0.99");
+  // Distinct spacing before Total Amount box to prevent any line collision
+  curY -= 24;
+  drawRect(340, curY - 5, 215, 24, "0.93 0.96 0.99");
   drawLine(340, curY - 5, 555, curY - 5, "0.1 0.4 0.7", 1);
-  drawLine(340, curY + 17, 555, curY + 17, "0.1 0.4 0.7", 1);
+  drawLine(340, curY + 19, 555, curY + 19, "0.1 0.4 0.7", 1);
 
-  drawText("TOTAL AMOUNT:", 350, curY + 3, 10, "F2", "0.05 0.35 0.65");
-  drawText(`Rs. ${(snapshot.totalCents / 100).toFixed(2)}`, 470, curY + 3, 11, "F2", "0.05 0.35 0.65");
+  drawText("TOTAL AMOUNT:", 350, curY + 4, 10, "F2", "0.05 0.35 0.65");
+  drawText(`Rs. ${(snapshot.totalCents / 100).toFixed(2)}`, 450, curY + 4, 11, "F2", "0.05 0.35 0.65");
 
   // Footer notes
   drawText("Thank you for choosing Freshy.lk! Direct from Sri Lankan coastal landings to your door.", 40, 80, 8, "F1", "0.5 0.5 0.5");

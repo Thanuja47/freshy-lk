@@ -34,6 +34,7 @@ export interface AdminProductRow {
   isAvailable: boolean;
   priceUpdatedAt: string;
   imageUrl: string | null;
+  offerPercent?: number | null;
 }
 
 export interface AdminOrderSummaryRow {
@@ -190,6 +191,7 @@ export class DbAdminRepository implements IAdminRepository {
       isAvailable: p.isAvailable,
       priceUpdatedAt: p.priceUpdatedAt.toISOString(),
       imageUrl: p.images[0]?.url ?? null,
+      offerPercent: p.offerPercent,
     }));
   }
 

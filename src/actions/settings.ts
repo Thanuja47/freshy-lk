@@ -24,17 +24,23 @@ export async function saveSettingsAction(settings: Record<string, string>) {
       )
     );
 
-    await db.auditLog.create({
-      data: {
-        adminId: admin.id !== "demo-owner-id" ? admin.id : undefined,
-        action: "settings.update",
-        entity: "Setting",
-        diff: settings,
-      },
-    });
+    try {
+      await db.auditLog.create({
+        data: {
+          adminId: admin.id !== "demo-owner-id" ? admin.id : undefined,
+          action: "settings.update",
+          entity: "Setting",
+          diff: settings,
+        },
+      });
+    } catch (auditErr) {
+      console.warn("Audit log for settings skipped:", auditErr);
+    }
 
     revalidatePath("/admin/settings");
     revalidatePath("/admin");
+    revalidatePath("/checkout");
+    revalidatePath("/api/settings");
 
     return { success: true };
   } catch (err: unknown) {

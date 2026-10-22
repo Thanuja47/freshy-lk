@@ -193,3 +193,62 @@ export async function bulkUpdateAvailability(
     };
   }
 }
+
+export async function updateProductOffer(
+  productId: string,
+  offerPercent: number | null
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    const admin = await requireAdmin();
+
+    const sanitizedPercent =
+      typeof offerPercent === "number" && offerPercent >= 1 && offerPercent <= 50
+        ? Math.round(offerPercent)
+        : null;
+
+    await db.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id: productId },
+        data: {
+          offerPercent: sanitizedPercent,
+          priceUpdatedAt: new Date(),
+        },
+      });
+
+      try {
+        await tx.auditLog.create({
+          data: {
+            adminId: admin.id !== "demo-owner-id" ? admin.id : undefined,
+            action: "product.offer_update",
+            entity: "Product",
+            entityId: productId,
+            diff: { offerPercent: sanitizedPercent },
+          },
+        });
+      } catch {
+        // non-fatal audit log
+      }
+    });
+
+    try {
+      await revalidateCatalogueCache();
+    } catch {
+      // non-fatal
+    }
+    revalidatePath("/admin/prices");
+    revalidatePath("/admin/products");
+    revalidatePath("/shop");
+    revalidatePath("/fish");
+    revalidatePath("/seafood");
+    revalidatePath("/offers");
+    revalidatePath("/");
+
+    return { success: true };
+  } catch (err: unknown) {
+    console.error("updateProductOffer error:", err);
+    return {
+      success: false,
+      message: err instanceof Error ? err.message : "Failed to update offer.",
+    };
+  }
+}

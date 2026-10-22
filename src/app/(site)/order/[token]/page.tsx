@@ -73,6 +73,23 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
     console.error("DB query failed in OrderTokenPage:", err);
   }
 
+  let bankName = "Commercial Bank of Ceylon";
+  let bankAccountName = "Freshy LK (Pvt) Ltd";
+  let bankAccountNumber = "1000200300";
+  let bankBranch = "Colombo Main Branch";
+
+  try {
+    const sRows = await db.setting.findMany();
+    for (const r of sRows) {
+      if (r.key === "bankName" && r.value) bankName = String(r.value);
+      if (r.key === "bankAccountName" && r.value) bankAccountName = String(r.value);
+      if (r.key === "bankAccountNumber" && r.value) bankAccountNumber = String(r.value);
+      if (r.key === "bankBranch" && r.value) bankBranch = String(r.value);
+    }
+  } catch {
+    // fallback
+  }
+
 
   if (!order) {
     notFound();
@@ -346,9 +363,10 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
                     <strong className="underline">{order.orderNo}</strong> as the payment reference.
                   </p>
                   <div className="bg-white/90 p-3 rounded-xl text-xs space-y-1 font-mono border border-amber-200">
-                    <div>Bank: Commercial Bank of Ceylon</div>
-                    <div>Account: Freshy LK (Pvt) Ltd</div>
-                    <div>Account No: 1000200300</div>
+                    <div>Bank: {bankName}</div>
+                    <div>Account: {bankAccountName}</div>
+                    <div>Account No: <strong>{bankAccountNumber}</strong></div>
+                    <div>Branch: {bankBranch}</div>
                   </div>
                 </div>
               )}

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { formatMoney } from "@/lib/money";
-import { updateProductPriceAndStock, bulkUpdateAvailability } from "@/actions/prices";
+import { updateProductPriceAndStock, bulkUpdateAvailability, updateProductOffer } from "@/actions/prices";
 import {
   Search,
   AlertTriangle,
@@ -23,6 +23,7 @@ export interface ProductPriceItem {
   isAvailable: boolean;
   priceUpdatedAt: string;
   imageUrl?: string | null;
+  offerPercent?: number | null;
 }
 
 export default function AdminPricesPage() {
@@ -345,6 +346,7 @@ export default function AdminPricesPage() {
                 <tr className="border-b border-black/[0.06] text-[11px] font-semibold uppercase tracking-wider text-[#6E6E73] bg-[#F5F5F7]/40">
                   <th className="py-3 px-4">Product</th>
                   <th className="py-3 px-4">Price / kg (LKR)</th>
+                  <th className="py-3 px-4">Offer %</th>
                   <th className="py-3 px-4">Stock (kg)</th>
                   <th className="py-3 px-4 text-center">Available</th>
                   <th className="py-3 px-4 text-right">Status</th>
@@ -425,6 +427,41 @@ export default function AdminPricesPage() {
                             }}
                             className="w-32 px-3 py-2 bg-[#F5F5F7]/80 border border-black/[0.08] rounded-xl text-[#1D1D1F] font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 focus:bg-white text-sm transition-all"
                           />
+                        </div>
+                      </td>
+
+                      {/* Offer % Input */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="number"
+                            min="0"
+                            max="50"
+                            placeholder="0"
+                            value={product.offerPercent ? product.offerPercent.toString() : ""}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              const val = raw === "" ? null : parseInt(raw, 10);
+                              setProducts((prev) =>
+                                prev.map((p) => (p.id === product.id ? { ...p, offerPercent: val } : p))
+                              );
+                            }}
+                            onBlur={async () => {
+                              await updateProductOffer(product.id, product.offerPercent ?? null);
+                            }}
+                            onKeyDown={async (e) => {
+                              if (e.key === "Enter") {
+                                await updateProductOffer(product.id, product.offerPercent ?? null);
+                              }
+                            }}
+                            className="w-16 px-2.5 py-2 bg-[#F5F5F7]/80 border border-black/[0.08] rounded-xl text-[#1D1D1F] font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 focus:bg-white text-center font-bold"
+                          />
+                          <span className="text-xs text-[#6E6E73] font-bold">%</span>
+                          {product.offerPercent && product.offerPercent > 0 ? (
+                            <span className="text-[10px] font-bold text-[#E53935] bg-[#FFEBEE] px-1.5 py-0.5 rounded-md whitespace-nowrap">
+                              -{product.offerPercent}%
+                            </span>
+                          ) : null}
                         </div>
                       </td>
 

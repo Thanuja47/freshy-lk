@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Save, Check, Loader2, AlertCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { saveSettingsAction } from "@/actions/settings";
@@ -50,6 +51,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 export default function SettingsForm({ sections, settings }: SettingsFormProps) {
+  const router = useRouter();
   const [values, setValues] = useState<Record<string, string>>(settings);
   const [savedSection, setSavedSection] = useState<string | null>(null);
   const [savingSection, setSavingSection] = useState<string | null>(null);
@@ -64,6 +66,7 @@ export default function SettingsForm({ sections, settings }: SettingsFormProps) 
       const res = await saveSettingsAction(values);
       if (res.success) {
         setSavedSection(sectionId);
+        router.refresh();
         setTimeout(() => setSavedSection(null), 3000);
       } else {
         setErrorMessage(res.message || "Failed to save settings. Please try again.");

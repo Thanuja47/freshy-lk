@@ -38,6 +38,7 @@ interface ProductItem {
   shortDesc?: string | null;
   category: { id?: string; name: string };
   packs: Array<{ id: string; label: string; weightGrams?: number }>;
+  offerPercent?: number | null;
 }
 
 const storageStyles: Record<string, string> = {
@@ -77,6 +78,7 @@ export default function ProductsClient({
   const [storageType, setStorageType] = useState<"FRESH" | "FROZEN" | "AMBIENT">("FRESH");
   const [pricePerKgRupees, setPricePerKgRupees] = useState("");
   const [stockKg, setStockKg] = useState("10");
+  const [offerPercent, setOfferPercent] = useState("");
   const [shortDesc, setShortDesc] = useState("");
   const [isAvailable, setIsAvailable] = useState(true);
   const [isActive, setIsActive] = useState(true);
@@ -90,6 +92,7 @@ export default function ProductsClient({
     setStorageType("FRESH");
     setPricePerKgRupees("");
     setStockKg("10");
+    setOfferPercent("");
     setShortDesc("");
     setIsAvailable(true);
     setIsActive(true);
@@ -108,6 +111,7 @@ export default function ProductsClient({
     setStorageType(prod.storageType);
     setPricePerKgRupees(String(prod.pricePerKgCents / 100));
     setStockKg(String(prod.stockGrams / 1000));
+    setOfferPercent(prod.offerPercent ? String(prod.offerPercent) : "");
     setShortDesc(prod.shortDesc || "");
     setIsAvailable(prod.isAvailable);
     setIsActive(prod.isActive);
@@ -146,6 +150,8 @@ export default function ProductsClient({
     }
 
     const stockGrams = Math.round(parseFloat(stockKg || "0") * 1000);
+    const parsedOffer = offerPercent ? parseInt(offerPercent, 10) : null;
+    const finalOfferPercent = parsedOffer && !isNaN(parsedOffer) && parsedOffer > 0 ? parsedOffer : null;
     const packEntries = selectedPacks.map((w) => ({
       weightGrams: w,
       label: w >= 1000 ? `${w / 1000} kg` : `${w} g`,
@@ -160,6 +166,7 @@ export default function ProductsClient({
         categoryId,
         storageType,
         pricePerKgCents: priceCents,
+        offerPercent: finalOfferPercent,
         trackStock: true,
         stockGrams,
         isAvailable,
@@ -182,6 +189,7 @@ export default function ProductsClient({
                   localName: localName || null,
                   storageType,
                   pricePerKgCents: priceCents,
+                  offerPercent: finalOfferPercent,
                   stockGrams,
                   isAvailable,
                   isActive,
@@ -212,6 +220,7 @@ export default function ProductsClient({
         categoryId,
         storageType,
         pricePerKgCents: priceCents,
+        offerPercent: finalOfferPercent,
         trackStock: true,
         stockGrams,
         isAvailable: true,
@@ -231,6 +240,7 @@ export default function ProductsClient({
           localName: localName || null,
           storageType,
           pricePerKgCents: priceCents,
+          offerPercent: finalOfferPercent,
           stockGrams,
           isAvailable: true,
           isActive: true,
@@ -413,7 +423,14 @@ export default function ProductsClient({
                       </span>
                     </td>
                     <td className="py-3.5 px-4 font-mono font-bold text-[#1D1D1F]">
-                      {formatMoney(product.pricePerKgCents)}
+                      <div className="flex items-center gap-1.5">
+                        <span>{formatMoney(product.pricePerKgCents)}</span>
+                        {product.offerPercent && product.offerPercent > 0 ? (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#E8F5E9] text-[#2E7D32]">
+                            -{product.offerPercent}%
+                          </span>
+                        ) : null}
+                      </div>
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="flex flex-wrap gap-1">
@@ -580,7 +597,7 @@ export default function ProductsClient({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-[#6E6E73] uppercase tracking-wider font-semibold mb-1">
                     Price / kg (LKR) *
@@ -612,6 +629,26 @@ export default function ProductsClient({
                     placeholder="10"
                     className="w-full px-3 py-2 bg-[#F5F5F7] border border-black/[0.08] rounded-xl font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 text-sm"
                   />
+                </div>
+                <div>
+                  <label className="block text-[#6E6E73] uppercase tracking-wider font-semibold mb-1">
+                    Offer Discount %
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      max="50"
+                      step="1"
+                      value={offerPercent}
+                      onChange={(e) => setOfferPercent(e.target.value)}
+                      placeholder="e.g. 15"
+                      className="w-full px-3 py-2 bg-[#F5F5F7] border border-black/[0.08] rounded-xl font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 text-sm"
+                    />
+                    {offerPercent ? (
+                      <span className="absolute right-2.5 top-2 text-[10px] font-bold text-green-600">% OFF</span>
+                    ) : null}
+                  </div>
                 </div>
               </div>
 
