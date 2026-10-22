@@ -38,17 +38,21 @@ export const metadata: Metadata = {
   authors: [{ name: "Freshy.lk" }],
   creator: "Freshy.lk",
   publisher: "Freshy LK (Pvt) Ltd",
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
+  // Non-production builds (preview, staging) must never be indexed
+  robots:
+    process.env.NEXT_PUBLIC_APP_ENV === "production"
+      ? {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-video-preview": -1,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+          },
+        }
+      : { index: false, follow: false },
   icons: {
     icon: "/brand/logo.svg",
     shortcut: "/brand/logo.svg",

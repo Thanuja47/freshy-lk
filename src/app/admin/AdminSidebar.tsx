@@ -23,6 +23,8 @@ export interface AdminUserProps {
   name: string;
   email: string;
   role: string;
+  /** True only when authenticated via demo passcode (not a real Supabase account) */
+  isDemo?: boolean;
 }
 
 const NAV_ITEMS = [
