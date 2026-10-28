@@ -150,3 +150,12 @@ h1, h2, h3, h4, h5 {
 .pb-safe {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
+
+/* ─── Prevent mobile auto-zoom on input focus (iOS Safari & Mobile WebKit) ─── */
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

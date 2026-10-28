@@ -54,7 +54,7 @@ test.describe("Mobile Responsiveness Comprehensive Audit", () => {
       test.setTimeout(90000);
       await page.setViewportSize({ width: vp.width, height: vp.height });
 
-      const storefrontUrls = ["/", "/contact", "/fish", "/shop", "/cart"];
+      const storefrontUrls = ["/", "/contact", "/shop", "/cart", "/offers", "/track", "/delivery"];
 
       for (const route of storefrontUrls) {
         await page.goto(`${BASE_URL}${route}`, { waitUntil: "networkidle" });
@@ -92,6 +92,61 @@ test.describe("Mobile Responsiveness Comprehensive Audit", () => {
       }
     });
   }
+
+  test("Header and Bottom Bar Mobile Navigation Configuration", async ({ page }) => {
+    test.setTimeout(60000);
+    // 1. Mobile View (390px)
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`${BASE_URL}/`, { waitUntil: "networkidle" });
+
+    // Track Order is in the mobile header
+    const headerTrackOrder = page.locator("header a[aria-label='Track Order']");
+    await expect(headerTrackOrder).toBeVisible();
+
+    // Cart is NOT in the mobile header
+    const headerCart = page.locator("header a[aria-label='Cart']");
+    await expect(headerCart).toBeHidden();
+
+    // Bottom dock is visible and contains 4 items: Home, Shop, Offers, Cart
+    const bottomNav = page.locator("nav.fixed.bottom-0");
+    await expect(bottomNav).toBeVisible();
+    await expect(bottomNav.locator("a[href='/']")).toBeVisible();
+    await expect(bottomNav.locator("a[href='/shop']")).toBeVisible();
+    await expect(bottomNav.locator("a[href='/offers']")).toBeVisible();
+    await expect(bottomNav.locator("a[href='/cart']")).toBeVisible();
+
+    // Bottom dock does NOT contain WhatsApp
+    await expect(bottomNav.locator("a[href*='wa.me']")).toHaveCount(0);
+
+    // Floating WhatsApp button exists outside the dock
+    const floatingWa = page.locator("a[aria-label='Contact us on WhatsApp']");
+    await expect(floatingWa).toBeVisible();
+
+    // 2. Desktop View (1280px)
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto(`${BASE_URL}/`, { waitUntil: "networkidle" });
+
+    // Desktop header has both Track Order and Cart
+    await expect(page.locator("header a[aria-label='Track Order']")).toBeVisible();
+    await expect(page.locator("header a[aria-label='Cart']")).toBeVisible();
+  });
+
+  test("Mobile Viewport Auto-Zoom and 16px Font Enforcement", async ({ page }) => {
+    test.setTimeout(60000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`${BASE_URL}/track`, { waitUntil: "networkidle" });
+
+    // Verify viewport meta tag has maximum-scale=1 or user-scalable=no
+    const viewportMeta = await page.getAttribute('meta[name="viewport"]', "content");
+    expect(viewportMeta).toContain("width=device-width");
+    expect(viewportMeta).toContain("maximum-scale=1");
+
+    // Verify input font size on mobile is at least 16px (to prevent iOS auto-zoom)
+    const inputFontSize = await page.$eval("input[type='text']", (el) => {
+      return parseFloat(window.getComputedStyle(el).fontSize);
+    });
+    expect(inputFontSize).toBeGreaterThanOrEqual(16);
+  });
 
   test("Mobile navigation drawer toggle test", async ({ page }) => {
     test.setTimeout(60000);

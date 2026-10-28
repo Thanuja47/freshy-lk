@@ -255,8 +255,8 @@ export default function HomeClient({
               sizes="(min-width: 1280px) 960px, 100vw"
             />
 
-            {/* Apple glass gradient overlay: ensures WCAG AA text contrast while keeping photo vibrant */}
-            <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-[#072448]/90 via-[#072448]/60 sm:via-[#072448]/50 to-transparent pointer-events-none" />
+            {/* Apple glass gradient overlay: ensures WCAG AA text contrast while keeping photo radiant & appetizing */}
+            <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-[#04162e]/90 via-[#04162e]/55 sm:via-[#04162e]/40 to-transparent pointer-events-none" />
 
             {/* Content over glass */}
             <div className="relative z-10 max-w-xl space-y-4">

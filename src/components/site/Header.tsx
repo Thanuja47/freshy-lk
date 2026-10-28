@@ -170,8 +170,8 @@ export default function Header({ whatsappNumber }: HeaderProps = {}) {
             </form>
           </div>
 
-          {/* Right: Account, Wishlist, Cart */}
-          <div className="flex items-center space-x-1 sm:space-x-3 ml-auto md:ml-0">
+          {/* Right: Search, Track Order, Cart */}
+          <div className="flex items-center space-x-2 sm:space-x-3 ml-auto md:ml-0">
             {/* Mobile search toggle */}
             <button
               onClick={() => setSearchOpen(!searchOpen)}
@@ -181,20 +181,20 @@ export default function Header({ whatsappNumber }: HeaderProps = {}) {
               {searchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
             </button>
 
-            {/* Track Order */}
+            {/* Track Order (Mobile & Desktop) */}
             <Link
               href="/track"
-              className="hidden sm:flex flex-col items-center text-[#0D2137] hover:text-[#1B9AE4] transition-colors p-1"
+              className="flex flex-col items-center text-[#0D2137] hover:text-[#1B9AE4] transition-colors p-1"
               aria-label="Track Order"
             >
-              <MapPin className="h-5 w-5" />
-              <span className="text-[10px] font-semibold mt-0.5">Track Order</span>
+              <Truck className="h-5 w-5 text-[#1B9AE4]" />
+              <span className="text-[10px] font-semibold mt-0.5">Track</span>
             </Link>
 
-            {/* Cart */}
+            {/* Cart (Desktop only — Mobile uses bottom bar dock) */}
             <Link
               href="/cart"
-              className={`flex flex-col items-center text-[#0D2137] hover:text-[#1B9AE4] transition-colors p-1 relative ${
+              className={`hidden md:flex flex-col items-center text-[#0D2137] hover:text-[#1B9AE4] transition-colors p-1 relative ${
                 cartAnimate ? "animate-pop" : ""
               }`}
               aria-label="Cart"
@@ -283,7 +283,7 @@ export default function Header({ whatsappNumber }: HeaderProps = {}) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search fish, seafood..."
-                className="w-full pl-4 pr-12 py-2.5 bg-[#F0F7FF] border border-[#DDE8F0] rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#1B9AE4]"
+                className="w-full pl-4 pr-12 py-2.5 bg-[#F0F7FF] border border-[#DDE8F0] rounded-full text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#1B9AE4]"
               />
               <button
                 type="submit"
@@ -346,19 +346,7 @@ export default function Header({ whatsappNumber }: HeaderProps = {}) {
           <span className="text-[10px] mt-0.5">Cart</span>
         </Link>
 
-        {whatsappNumber ? (
-          <a
-            href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-col items-center p-1.5 text-[#25D366] hover:opacity-85 transition-opacity"
-          >
-            <div className="w-6 h-6 rounded-full bg-[#25D366]/15 flex items-center justify-center">
-              <MessageCircle className="h-3.5 w-3.5 text-[#25D366]" />
-            </div>
-            <span className="text-[10px] font-medium text-[#25D366] mt-0.5">WhatsApp</span>
-          </a>
-        ) : null}
+        
       </nav>
     </>
   );
