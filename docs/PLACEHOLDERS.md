@@ -42,6 +42,13 @@ Per Round 2 directives, unverified promotional claims have been removed and repl
 | "Morning Harbor Catch" | **Removed** | "Fresh Coastal Catch" — ⚠️ client to confirm |
 | "Packed Chilled" | **Removed** | "Packed for Dispatch" — ⚠️ client to confirm |
 | "Fresh Chilled" | **Removed** | "Fresh" — ⚠️ client to confirm |
+| "Direct from southern and western harbors" | **Replaced** | "Fresh seafood delivered across Sri Lanka" -- client to confirm harbor sourcing |
+| "Cleaned, sliced, or whole-prepped to your kitchen specifications" | **Replaced** | "Fixed-weight packs with custom preparation options" -- client to confirm |
+| "Premium seafood at verified harbor landing rates" | **Replaced** | "Quality fresh seafood at daily updated prices" -- client to confirm |
+| "verified harbor landing rates" | **Replaced** | "daily updated prices" -- client to confirm |
+| "Fresh Daily" (trust badge) | **Replaced** | "Daily Updates" -- client to confirm |
+| "Landed Daily" (category eyebrow) | **Replaced** | "Fish" (neutral category label) -- client to confirm |
+| "Wild Caught" (category eyebrow) | **Replaced** | "Seafood" (neutral category label) -- client to confirm |
 
 ---
 

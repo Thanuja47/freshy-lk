@@ -5,7 +5,6 @@
 
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
 import path from "path";
-import fs from "fs";
 
 const ARTIFACT_DIR =
   "C:/Users/hp/.gemini/antigravity/brain/9695cad0-55f1-4e7c-8188-fa4cee7c02e9";

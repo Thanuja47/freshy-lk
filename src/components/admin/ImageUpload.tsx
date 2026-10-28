@@ -124,10 +124,10 @@ export default function ImageUpload({
       {/* Or paste a URL */}
       <div className="flex gap-2 mt-1">
         <input
-          type="url"
+          type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Or paste image URL..."
+          placeholder="Or paste image URL (e.g. /categories/fresh-fish.jpg or https://...)"
           className="flex-1 px-2.5 py-1.5 text-xs bg-[#F5F5F7] border border-black/[0.08] rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/30 text-[#1D1D1F] font-mono"
         />
       </div>

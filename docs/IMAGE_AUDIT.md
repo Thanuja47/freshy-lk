@@ -28,3 +28,15 @@ Where genuine client photographs have not yet been supplied, a neutral SVG fallb
 2. **Purged Legacy Duplicates**: Legacy duplicate files (`public/products/prawns.jpg`, `tiger-prawns.jpg`, `tuna.jpg`, etc.) and `public/placeholders/` with duplicate file sizes have been deleted.
 3. **Neutral Fallback Placeholder**: Added `/products/photo-coming-soon.svg`. Any catalog product lacking a verified client photograph will display this neutral placeholder rather than an unverified duplicate photo.
 4. **No Signs or Price Tags**: All active image files depict fresh catch in neutral presentation without legible street signs, supermarket price tags, or foreign text.
+
+---
+
+## Category Full-Bleed Background Images (1200x900)
+
+| Category Slug | Name | Image URL | Dimensions | Status | Notes |
+|---|---|---|---|---|---|
+| `fresh-fish` | Fresh Fish | `/categories/fresh-fish.jpg` | 1200 x 900 | Stand-in | Appetizing photo of ocean fish on ice. Replace with client photo when available. |
+| `shellfish-seafood` | Seafood & Shellfish | `/categories/seafood.jpg` | 1200 x 900 | Stand-in | Appetizing photo of crabs, wild tiger prawns, and shellfish. Replace with client photo when available. |
+| `fruits` | Fruits (Coming Soon) | `/categories/fruits.jpg` | 1200 x 900 | Stand-in | Appetizing photo of tropical fruits. Replace with client photo when available. |
+| `vegetables` | Vegetables (Coming Soon) | `/categories/vegetables.jpg` | 1200 x 900 | Stand-in | Appetizing photo of market fresh vegetables. Replace with client photo when available. |
+

@@ -86,6 +86,36 @@ export function mapProductToCard(p: DbProductWithRelations): MockProduct {
   };
 }
 
+export interface DbCategory {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+export const getCachedCategories = unstable_cache(
+  async (): Promise<DbCategory[]> => {
+    try {
+      const categories = await db.category.findMany({
+        where: { isActive: true },
+        orderBy: { sortOrder: "asc" },
+      });
+      return categories;
+    } catch (err) {
+      console.error("Failed to fetch categories from DB:", err);
+      return [];
+    }
+  },
+  ["catalogue-all-categories"],
+  {
+    revalidate: 60,
+    tags: [CACHE_TAGS.CATALOGUE, CACHE_TAGS.CATEGORIES],
+  }
+);
+
 /**
  * Fetches all active products from DB with 60s cache revalidate & CACHE_TAGS.CATALOGUE.
  */

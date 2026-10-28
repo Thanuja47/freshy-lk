@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
   images: {
-    unoptimized: true,
+    qualities: [75, 80],
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {

@@ -76,7 +76,6 @@ test.describe("Admin Propagation: changes appear on storefront within 60s", () =
     test.setTimeout(120000);
 
     const productName = `QA-Prop-${Date.now()}`;
-    const slug = `qa-prop-${Date.now()}`;
 
     // Admin action: create product via API
     const res = await page.request.post("/api/admin/products", {

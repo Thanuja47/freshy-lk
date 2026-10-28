@@ -1,4 +1,4 @@
-﻿import { Metadata } from "next";
+import { Metadata } from "next";
 import Link from "next/link";
 import ProductCard from "@/components/site/ProductCard";
 import { ArrowLeft } from "lucide-react";
@@ -37,7 +37,7 @@ export default async function FishCategoryPage() {
           Fresh Sea Fish
         </h1>
         <p className="text-xs sm:text-sm text-[#0D2137]/60 mt-1 max-w-xl">
-          Daily coastal landings cleaned, sliced, cubed, or filleted to your exact kitchen specifications.
+          Fixed-weight packs with custom preparation options delivered to your door.
         </p>
       </div>
 

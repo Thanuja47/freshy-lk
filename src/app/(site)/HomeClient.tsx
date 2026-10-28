@@ -19,6 +19,14 @@ import {
 } from "lucide-react";
 import { formatMoney, roundPriceCents } from "@/lib/money";
 
+export interface HomeCategoryItem {
+  id: string;
+  slug: string;
+  name: string;
+  imageUrl: string | null;
+  sortOrder: number;
+}
+
 export interface HomeProductItem {
   id: string;
   slug: string;
@@ -41,63 +49,142 @@ export interface HomeDealItem {
   imageUrl: string;
 }
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES: HomeCategoryItem[] = [
   {
-    label: "Fresh Fish",
-    sinhala: "මිරිදිය මාළු",
-    sub: "Landed Daily",
-    href: "/fish",
-    image: "/categories/fresh-fish.png",
-    bg: "#E8F4FE",
-    accent: "#1B9AE4",
-    comingSoon: false,
+    id: "cat-fresh-fish",
+    slug: "fresh-fish",
+    name: "Fresh Fish",
+    imageUrl: "/categories/fresh-fish.jpg",
+    sortOrder: 1,
   },
   {
-    label: "Seafood & Shellfish",
-    sinhala: "මුහුදු ආහාර",
-    sub: "Wild Caught",
-    href: "/seafood",
-    image: "/categories/seafood.png",
-    bg: "#FFF3E8",
-    accent: "#FF9800",
-    comingSoon: false,
+    id: "cat-shellfish-seafood",
+    slug: "shellfish-seafood",
+    name: "Seafood & Shellfish",
+    imageUrl: "/categories/seafood.jpg",
+    sortOrder: 2,
   },
   {
-    label: "Fruits",
-    sinhala: "පලතුරු",
-    sub: "Coming Soon",
-    href: "/shop?category=fruits",
-    image: "/categories/fruits.png",
-    bg: "#FDE8E8",
-    accent: "#E53935",
-    comingSoon: true,
+    id: "cat-fruits",
+    slug: "fruits",
+    name: "Fruits",
+    imageUrl: "/categories/fruits.jpg",
+    sortOrder: 3,
   },
   {
-    label: "Vegetables",
-    sinhala: "එළවළු",
-    sub: "Coming Soon",
-    href: "/shop?category=vegetables",
-    image: "/categories/vegetables.png",
-    bg: "#E4F4DD",
-    accent: "#2E7D32",
-    comingSoon: true,
+    id: "cat-vegetables",
+    slug: "vegetables",
+    name: "Vegetables",
+    imageUrl: "/categories/vegetables.jpg",
+    sortOrder: 4,
   },
 ];
+
+interface CategoryDisplayInfo {
+  id: string;
+  slug: string;
+  label: string;
+  sinhala: string;
+  eyebrow: string;
+  href: string;
+  imageUrl: string | null;
+  comingSoon: boolean;
+}
+
+function resolveCategoryDisplay(cat: HomeCategoryItem): CategoryDisplayInfo {
+  const slug = (cat.slug || "").toLowerCase();
+  const name = (cat.name || "").toLowerCase();
+
+  const isFish = slug.includes("fish") || name.includes("fish");
+  const isSeafood = slug.includes("seafood") || slug.includes("shellfish") || name.includes("seafood");
+  const isFruits = slug.includes("fruit") || name.includes("fruit");
+  const isVegetables = slug.includes("veg") || name.includes("veg");
+
+  if (isFish) {
+    return {
+      id: cat.id,
+      slug: cat.slug,
+      label: cat.name || "Fresh Fish",
+      sinhala: "මිරිදිය මාළු",
+      eyebrow: "Fish",
+      href: "/fish",
+      imageUrl: cat.imageUrl || "/categories/fresh-fish.jpg",
+      comingSoon: false,
+    };
+  }
+
+  if (isSeafood) {
+    return {
+      id: cat.id,
+      slug: cat.slug,
+      label: cat.name || "Seafood & Shellfish",
+      sinhala: "මුහුදු ආහාර",
+      eyebrow: "Seafood",
+      href: "/seafood",
+      imageUrl: cat.imageUrl || "/categories/seafood.jpg",
+      comingSoon: false,
+    };
+  }
+
+  if (isFruits) {
+    return {
+      id: cat.id,
+      slug: cat.slug,
+      label: cat.name || "Fruits",
+      sinhala: "පලතුරු",
+      eyebrow: "Coming Soon",
+      href: "/shop?category=fruits",
+      imageUrl: cat.imageUrl || "/categories/fruits.jpg",
+      comingSoon: true,
+    };
+  }
+
+  if (isVegetables) {
+    return {
+      id: cat.id,
+      slug: cat.slug,
+      label: cat.name || "Vegetables",
+      sinhala: "එළවළු",
+      eyebrow: "Coming Soon",
+      href: "/shop?category=vegetables",
+      imageUrl: cat.imageUrl || "/categories/vegetables.jpg",
+      comingSoon: true,
+    };
+  }
+
+  return {
+    id: cat.id,
+    slug: cat.slug,
+    label: cat.name,
+    sinhala: "",
+    eyebrow: "Category",
+    href: `/shop?category=${cat.slug}`,
+    imageUrl: cat.imageUrl,
+    comingSoon: false,
+  };
+}
 
 const TRUST_ITEMS = [
   { icon: Truck, label: "Fast Delivery", sub: "Islandwide courier", color: "#1E88E5" },
   { icon: ShieldCheck, label: "Secure Payment", sub: "Safe checkout", color: "#1E88E5" },
-  { icon: Fish, label: "Fresh Daily", sub: "Prices updated daily", color: "#2E7D32" },
+  { icon: Fish, label: "Daily Updates", sub: "Prices updated daily", color: "#2E7D32" },
   { icon: Headphones, label: "WhatsApp Support", sub: "Quick assistance", color: "#25D366" },
 ];
 
 export default function HomeClient({
+  categories: initialCategories,
   featuredProducts,
   dailyDeals,
 }: {
+  categories?: HomeCategoryItem[];
   featuredProducts: HomeProductItem[];
   dailyDeals: HomeDealItem[];
 }) {
+  const activeCategories = initialCategories && initialCategories.length > 0
+    ? initialCategories
+    : DEFAULT_CATEGORIES;
+
+  const displayCategories = activeCategories.map(resolveCategoryDisplay);
   const [addedId, setAddedId] = useState<string | null>(null);
   const addItem = useCartStore((s) => s.addItem);
 
@@ -171,13 +258,13 @@ export default function HomeClient({
             <div className="max-w-xl space-y-4">
               <div className="inline-flex items-center space-x-1.5 bg-white/15 backdrop-blur-xs px-3 py-1 rounded-full text-xs font-semibold">
                 <Sparkles className="h-3.5 w-3.5 text-[#FFD54F]" />
-                <span>Landed Fresh This Morning</span>
+                <span>Fresh Seafood Delivery</span>
               </div>
               <h1 className="font-heading font-black text-3xl sm:text-5xl tracking-tight leading-tight">
                 Sri Lanka&apos;s Finest Catch, Delivered Fresh.
               </h1>
               <p className="text-white/80 text-sm sm:text-base leading-relaxed">
-                Direct from southern and western harbors. Cleaned, sliced, or whole—prepped to your kitchen specifications.
+                Fresh seafood delivered across Sri Lanka. Fixed-weight packs with custom preparation options.
               </p>
               <div className="pt-2 flex flex-wrap gap-3">
                 <Link
@@ -198,7 +285,7 @@ export default function HomeClient({
             </div>
           </section>
 
-          {/* ── CATEGORIES ── */}
+          {/* ── CATEGORIES (FULL-BLEED FULL-COLOUR PHOTO CARDS) ── */}
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-heading font-bold text-[#0D2542] text-xl sm:text-2xl">Browse by Category</h2>
@@ -207,48 +294,80 @@ export default function HomeClient({
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-              {CATEGORIES.map((cat) => {
-                const innerContent = (
-                  <div className="relative w-full h-full p-4 flex flex-col justify-between">
-                    <div>
-                      <span className="text-xs font-bold" style={{ color: cat.accent }}>
-                        {cat.sub}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
+              {displayCategories.map((cat, idx) => {
+                const cardContent = (
+                  <>
+                    {/* Background Photo */}
+                    {cat.imageUrl ? (
+                      <Image
+                        src={cat.imageUrl}
+                        alt={cat.label}
+                        fill
+                        className={`object-cover ${
+                          cat.comingSoon
+                            ? ""
+                            : "transition-transform duration-400 ease-out group-hover:scale-105 motion-reduce:transform-none"
+                        }`}
+                        sizes="(min-width: 1024px) 25vw, 50vw"
+                        quality={80}
+                        priority={idx < 4}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#0B2545] via-[#133E68] to-[#1E5B94]" />
+                    )}
+
+                    {/* Dark gradient overlay for text legibility only (~rgba(8,24,48,0.65) at bottom) */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-[#081830]/80 via-[#081830]/25 via-50% to-[#081830]/65 pointer-events-none" />
+
+                    {/* Coming Soon Pill at top-right */}
+                    {cat.comingSoon && (
+                      <span className="absolute top-3.5 right-3.5 z-20 bg-white/25 backdrop-blur-md border border-white/25 text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                        SOON
                       </span>
-                      <h3 className="font-heading font-extrabold text-[#0D2137] text-base sm:text-lg leading-tight mt-0.5">
-                        {cat.label}
-                      </h3>
-                      <p className="text-[11px] text-[#0D2137]/60 mt-0.5 font-medium">{cat.sinhala}</p>
+                    )}
+
+                    {/* Card Text Content */}
+                    <div className="relative z-10 w-full h-full p-3 sm:p-5 flex flex-col justify-between">
+                      <div>
+                        {cat.eyebrow && (
+                          <span className="inline-block text-[10px] sm:text-xs font-semibold text-white/95 px-2 sm:px-2.5 py-0.5 rounded-full bg-black/35 backdrop-blur-xs tracking-wide">
+                            {cat.eyebrow}
+                          </span>
+                        )}
+                        <h3 className="font-heading font-bold text-white text-base sm:text-[22px] lg:text-2xl leading-tight mt-1 sm:mt-1.5">
+                          {cat.label}
+                        </h3>
+                        {cat.sinhala && (
+                          <p className="text-white/80 font-medium text-[11px] sm:text-sm mt-0.5">
+                            {cat.sinhala}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div className="relative w-full h-24 sm:h-28 self-end">
-                      <Image src={cat.image} alt={cat.label} fill className="object-contain" sizes="180px" />
-                    </div>
-                  </div>
+                  </>
                 );
 
                 if (cat.comingSoon) {
                   return (
                     <div
-                      key={cat.label}
-                      className="group relative rounded-2xl overflow-hidden border border-white/80 shadow-xs opacity-65 flex"
-                      style={{ backgroundColor: cat.bg, aspectRatio: "4/3" }}
+                      key={cat.id || cat.slug}
+                      role="link"
+                      aria-disabled="true"
+                      className="group relative aspect-[4/3] sm:min-h-[180px] lg:min-h-[190px] rounded-[20px] overflow-hidden shadow-xs cursor-default flex flex-col select-none"
                     >
-                      {innerContent}
-                      <span className="absolute top-3 right-3 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        Soon
-                      </span>
+                      {cardContent}
                     </div>
                   );
                 }
 
                 return (
                   <Link
-                    key={cat.label}
+                    key={cat.id || cat.slug}
                     href={cat.href}
-                    className="group relative rounded-2xl overflow-hidden border border-white/80 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg flex"
-                    style={{ backgroundColor: cat.bg, aspectRatio: "4/3" }}
+                    className="group relative aspect-[4/3] sm:min-h-[180px] lg:min-h-[190px] rounded-[20px] overflow-hidden shadow-xs hover:shadow-md transition-all duration-400 hover:-translate-y-1 motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E88E5] focus-visible:ring-offset-2 flex flex-col"
                   >
-                    {innerContent}
+                    {cardContent}
                   </Link>
                 );
               })}
@@ -364,7 +483,7 @@ export default function HomeClient({
                   <span className="text-[#4CAF50]">Great Prices</span>
                 </h3>
                 <p className="text-white/75 text-xs mt-1.5">
-                  Premium seafood at verified harbor landing rates.
+                  Quality fresh seafood at daily updated prices.
                 </p>
               </div>
               <Link
