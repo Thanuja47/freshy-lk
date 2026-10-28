@@ -227,45 +227,60 @@ export default function HomeClient({
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-5 sm:py-6 space-y-6">
-      {/* ── CUT-OFF TIME BANNER ── */}
-      <div className="bg-[#EBF5FF] border border-[#1E88E5]/20 rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
+      {/* ── CUT-OFF TIME BANNER (Apple Frosted Glass) ── */}
+      <div className="bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm rounded-2xl sm:rounded-3xl px-4 py-3 sm:px-5 sm:py-3.5 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
         <div className="flex items-center gap-2">
           <Sun className="h-4 w-4 text-[#FF9800] shrink-0" />
           <span className="font-bold text-[#0D2542]">12:00 PM Order Cut-off:</span>
           <span className="text-[#0D2542]/75">Order before 12 PM for today&apos;s evening delivery in selected areas.</span>
         </div>
-        <Link href="/delivery" className="font-bold text-[#1E88E5] hover:underline whitespace-nowrap text-xs">
-          View Delivery Schedule &rarr;
+        <Link href="/delivery" className="font-bold text-[#1E88E5] hover:underline whitespace-nowrap text-xs flex items-center gap-1">
+          <span>View Delivery Schedule</span>
+          <span>&rarr;</span>
         </Link>
       </div>
 
       <div className="xl:grid xl:grid-cols-[1fr_360px] xl:gap-6 items-start">
         {/* ══════════════ MAIN CONTENT ══════════════ */}
         <div className="space-y-6">
-          {/* ── HERO BANNER ── */}
-          <section className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#072448] via-[#0D3B66] to-[#1E88E5] text-white p-6 sm:p-10 shadow-lg min-h-[320px] sm:min-h-[380px] flex flex-col justify-between">
-            <div className="max-w-xl space-y-4">
-              <div className="inline-flex items-center space-x-1.5 bg-white/15 backdrop-blur-xs px-3 py-1 rounded-full text-xs font-semibold">
+          {/* ── HERO BANNER (Apple Glass Design) ── */}
+          <section className="relative rounded-3xl overflow-hidden text-white p-6 sm:p-10 shadow-xl min-h-[340px] sm:min-h-[400px] flex flex-col justify-between">
+            {/* High quality full-bleed background photo */}
+            <Image
+              src="/hero/hero-glass-bg.webp"
+              alt="Fresh Seafood in Sri Lanka"
+              fill
+              priority
+              className="object-cover object-center sm:object-right select-none pointer-events-none"
+              sizes="(min-width: 1280px) 960px, 100vw"
+            />
+
+            {/* Apple glass gradient overlay: ensures WCAG AA text contrast while keeping photo vibrant */}
+            <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-[#072448]/90 via-[#072448]/60 sm:via-[#072448]/50 to-transparent pointer-events-none" />
+
+            {/* Content over glass */}
+            <div className="relative z-10 max-w-xl space-y-4">
+              <div className="inline-flex items-center space-x-1.5 bg-white/20 backdrop-blur-md border border-white/30 px-3.5 py-1 rounded-full text-xs font-semibold text-white shadow-sm">
                 <Sparkles className="h-3.5 w-3.5 text-[#FFD54F]" />
                 <span>Fresh Seafood Delivery</span>
               </div>
-              <h1 className="font-heading font-black text-3xl sm:text-5xl tracking-tight leading-tight">
+              <h1 className="font-heading font-black text-3xl sm:text-5xl tracking-tight leading-tight text-white drop-shadow-sm">
                 Sri Lanka&apos;s Finest Catch, Delivered Fresh.
               </h1>
-              <p className="text-white/80 text-sm sm:text-base leading-relaxed">
+              <p className="text-white/90 text-sm sm:text-base leading-relaxed drop-shadow-sm">
                 Fresh seafood delivered across Sri Lanka. Fixed-weight packs with custom preparation options.
               </p>
               <div className="pt-2 flex flex-wrap gap-3">
                 <Link
                   href="/shop"
-                  className="bg-white text-[#072448] hover:bg-[#E8F4FE] font-bold px-6 py-3 rounded-2xl text-sm transition-all shadow-md hover:shadow-lg inline-flex items-center gap-2"
+                  className="bg-white text-[#0D2137] hover:bg-slate-100 font-bold px-6 py-3.5 rounded-full text-sm transition-all shadow-md hover:shadow-lg inline-flex items-center gap-2"
                 >
                   <span>Explore Daily Catch</span>
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/offers"
-                  className="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold px-6 py-3 rounded-2xl text-sm transition-all inline-flex items-center gap-2"
+                  className="bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/35 text-white font-bold px-6 py-3.5 rounded-full text-sm transition-all inline-flex items-center gap-2 shadow-sm"
                 >
                   <Flame className="h-4 w-4 text-[#FF5722]" />
                   <span>Today&apos;s Deals</span>

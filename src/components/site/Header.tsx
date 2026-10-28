@@ -297,64 +297,68 @@ export default function Header({ whatsappNumber }: HeaderProps = {}) {
         )}
       </header>
 
-      {/* ── Mobile Bottom Navigation Bar ── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#DDE8F0] px-2 py-1 flex justify-around items-center shadow-lg">
+      {/* ── Mobile Bottom Navigation Bar (Apple Frosted Glass) ── */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-t border-black/[0.06] shadow-[0_-4px_25px_rgba(0,0,0,0.06)] px-2 py-1.5 flex justify-around items-center">
         <Link
           href="/"
-          className={`flex flex-col items-center p-1.5 ${
-            pathname === "/" ? "text-[#1B9AE4]" : "text-[#0D2137]/60"
+          className={`flex flex-col items-center p-1.5 transition-colors ${
+            pathname === "/" ? "text-[#1B9AE4] font-semibold" : "text-[#0D2137]/60 hover:text-[#0D2137]"
           }`}
         >
           <Home className="h-5 w-5" />
-          <span className="text-[9px] font-bold mt-0.5">Home</span>
+          <span className="text-[10px] mt-0.5">Home</span>
         </Link>
 
         <Link
           href="/shop"
-          className={`flex flex-col items-center p-1.5 ${
-            pathname === "/shop" ? "text-[#1B9AE4]" : "text-[#0D2137]/60"
+          className={`flex flex-col items-center p-1.5 transition-colors ${
+            pathname === "/shop" ? "text-[#1B9AE4] font-semibold" : "text-[#0D2137]/60 hover:text-[#0D2137]"
           }`}
         >
           <Store className="h-5 w-5" />
-          <span className="text-[9px] font-bold mt-0.5">Shop</span>
+          <span className="text-[10px] mt-0.5">Shop</span>
         </Link>
 
         <Link
-          href="/shop?deals=true"
-          className={`flex flex-col items-center p-1.5 ${
-            pathname.includes("deals") ? "text-[#FF5722]" : "text-[#0D2137]/60"
+          href="/offers"
+          className={`flex flex-col items-center p-1.5 transition-colors ${
+            pathname === "/offers" ? "text-[#FF5722] font-semibold" : "text-[#0D2137]/60 hover:text-[#0D2137]"
           }`}
         >
           <Tag className="h-5 w-5" />
-          <span className="text-[9px] font-bold mt-0.5">Offers</span>
+          <span className="text-[10px] mt-0.5">Offers</span>
         </Link>
 
         <Link
           href="/cart"
-          className={`relative flex flex-col items-center p-1.5 ${
-            pathname === "/cart" ? "text-[#1B9AE4]" : "text-[#0D2137]/60"
+          className={`relative flex flex-col items-center p-1.5 transition-colors ${
+            pathname === "/cart" ? "text-[#1B9AE4] font-semibold" : "text-[#0D2137]/60 hover:text-[#0D2137]"
           }`}
         >
           <div className="relative">
             <ShoppingCart className="h-5 w-5" />
             {totalCartCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-[#1B9AE4] text-white text-[8px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center shadow-sm">
+              <span className="absolute -top-1.5 -right-2 bg-[#1B9AE4] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-sm">
                 {totalCartCount}
               </span>
             )}
           </div>
-          <span className="text-[9px] font-bold mt-0.5">Cart</span>
+          <span className="text-[10px] mt-0.5">Cart</span>
         </Link>
 
-        <a
-          href="https://wa.me/94771234567"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex flex-col items-center p-1.5 text-[#25D366]"
-        >
-          <MessageCircle className="h-5 w-5" />
-          <span className="text-[9px] font-bold mt-0.5">WhatsApp</span>
-        </a>
+        {whatsappNumber ? (
+          <a
+            href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col items-center p-1.5 text-[#25D366] hover:opacity-85 transition-opacity"
+          >
+            <div className="w-6 h-6 rounded-full bg-[#25D366]/15 flex items-center justify-center">
+              <MessageCircle className="h-3.5 w-3.5 text-[#25D366]" />
+            </div>
+            <span className="text-[10px] font-medium text-[#25D366] mt-0.5">WhatsApp</span>
+          </a>
+        ) : null}
       </nav>
     </>
   );

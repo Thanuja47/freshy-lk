@@ -12,7 +12,8 @@ export interface ShopProductItem extends MockProduct {
 export default function ShopClient({ initialProducts }: { initialProducts: ShopProductItem[] }) {
   const searchParams = useSearchParams();
   const qParam = searchParams.get("q") || "";
-  const catParam = searchParams.get("category") || "all";
+  const dealsParam = searchParams.get("deals") === "true";
+  const catParam = dealsParam ? "deals" : (searchParams.get("category") || "all");
 
   const [localCategory, setLocalCategory] = useState<string | null>(null);
   const [storageFilter, setStorageFilter] = useState<"ALL" | "FRESH" | "FROZEN">("ALL");
