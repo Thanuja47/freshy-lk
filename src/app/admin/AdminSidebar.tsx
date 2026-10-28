@@ -17,6 +17,7 @@ import {
   Menu,
   X,
   ChevronRight,
+  MessageSquare,
 } from "lucide-react";
 
 export interface AdminUserProps {
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
   { href: "/admin/categories", label: "Categories", icon: Folder },
   { href: "/admin/zones", label: "Delivery Zones", icon: Truck },
   { href: "/admin/invoices", label: "Invoices", icon: FileText },
+  { href: "/admin/messages", label: "Messages", icon: MessageSquare },
   { href: "/admin/audit", label: "Audit Log", icon: ScrollText, ownerOnly: true },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
