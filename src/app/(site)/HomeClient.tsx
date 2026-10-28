@@ -23,6 +23,8 @@ export interface HomeCategoryItem {
   id: string;
   slug: string;
   name: string;
+  nameSi?: string | null;
+  eyebrow?: string | null;
   imageUrl: string | null;
   sortOrder: number;
 }
@@ -54,13 +56,17 @@ const DEFAULT_CATEGORIES: HomeCategoryItem[] = [
     id: "cat-fresh-fish",
     slug: "fresh-fish",
     name: "Fresh Fish",
+    nameSi: "මිරිදිය මාළු",
+    eyebrow: "Fish",
     imageUrl: "/categories/fresh-fish.jpg",
     sortOrder: 1,
   },
   {
     id: "cat-shellfish-seafood",
     slug: "shellfish-seafood",
-    name: "Seafood & Shellfish",
+    name: "Shellfish & Seafood",
+    nameSi: "මුහුදු ආහාර",
+    eyebrow: "Seafood",
     imageUrl: "/categories/seafood.jpg",
     sortOrder: 2,
   },
@@ -68,6 +74,8 @@ const DEFAULT_CATEGORIES: HomeCategoryItem[] = [
     id: "cat-fruits",
     slug: "fruits",
     name: "Fruits",
+    nameSi: "පලතුරු",
+    eyebrow: null,
     imageUrl: "/categories/fruits.jpg",
     sortOrder: 3,
   },
@@ -75,6 +83,8 @@ const DEFAULT_CATEGORIES: HomeCategoryItem[] = [
     id: "cat-vegetables",
     slug: "vegetables",
     name: "Vegetables",
+    nameSi: "එළවළු",
+    eyebrow: null,
     imageUrl: "/categories/vegetables.jpg",
     sortOrder: 4,
   },
@@ -93,74 +103,53 @@ interface CategoryDisplayInfo {
 
 function resolveCategoryDisplay(cat: HomeCategoryItem): CategoryDisplayInfo {
   const slug = (cat.slug || "").toLowerCase();
-  const name = (cat.name || "").toLowerCase();
+  const isFruits = slug === "fruits" || slug.includes("fruit");
+  const isVegetables = slug === "vegetables" || slug.includes("veg");
+  const comingSoon = isFruits || isVegetables;
 
-  const isFish = slug.includes("fish") || name.includes("fish");
-  const isSeafood = slug.includes("seafood") || slug.includes("shellfish") || name.includes("seafood");
-  const isFruits = slug.includes("fruit") || name.includes("fruit");
-  const isVegetables = slug.includes("veg") || name.includes("veg");
-
-  if (isFish) {
-    return {
-      id: cat.id,
-      slug: cat.slug,
-      label: cat.name || "Fresh Fish",
-      sinhala: "මිරිදිය මාළු",
-      eyebrow: "Fish",
-      href: "/fish",
-      imageUrl: cat.imageUrl || "/categories/fresh-fish.jpg",
-      comingSoon: false,
-    };
+  // Eyebrow: Coming-soon cards DROP the eyebrow completely
+  let eyebrow = "";
+  if (!comingSoon) {
+    if (cat.eyebrow) {
+      eyebrow = cat.eyebrow;
+    } else if (slug.includes("seafood") || slug.includes("shellfish")) {
+      eyebrow = "Seafood";
+    } else if (slug.includes("fish")) {
+      eyebrow = "Fish";
+    }
   }
 
-  if (isSeafood) {
-    return {
-      id: cat.id,
-      slug: cat.slug,
-      label: cat.name || "Seafood & Shellfish",
-      sinhala: "මුහුදු ආහාර",
-      eyebrow: "Seafood",
-      href: "/seafood",
-      imageUrl: cat.imageUrl || "/categories/seafood.jpg",
-      comingSoon: false,
-    };
+  // Sinhala text from DB record (nameSi) with safe fallback
+  let sinhala = cat.nameSi || "";
+  if (!sinhala) {
+    if (slug.includes("seafood") || slug.includes("shellfish")) {
+      sinhala = "මුහුදු ආහාර";
+    } else if (slug.includes("fish")) {
+      sinhala = "මිරිදිය මාළු";
+    } else if (isFruits) {
+      sinhala = "පලතුරු";
+    } else if (isVegetables) {
+      sinhala = "එළවළු";
+    }
   }
 
-  if (isFruits) {
-    return {
-      id: cat.id,
-      slug: cat.slug,
-      label: cat.name || "Fruits",
-      sinhala: "පලතුරු",
-      eyebrow: "Coming Soon",
-      href: "/shop?category=fruits",
-      imageUrl: cat.imageUrl || "/categories/fruits.jpg",
-      comingSoon: true,
-    };
-  }
-
-  if (isVegetables) {
-    return {
-      id: cat.id,
-      slug: cat.slug,
-      label: cat.name || "Vegetables",
-      sinhala: "එළවළු",
-      eyebrow: "Coming Soon",
-      href: "/shop?category=vegetables",
-      imageUrl: cat.imageUrl || "/categories/vegetables.jpg",
-      comingSoon: true,
-    };
+  // Link href
+  let href = `/shop?category=${cat.slug}`;
+  if (slug === "fresh-fish" || slug.startsWith("fish")) {
+    href = "/fish";
+  } else if (slug.includes("seafood") || slug.includes("shellfish")) {
+    href = "/seafood";
   }
 
   return {
     id: cat.id,
     slug: cat.slug,
     label: cat.name,
-    sinhala: "",
-    eyebrow: "Category",
-    href: `/shop?category=${cat.slug}`,
+    sinhala,
+    eyebrow,
+    href,
     imageUrl: cat.imageUrl,
-    comingSoon: false,
+    comingSoon,
   };
 }
 
@@ -286,19 +275,22 @@ export default function HomeClient({
           </section>
 
           {/* ── CATEGORIES (FULL-BLEED FULL-COLOUR PHOTO CARDS) ── */}
-          <section>
-            <div className="flex items-center justify-between mb-3">
+          <section className="mb-10 sm:mb-12">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="font-heading font-bold text-[#0D2542] text-xl sm:text-2xl">Browse by Category</h2>
               <Link href="/shop" className="flex items-center gap-1 text-[#1E88E5] text-sm font-semibold hover:underline">
                 All Products <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
+            <div
+              className="grid grid-cols-2 lg:[grid-template-columns:repeat(4,minmax(0,1fr))] gap-[12px] md:gap-[16px] lg:gap-[20px] w-full min-w-0"
+              style={{ minWidth: 0, width: "100%" }}
+            >
               {displayCategories.map((cat, idx) => {
                 const cardContent = (
                   <>
-                    {/* Background Photo */}
+                    {/* Background Photo - full brightness, no filter, no opacity, no blend mode */}
                     {cat.imageUrl ? (
                       <Image
                         src={cat.imageUrl}
@@ -317,29 +309,40 @@ export default function HomeClient({
                       <div className="absolute inset-0 bg-gradient-to-br from-[#0B2545] via-[#133E68] to-[#1E5B94]" />
                     )}
 
-                    {/* Dark gradient overlay for text legibility only (~rgba(8,24,48,0.65) at bottom) */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-[#081830]/80 via-[#081830]/25 via-50% to-[#081830]/65 pointer-events-none" />
+                    {/* ONLY a soft gradient on the BOTTOM 40% of the card: transparent to rgba(6,20,40,0.40) max */}
+                    <div
+                      className="absolute bottom-0 inset-x-0 h-[40%] pointer-events-none"
+                      style={{
+                        background:
+                          "linear-gradient(to top, rgba(6, 20, 40, 0.40) 0%, rgba(6, 20, 40, 0.15) 60%, rgba(6, 20, 40, 0) 100%)",
+                      }}
+                    />
 
-                    {/* Coming Soon Pill at top-right */}
-                    {cat.comingSoon && (
-                      <span className="absolute top-3.5 right-3.5 z-20 bg-white/25 backdrop-blur-md border border-white/25 text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                        SOON
-                      </span>
-                    )}
+                    {/* Top Row: Eyebrow on left (if not coming-soon), SOON badge on right (if coming-soon) */}
+                    <div className="relative z-10 w-full p-3 sm:p-4 flex items-center justify-between pointer-events-none">
+                      {cat.eyebrow && !cat.comingSoon ? (
+                        <span className="inline-block text-[10px] sm:text-xs font-semibold text-white px-2.5 py-0.5 rounded-full bg-black/40 backdrop-blur-xs tracking-wide [text-shadow:0_1px_4px_rgba(0,0,0,0.4)]">
+                          {cat.eyebrow}
+                        </span>
+                      ) : (
+                        <span />
+                      )}
 
-                    {/* Card Text Content */}
-                    <div className="relative z-10 w-full h-full p-3 sm:p-5 flex flex-col justify-between">
-                      <div>
-                        {cat.eyebrow && (
-                          <span className="inline-block text-[10px] sm:text-xs font-semibold text-white/95 px-2 sm:px-2.5 py-0.5 rounded-full bg-black/35 backdrop-blur-xs tracking-wide">
-                            {cat.eyebrow}
-                          </span>
-                        )}
-                        <h3 className="font-heading font-bold text-white text-base sm:text-[22px] lg:text-2xl leading-tight mt-1 sm:mt-1.5">
+                      {cat.comingSoon && (
+                        <span className="bg-white/25 backdrop-blur-md border border-white/30 text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider [text-shadow:0_1px_4px_rgba(0,0,0,0.4)]">
+                          SOON
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Bottom Row: Title & Sinhala Subtitle with subtle frosted label & text-shadow */}
+                    <div className="relative z-10 w-full p-3 sm:p-4 mt-auto">
+                      <div className="bg-white/18 backdrop-blur-xs border border-white/20 rounded-xl px-2.5 sm:px-3 py-1 sm:py-1.5 w-fit max-w-full">
+                        <h3 className="font-heading font-bold text-white text-sm sm:text-lg lg:text-[20px] leading-snug [text-shadow:0_1px_6px_rgba(0,0,0,0.35)]">
                           {cat.label}
                         </h3>
                         {cat.sinhala && (
-                          <p className="text-white/80 font-medium text-[11px] sm:text-sm mt-0.5">
+                          <p className="text-white/90 font-medium text-[10px] sm:text-xs lg:text-[13px] mt-0.5 [text-shadow:0_1px_4px_rgba(0,0,0,0.35)]">
                             {cat.sinhala}
                           </p>
                         )}
@@ -354,7 +357,8 @@ export default function HomeClient({
                       key={cat.id || cat.slug}
                       role="link"
                       aria-disabled="true"
-                      className="group relative aspect-[4/3] sm:min-h-[180px] lg:min-h-[190px] rounded-[20px] overflow-hidden shadow-xs cursor-default flex flex-col select-none"
+                      className="group relative w-full min-w-0 aspect-[4/3] lg:min-h-[220px] rounded-[20px] overflow-hidden shadow-xs cursor-default flex flex-col justify-between select-none"
+                      style={{ minWidth: 0, width: "100%" }}
                     >
                       {cardContent}
                     </div>
@@ -365,7 +369,8 @@ export default function HomeClient({
                   <Link
                     key={cat.id || cat.slug}
                     href={cat.href}
-                    className="group relative aspect-[4/3] sm:min-h-[180px] lg:min-h-[190px] rounded-[20px] overflow-hidden shadow-xs hover:shadow-md transition-all duration-400 hover:-translate-y-1 motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E88E5] focus-visible:ring-offset-2 flex flex-col"
+                    className="group relative w-full min-w-0 aspect-[4/3] lg:min-h-[220px] rounded-[20px] overflow-hidden shadow-xs hover:shadow-md transition-all duration-400 hover:-translate-y-1 motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E88E5] focus-visible:ring-offset-2 flex flex-col justify-between"
+                    style={{ minWidth: 0, width: "100%" }}
                   >
                     {cardContent}
                   </Link>

@@ -22,6 +22,8 @@ interface CategoryItem {
   id: string;
   slug: string;
   name: string;
+  nameSi?: string | null;
+  eyebrow?: string | null;
   description: string | null;
   imageUrl: string | null;
   sortOrder: number;
@@ -60,6 +62,8 @@ export default function CategoriesClient({
   // Form State
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [nameSi, setNameSi] = useState("");
+  const [eyebrow, setEyebrow] = useState("");
   const [description, setDescription] = useState("");
   const [sortOrder, setSortOrder] = useState(0);
   const [imageUrl, setImageUrl] = useState("");
@@ -68,6 +72,8 @@ export default function CategoriesClient({
     setEditingId(null);
     setName("");
     setSlug("");
+    setNameSi("");
+    setEyebrow("");
     setDescription("");
     setSortOrder(categories.length);
     setImageUrl("");
@@ -80,6 +86,8 @@ export default function CategoriesClient({
     setEditingId(cat.id);
     setName(cat.name);
     setSlug(cat.slug);
+    setNameSi(cat.nameSi || "");
+    setEyebrow(cat.eyebrow || "");
     setDescription(cat.description || "");
     setSortOrder(cat.sortOrder);
     setImageUrl(cat.imageUrl || "");
@@ -111,6 +119,8 @@ export default function CategoriesClient({
       id: editingId || undefined,
       name,
       slug,
+      nameSi: nameSi || null,
+      eyebrow: eyebrow || null,
       description: description || undefined,
       sortOrder,
       isActive: true,
@@ -225,9 +235,21 @@ export default function CategoriesClient({
 
               {/* Name & Description */}
               <div>
-                <h3 className="text-lg font-semibold text-[#1D1D1F] mb-1">
-                  {cat.name}
-                </h3>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-lg font-semibold text-[#1D1D1F]">
+                    {cat.name}
+                  </h3>
+                  {cat.eyebrow && (
+                    <span className="text-[10px] font-semibold bg-black/[0.05] text-[#1D1D1F] px-2 py-0.5 rounded-full">
+                      {cat.eyebrow}
+                    </span>
+                  )}
+                </div>
+                {cat.nameSi && (
+                  <p className="text-xs text-[#1E88E5] font-medium mb-1">
+                    {cat.nameSi}
+                  </p>
+                )}
                 <p className="text-xs text-[#6E6E73] leading-relaxed line-clamp-2">
                   {cat.description || "No description provided."}
                 </p>
@@ -327,6 +349,33 @@ export default function CategoriesClient({
                   placeholder="e.g. fresh-fish"
                   className="w-full px-3 py-2 bg-[#F5F5F7] border border-black/[0.08] rounded-xl font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 text-sm"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[#6E6E73] uppercase tracking-wider font-semibold mb-1">
+                    Eyebrow Tag (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={eyebrow}
+                    onChange={(e) => setEyebrow(e.target.value)}
+                    placeholder="e.g. Fish, Seafood"
+                    className="w-full px-3 py-2 bg-[#F5F5F7] border border-black/[0.08] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#6E6E73] uppercase tracking-wider font-semibold mb-1">
+                    Sinhala Subtitle (nameSi)
+                  </label>
+                  <input
+                    type="text"
+                    value={nameSi}
+                    onChange={(e) => setNameSi(e.target.value)}
+                    placeholder="e.g. මිරිදිය මාළු, මුහුදු ආහාර"
+                    className="w-full px-3 py-2 bg-[#F5F5F7] border border-black/[0.08] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 text-sm"
+                  />
+                </div>
               </div>
 
               <div>

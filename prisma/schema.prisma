@@ -107,6 +107,8 @@ model Category {
   id          String       @id @default(uuid())
   slug        String       @unique
   name        String
+  nameSi      String?
+  eyebrow     String?
   description String?
   imageUrl    String?
   sortOrder   Int          @default(0)

@@ -12,6 +12,8 @@ const categorySchema = z.object({
   id: z.string().uuid().optional(),
   name: z.string().min(2, "Name must be at least 2 characters"),
   slug: z.string().min(2, "Slug must be at least 2 characters").regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
+  nameSi: z.string().nullable().optional(),
+  eyebrow: z.string().nullable().optional(),
   description: z.string().optional(),
   imageUrl: z.string().nullable().optional(),
   sortOrder: z.number().int().default(0),
@@ -32,6 +34,8 @@ export async function saveCategory(input: CategoryInput) {
         data: {
           name: parsed.name,
           slug: parsed.slug,
+          nameSi: parsed.nameSi || null,
+          eyebrow: parsed.eyebrow || null,
           description: parsed.description || null,
           imageUrl: parsed.imageUrl !== undefined ? parsed.imageUrl : undefined,
           sortOrder: parsed.sortOrder,
@@ -57,6 +61,8 @@ export async function saveCategory(input: CategoryInput) {
         data: {
           name: parsed.name,
           slug: parsed.slug,
+          nameSi: parsed.nameSi || null,
+          eyebrow: parsed.eyebrow || null,
           description: parsed.description || null,
           imageUrl: parsed.imageUrl || null,
           sortOrder: parsed.sortOrder,

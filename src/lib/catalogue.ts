@@ -90,6 +90,8 @@ export interface DbCategory {
   id: string;
   slug: string;
   name: string;
+  nameSi?: string | null;
+  eyebrow?: string | null;
   description: string | null;
   imageUrl: string | null;
   sortOrder: number;

@@ -31,6 +31,8 @@ export default async function HomePage() {
     id: c.id,
     slug: c.slug,
     name: c.name,
+    nameSi: c.nameSi,
+    eyebrow: c.eyebrow,
     imageUrl: c.imageUrl,
     sortOrder: c.sortOrder,
   }));
