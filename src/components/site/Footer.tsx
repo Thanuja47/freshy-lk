@@ -116,15 +116,15 @@ export default function Footer({ phone, whatsapp, email, address }: FooterProps 
       {/* Bottom bar */}
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-12 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-white/40 gap-4">
         <p>© {new Date().getFullYear()} Freshy.lk. All rights reserved.</p>
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-3 gap-y-1 text-center">
           <span>Fresh delivery</span>
-          <span>•</span>
+          <span className="hidden sm:inline">•</span>
           <span>Islandwide courier</span>
-          <span>•</span>
+          <span className="hidden sm:inline">•</span>
           <span>Prices updated daily</span>
-          <span>•</span>
+          <span className="hidden sm:inline">•</span>
           <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
-          <span>•</span>
+          <span className="hidden sm:inline">•</span>
           <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
         </div>
       </div>

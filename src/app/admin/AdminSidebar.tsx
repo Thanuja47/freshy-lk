@@ -182,6 +182,7 @@ export function AdminSidebar({ user }: { user: AdminUserProps }) {
             </span>
             <button
               type="button"
+              aria-label="Close Mobile Navigation"
               onClick={() => setMobileOpen(false)}
               className="p-2 text-[#1D1D1F] hover:bg-black/[0.05] rounded-xl"
             >
