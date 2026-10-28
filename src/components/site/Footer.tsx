@@ -2,7 +2,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { MessageCircle, Phone, Mail, MapPin } from "lucide-react";
 
-export default function Footer() {
+interface FooterProps {
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  address?: string;
+}
+
+export default function Footer({ phone, whatsapp, email, address }: FooterProps = {}) {
+  const cleanWa = whatsapp ? whatsapp.replace(/\D/g, "") : "";
+
   return (
     <footer className="bg-[#0D2137] text-white border-t border-white/10 pt-14 pb-24 md:pb-12">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-10">
@@ -21,15 +30,17 @@ export default function Footer() {
           <p className="text-xs text-white/65 leading-relaxed max-w-sm">
             Fresh seafood and farm produce delivered to your doorstep across Sri Lanka.
           </p>
-          <a
-            href="https://wa.me/94771234567"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center space-x-2 bg-[#25D366] text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-[#20bd5a] transition-colors shadow-xs"
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span>Order via WhatsApp</span>
-          </a>
+          {whatsapp && cleanWa && (
+            <a
+              href={`https://wa.me/${cleanWa}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-2 bg-[#25D366] text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-[#20bd5a] transition-colors shadow-xs"
+            >
+              <MessageCircle className="h-4 w-4" />
+              <span>Order via WhatsApp</span>
+            </a>
+          )}
         </div>
 
         {/* Quick links */}
@@ -65,25 +76,39 @@ export default function Footer() {
           </ul>
         </div>
 
-
         {/* Contact info */}
         <div>
           <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-[#1E88E5] mb-4">
             Contact Info
           </h4>
           <ul className="space-y-3 text-xs text-white/65">
-            <li className="flex items-start space-x-2.5">
-              <MapPin className="h-4 w-4 text-[#1B9AE4] shrink-0 mt-0.5" />
-              <span>Colombo &amp; Islandwide Delivery</span>
-            </li>
-            <li className="flex items-center space-x-2.5">
-              <Phone className="h-4 w-4 text-[#1B9AE4] shrink-0" />
-              <span>+94 77 123 4567</span>
-            </li>
-            <li className="flex items-center space-x-2.5">
-              <Mail className="h-4 w-4 text-[#1B9AE4] shrink-0" />
-              <span>support@freshy.lk</span>
-            </li>
+            {address ? (
+              <li className="flex items-start space-x-2.5">
+                <MapPin className="h-4 w-4 text-[#1B9AE4] shrink-0 mt-0.5" />
+                <span>{address}</span>
+              </li>
+            ) : (
+              <li className="flex items-start space-x-2.5">
+                <MapPin className="h-4 w-4 text-[#1B9AE4] shrink-0 mt-0.5" />
+                <span>Colombo &amp; Islandwide Delivery</span>
+              </li>
+            )}
+            {phone && (
+              <li className="flex items-center space-x-2.5">
+                <Phone className="h-4 w-4 text-[#1B9AE4] shrink-0" />
+                <a href={`tel:${phone.replace(/[^+\d]/g, "")}`} className="hover:text-white transition-colors">
+                  {phone}
+                </a>
+              </li>
+            )}
+            {email && (
+              <li className="flex items-center space-x-2.5">
+                <Mail className="h-4 w-4 text-[#1B9AE4] shrink-0" />
+                <a href={`mailto:${email}`} className="hover:text-white transition-colors">
+                  {email}
+                </a>
+              </li>
+            )}
           </ul>
         </div>
       </div>
@@ -98,7 +123,9 @@ export default function Footer() {
           <span>•</span>
           <span>Prices updated daily</span>
           <span>•</span>
-          <Link href="/admin/login" className="hover:text-white/70 transition-colors">Staff login</Link>
+          <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+          <span>•</span>
+          <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
         </div>
       </div>
     </footer>

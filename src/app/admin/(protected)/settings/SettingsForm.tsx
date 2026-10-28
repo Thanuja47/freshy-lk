@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Save, Check, Loader2, AlertCircle, Building2, Receipt, Phone, ShieldCheck, CreditCard } from "lucide-react";
+import { Save, Check, Loader2, AlertCircle, Building2, Receipt, Phone, ShieldCheck, CreditCard, MapPin, Mail, Clock, MessageCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { saveSettingsAction } from "@/actions/settings";
 
@@ -29,18 +29,22 @@ const DEFAULT_SECTIONS: SectionDef[] = [
     description: "Company details displayed on storefront, emails, and customer communications.",
     icon: Building2,
     fields: [
-      { key: "companyName", label: "Business Legal Name", icon: Building2, placeholder: "Freshy LK (Pvt) Ltd", type: "text" },
-      { key: "operatingAddress", label: "Operating Hub Address", icon: Building2, placeholder: "Harbor Road, Negombo", type: "text" },
+      { key: "companyName", label: "Business Legal Name", icon: Building2, placeholder: "e.g. Freshy LK (Pvt) Ltd", type: "text" },
+      { key: "operatingAddress", label: "Operating Hub Address", icon: MapPin, placeholder: "e.g. No. 45, Harbor Road, Negombo", type: "text" },
+      { key: "hubDescription", label: "Hub Description / Pickup Info", icon: Building2, placeholder: "e.g. Order pickup and dispatch hub", type: "text" },
     ],
   },
   {
     id: "contact",
     title: "Customer Support & Contact",
-    description: "Primary support channels visible to buyers during checkout and order tracking.",
+    description: "Primary support channels visible to buyers on /contact, header, footer, and checkout.",
     icon: Phone,
     fields: [
-      { key: "supportPhone", label: "Helpline Phone Number", icon: Phone, placeholder: "+94 77 123 4567", type: "tel" },
-      { key: "supportEmail", label: "Support Email", icon: Phone, placeholder: "orders@freshy.lk", type: "email" },
+      { key: "supportPhone", label: "Helpline Phone Number", icon: Phone, placeholder: "e.g. +94 11 234 5678", type: "tel" },
+      { key: "supportWhatsapp", label: "WhatsApp Number (Digits with country code)", icon: MessageCircle, placeholder: "e.g. +94 77 123 4567", type: "tel" },
+      { key: "supportEmail", label: "Support Email", icon: Mail, placeholder: "e.g. orders@freshy.lk", type: "email" },
+      { key: "supportHours", label: "Support Hours Text", icon: Clock, placeholder: "e.g. Mon–Sat: 6:00 AM – 8:00 PM | Sun: 6:00 AM – 2:00 PM", type: "text" },
+      { key: "responseTimeText", label: "Response-Time Note (optional)", icon: Clock, placeholder: "e.g. Response within 2 hours", type: "text" },
     ],
   },
   {
@@ -49,10 +53,10 @@ const DEFAULT_SECTIONS: SectionDef[] = [
     description: "Bank details provided to customers choosing Direct Bank Transfer payment method.",
     icon: CreditCard,
     fields: [
-      { key: "bankName", label: "Bank Name", icon: CreditCard, placeholder: "Commercial Bank of Ceylon", type: "text" },
-      { key: "bankAccountName", label: "Account Name", icon: Building2, placeholder: "Freshy LK (Pvt) Ltd", type: "text" },
-      { key: "bankAccountNumber", label: "Account Number", icon: CreditCard, placeholder: "1000200300", type: "text" },
-      { key: "bankBranch", label: "Branch Name", icon: Building2, placeholder: "Colombo Main Branch", type: "text" },
+      { key: "bankName", label: "Bank Name", icon: CreditCard, placeholder: "e.g. Commercial Bank of Ceylon", type: "text" },
+      { key: "bankAccountName", label: "Account Name", icon: Building2, placeholder: "e.g. Freshy LK (Pvt) Ltd", type: "text" },
+      { key: "bankAccountNumber", label: "Account Number", icon: CreditCard, placeholder: "e.g. 1000200300", type: "text" },
+      { key: "bankBranch", label: "Branch Name", icon: Building2, placeholder: "e.g. Colombo Main Branch", type: "text" },
     ],
   },
   {
@@ -61,9 +65,9 @@ const DEFAULT_SECTIONS: SectionDef[] = [
     description: "Receipt numbering prefixes, tax registrations, and customer invoice footnotes.",
     icon: Receipt,
     fields: [
-      { key: "invoicePrefix", label: "Invoice Number Prefix", icon: Receipt, placeholder: "INV-", type: "text" },
-      { key: "vatNumber", label: "Business Registration / VAT No", icon: ShieldCheck, placeholder: "PV-123456 / VAT-894210", type: "text" },
-      { key: "invoiceFooter", label: "Footer Thank-You Message", icon: Receipt, placeholder: "Thank you for buying fresh from Freshy.lk!", type: "text" },
+      { key: "invoicePrefix", label: "Invoice Number Prefix", icon: Receipt, placeholder: "e.g. INV-", type: "text" },
+      { key: "vatNumber", label: "Business Registration / VAT No", icon: ShieldCheck, placeholder: "e.g. PV-123456 / VAT-894210", type: "text" },
+      { key: "invoiceFooter", label: "Footer Thank-You Message", icon: Receipt, placeholder: "e.g. Thank you for buying fresh from Freshy.lk!", type: "text" },
     ],
   },
 ];
@@ -153,7 +157,8 @@ export default function SettingsForm({ sections = DEFAULT_SECTIONS, settings }: 
         const isSaving = savingSection === section.id;
 
         return (
-          <div
+          <section
+            id={`section-${section.id}`}
             key={section.id}
             style={{
               background: "#fff",
@@ -288,7 +293,7 @@ export default function SettingsForm({ sections = DEFAULT_SECTIONS, settings }: 
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         );
       })}
     </div>

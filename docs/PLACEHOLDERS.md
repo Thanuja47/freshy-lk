@@ -49,6 +49,13 @@ Per Round 2 directives, unverified promotional claims have been removed and repl
 | "Fresh Daily" (trust badge) | **Replaced** | "Daily Updates" -- client to confirm |
 | "Landed Daily" (category eyebrow) | **Replaced** | "Fish" (neutral category label) -- client to confirm |
 | "Wild Caught" (category eyebrow) | **Replaced** | "Seafood" (neutral category label) -- client to confirm |
+| "Harbor Operations" | **Removed** | Replaced with "Customer Support Hours" -- client to confirm harbor operations |
+| "Packing and dispatch hub in Colombo 03" | **Removed** | Read from admin settings `operatingAddress` / `hubDescription` only -- client to confirm hub address |
+| "We are here to help every day from..." | **Removed** | Neutral subtitle without time promises; hours read from admin settings `supportHours` -- client to confirm |
+| "Response within 2 hours" | **Removed** | Optional field `responseTimeText` in admin settings, omitted if unset -- client to confirm |
+| "No. 45, Oceanfront Avenue, Colombo 03, Sri Lanka" | **Removed** | Read from admin settings `operatingAddress` only, omitted if unset -- client to confirm address |
+| "+94 11 234 5678" & "+94 77 123 4567" | **Removed** | Read from admin settings `supportPhone` & `supportWhatsapp` only, omitted if unset -- client to provide live numbers |
+| "orders@freshy.lk" | **Removed** | Read from admin settings `supportEmail` only, omitted if unset -- client to confirm support email |
 
 ---
 

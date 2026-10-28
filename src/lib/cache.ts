@@ -21,3 +21,8 @@ export async function revalidateCatalogueCache() {
   revalidateTag(CACHE_TAGS.PRODUCTS, "max");
   revalidateTag(CACHE_TAGS.CATEGORIES, "max");
 }
+
+export async function revalidateSettingsCache() {
+  const { revalidateTag } = await import("next/cache");
+  revalidateTag(CACHE_TAGS.SETTINGS, "max");
+}

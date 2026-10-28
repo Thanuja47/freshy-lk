@@ -1,6 +1,27 @@
 // src/lib/settings.ts — helpers to read application Settings from the database
 
 import { db } from "@/lib/db";
+import { CACHE_TAGS } from "@/lib/cache";
+import { unstable_cache } from "next/cache";
+
+export interface SiteSettings {
+  companyName?: string;
+  supportPhone?: string;
+  supportWhatsapp?: string;
+  supportEmail?: string;
+  operatingAddress?: string;
+  hubDescription?: string;
+  supportHours?: string;
+  responseTimeText?: string;
+  bankName?: string;
+  bankAccountName?: string;
+  bankAccountNumber?: string;
+  bankBranch?: string;
+  invoicePrefix?: string;
+  vatNumber?: string;
+  invoiceFooter?: string;
+  [key: string]: string | undefined;
+}
 
 /**
  * Reads a numeric setting from the Setting table.
@@ -31,3 +52,33 @@ export async function getSettingNumber(key: string, fallback: number): Promise<n
 export async function getLowStockThresholdGrams(): Promise<number> {
   return getSettingNumber("LOW_STOCK_THRESHOLD_GRAMS", 2000);
 }
+
+async function fetchSiteSettingsFromDb(): Promise<SiteSettings> {
+  try {
+    const rows = await db.setting.findMany();
+    const settings: SiteSettings = {};
+    for (const r of rows) {
+      if (r.value != null && r.value !== "") {
+        const val = typeof r.value === "string" ? r.value.trim() : String(r.value).trim();
+        if (val) {
+          settings[r.key] = val;
+        }
+      }
+    }
+    return settings;
+  } catch (err) {
+    console.warn("Could not read DB settings:", err);
+    return {};
+  }
+}
+
+/**
+ * Returns all configured site settings from DB.
+ * Uses tag-based revalidation (tag: 'settings') with a 60-second fallback.
+ * Strictly returns NO invented data — values not in DB are undefined.
+ */
+export const getSiteSettings = unstable_cache(
+  fetchSiteSettingsFromDb,
+  ["site-settings"],
+  { tags: [CACHE_TAGS.SETTINGS], revalidate: 60 }
+);

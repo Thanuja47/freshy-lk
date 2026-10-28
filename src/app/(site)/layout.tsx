@@ -4,33 +4,19 @@ import Header from "@/components/site/Header";
 import Footer from "@/components/site/Footer";
 import WhatsAppButton from "@/components/site/WhatsAppButton";
 import DemoBanner from "@/components/site/DemoBanner";
-import { db } from "@/lib/db";
+import { getSiteSettings } from "@/lib/settings";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://freshy.lk";
-
-async function getSettings(): Promise<Record<string, string>> {
-  try {
-    const rows = await db.setting.findMany({ select: { key: true, value: true } });
-    return Object.fromEntries(
-      rows
-        .filter((r) => typeof r.value === "string")
-        .map((r) => [r.key, r.value as string])
-    );
-  } catch {
-    // DB unavailable (preview without DB) — return empty; JSON-LD will omit optional fields
-    return {};
-  }
-}
 
 export default async function SiteLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const settings = await getSettings();
+  const settings = await getSiteSettings();
 
-  const businessName = settings["businessName"] || "Freshy.lk";
-  const phone = settings["contactPhone"] || settings["phone"] || null;
+  const businessName = settings.companyName || settings["businessName"] || "Freshy.lk";
+  const phone = settings.supportPhone || settings["contactPhone"] || settings["phone"] || null;
   const ogImage = settings["seoOgImage"] || settings["ogImage"] || null;
 
   // Organization JSON-LD — only include fields we actually have in settings
@@ -66,6 +52,7 @@ export default async function SiteLayout({
     address: {
       "@type": "PostalAddress",
       addressCountry: "LK",
+      ...(settings.operatingAddress ? { streetAddress: settings.operatingAddress } : {}),
     },
   };
 
@@ -87,10 +74,15 @@ export default async function SiteLayout({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBizJsonLd) }}
       />
       <DemoBanner />
-      <Header />
+      <Header whatsappNumber={settings.supportWhatsapp} />
       <main className="flex-grow">{children}</main>
-      <Footer />
-      <WhatsAppButton />
+      <Footer
+        phone={settings.supportPhone}
+        whatsapp={settings.supportWhatsapp}
+        email={settings.supportEmail}
+        address={settings.operatingAddress}
+      />
+      <WhatsAppButton whatsappNumber={settings.supportWhatsapp} />
     </>
   );
 }

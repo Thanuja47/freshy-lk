@@ -5,20 +5,6 @@ import SettingsForm from "./SettingsForm";
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
-  const defaultSettings: Record<string, string> = {
-    companyName: "Freshy LK (Pvt) Ltd",
-    supportPhone: "+94 77 123 4567",
-    supportEmail: "support@freshy.lk",
-    operatingAddress: "Negombo Harbor Road, Negombo, Sri Lanka",
-    invoicePrefix: "INV-",
-    vatNumber: "BR-984210",
-    invoiceFooter: "Thank you for choosing Freshy.lk! Direct from Sri Lankan coastal landings.",
-    bankName: "Commercial Bank of Ceylon",
-    bankAccountName: "Freshy LK (Pvt) Ltd",
-    bankAccountNumber: "8001234567",
-    bankBranch: "Negombo Branch",
-  };
-
   const loadedSettings: Record<string, string> = {};
 
   try {
@@ -33,10 +19,8 @@ export default async function AdminSettingsPage() {
       }
     }
   } catch (err) {
-    console.warn("Could not load db settings, falling back to defaults:", err);
+    console.warn("Could not load db settings:", err);
   }
-
-  const mergedSettings = { ...defaultSettings, ...loadedSettings };
 
   return (
     <div className="space-y-6">
@@ -49,7 +33,7 @@ export default async function AdminSettingsPage() {
         </p>
       </div>
 
-      <SettingsForm settings={mergedSettings} />
+      <SettingsForm settings={loadedSettings} />
     </div>
   );
 }

@@ -40,3 +40,13 @@ Where genuine client photographs have not yet been supplied, a neutral SVG fallb
 | `fruits` | Fruits (Coming Soon) | `/categories/fruits.jpg` | 1200 x 900 | Stand-in | Appetizing photo of tropical fruits. Replace with client photo when available. |
 | `vegetables` | Vegetables (Coming Soon) | `/categories/vegetables.jpg` | 1200 x 900 | Stand-in | Appetizing photo of market fresh vegetables. Replace with client photo when available. |
 
+---
+
+## Contact Page Background Decor Images (webp, < 150 KB)
+
+| Identifier | Description | Image URL | File Size | Dimensions | Status | Notes |
+|---|---|---|---|---|---|---|
+| `decor-salmon` | Left decor: fresh salmon fillet with herbs & fish | `/contact/decor-salmon.webp` | 61.6 KB | 600 x 600 | Stand-in | replace with client photo |
+| `decor-citrus-fish` | Right decor: fresh fish with lemon slice & spices | `/contact/decor-citrus-fish.webp` | 76.8 KB | 600 x 600 | Stand-in | replace with client photo |
+
+

@@ -38,7 +38,11 @@ const NAV_LINKS = [
 ];
 
 
-export default function Header() {
+interface HeaderProps {
+  whatsappNumber?: string;
+}
+
+export default function Header({ whatsappNumber }: HeaderProps = {}) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -113,15 +117,17 @@ export default function Header() {
             <Link href="/track" className="hover:text-[#1B9AE4] transition-colors">
               Track Order
             </Link>
-            <a
-              href="https://wa.me/94771234567"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-1 text-[#25D366] font-bold hover:underline"
-            >
-              <MessageCircle className="h-3 w-3" />
-              <span>WhatsApp</span>
-            </a>
+            {whatsappNumber ? (
+              <a
+                href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-1 text-[#25D366] font-bold hover:underline"
+              >
+                <MessageCircle className="h-3 w-3" />
+                <span>WhatsApp</span>
+              </a>
+            ) : null}
           </div>
         </div>
       </div>

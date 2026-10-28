@@ -4,6 +4,7 @@
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { revalidateSettingsCache } from "@/lib/cache";
 
 export async function saveSettingsAction(settings: Record<string, string>) {
   try {
@@ -14,7 +15,7 @@ export async function saveSettingsAction(settings: Record<string, string>) {
       return { success: true };
     }
 
-    await db.$transaction(
+    await Promise.all(
       entries.map(([key, val]) =>
         db.setting.upsert({
           where: { key },
@@ -37,9 +38,17 @@ export async function saveSettingsAction(settings: Record<string, string>) {
       console.warn("Audit log for settings skipped:", auditErr);
     }
 
+    try {
+      await revalidateSettingsCache();
+    } catch {
+      // non-fatal
+    }
+
     revalidatePath("/admin/settings");
     revalidatePath("/admin");
     revalidatePath("/checkout");
+    revalidatePath("/contact");
+    revalidatePath("/");
     revalidatePath("/api/settings");
 
     return { success: true };

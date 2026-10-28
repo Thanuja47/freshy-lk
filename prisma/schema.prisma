@@ -450,6 +450,17 @@ model WholesaleEnquiry {
   createdAt          DateTime      @default(now())
 }
 
+model ContactInquiry {
+  id        String        @id @default(uuid())
+  name      String
+  phone     String
+  email     String?
+  message   String
+  status    EnquiryStatus @default(NEW)
+  adminNote String?
+  createdAt DateTime      @default(now())
+}
+
 model Notification {
   id          String        @id @default(uuid())
   orderId     String?
