@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import useSWR from "swr";
 import {
   LayoutDashboard,
   Tag,
@@ -41,11 +42,24 @@ const NAV_ITEMS = [
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
 export function AdminSidebar({ user }: { user: AdminUserProps }) {
   const router = useRouter();
   // Use pathname from next/navigation
   const pathname = usePathname() || "/admin";
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // SWR Polling every 10 seconds for real-time sidebar notification badges
+  const { data: badges } = useSWR<{ orders?: number; messages?: number }>(
+    "/api/admin/sidebar-badges",
+    fetcher,
+    {
+      refreshInterval: 10000,
+      revalidateOnFocus: true,
+      dedupingInterval: 5000,
+    }
+  );
 
   const handleSignOut = async () => {
     try {
@@ -114,9 +128,21 @@ export function AdminSidebar({ user }: { user: AdminUserProps }) {
                   />
                   <span>{item.label}</span>
                 </div>
-                {active && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#1E88E5]" />
-                )}
+                <div className="flex items-center gap-1.5">
+                  {item.href === "/admin/orders" && (badges?.orders ?? 0) > 0 && (
+                    <span className="px-2 py-0.5 text-[11px] font-bold rounded-full bg-[#1E88E5] text-white tabular-nums shadow-xs">
+                      {badges!.orders}
+                    </span>
+                  )}
+                  {item.href === "/admin/messages" && (badges?.messages ?? 0) > 0 && (
+                    <span className="px-2 py-0.5 text-[11px] font-bold rounded-full bg-[#E65100] text-white tabular-nums shadow-xs">
+                      {badges!.messages}
+                    </span>
+                  )}
+                  {active && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#1E88E5]" />
+                  )}
+                </div>
               </Link>
             );
           })}
@@ -211,7 +237,19 @@ export function AdminSidebar({ user }: { user: AdminUserProps }) {
                     <Icon className={`w-5 h-5 ${active ? "text-[#1E88E5]" : "text-[#6E6E73]"}`} />
                     <span>{item.label}</span>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-[#6E6E73]" />
+                  <div className="flex items-center gap-2">
+                    {item.href === "/admin/orders" && (badges?.orders ?? 0) > 0 && (
+                      <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-[#1E88E5] text-white tabular-nums">
+                        {badges!.orders}
+                      </span>
+                    )}
+                    {item.href === "/admin/messages" && (badges?.messages ?? 0) > 0 && (
+                      <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-[#E65100] text-white tabular-nums">
+                        {badges!.messages}
+                      </span>
+                    )}
+                    <ChevronRight className="w-4 h-4 text-[#6E6E73]" />
+                  </div>
                 </Link>
               );
             })}

@@ -1,8 +1,9 @@
 // src/app/admin/(protected)/orders/OrdersClient.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import useSWR from "swr";
 import { formatMoney } from "@/lib/money";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
 import {
@@ -45,42 +46,50 @@ const statusColors: Record<string, { bg: string; text: string }> = {
   CANCELLED: { bg: "bg-red-50", text: "text-red-700" },
 };
 
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
 export default function OrdersClient({
   initialOrders,
 }: {
   initialOrders: OrderItemRow[];
 }) {
-  const [orders, setOrders] = useState<OrderItemRow[]>(initialOrders);
   const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
+  const prevOrderIdsRef = useRef<Set<string>>(new Set(initialOrders.map((o) => o.id)));
+
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date>(new Date());
 
-  // Real-time polling every 10 seconds
-  const fetchOrders = async (showLoading = false) => {
-    if (showLoading) setIsRefreshing(true);
-    try {
-      const res = await fetch("/api/admin/orders-data");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.orders) {
-          setOrders(data.orders);
-          setLastRefreshedAt(new Date());
-        }
-      }
-    } catch (e) {
-      console.warn("Failed to poll orders:", e);
-    } finally {
-      if (showLoading) setIsRefreshing(false);
+  // SWR Real-time polling every 10 seconds (pauses on tab hide, revalidates on focus)
+  const { data, isValidating, mutate } = useSWR<{ orders: OrderItemRow[] }>(
+    "/api/admin/orders-data",
+    fetcher,
+    {
+      fallbackData: { orders: initialOrders },
+      refreshInterval: 10000,
+      revalidateOnFocus: true,
+      dedupingInterval: 4000,
     }
-  };
+  );
 
+  const orders = data?.orders || initialOrders;
+
+  // Track newly arrived orders for subtle highlight
   useEffect(() => {
-    const timer = setInterval(() => {
-      fetchOrders(false);
-    }, 10000);
-    return () => clearInterval(timer);
-  }, []);
+    if (!data?.orders) return;
+    setLastRefreshedAt(new Date());
+    const currentIds = new Set(data.orders.map((o) => o.id));
+    const newlyAdded: string[] = [];
+    for (const order of data.orders) {
+      if (!prevOrderIdsRef.current.has(order.id)) {
+        newlyAdded.push(order.id);
+      }
+    }
+    if (newlyAdded.length > 0) {
+      setNewOrderIds((prev) => new Set([...prev, ...newlyAdded]));
+      prevOrderIdsRef.current = currentIds;
+    }
+  }, [data?.orders]);
 
   const counts = {
     all: orders.length,
@@ -130,11 +139,11 @@ export default function OrdersClient({
 
           <button
             type="button"
-            onClick={() => fetchOrders(true)}
-            disabled={isRefreshing}
+            onClick={() => mutate()}
+            disabled={isValidating}
             className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-black/[0.08] rounded-xl text-xs font-semibold text-[#1D1D1F] hover:bg-[#F5F5F7] transition-all shadow-xs cursor-pointer disabled:opacity-50"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin text-[#1E88E5]" : ""}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isValidating ? "animate-spin text-[#1E88E5]" : ""}`} />
             <span>Refresh</span>
           </button>
         </div>
@@ -238,6 +247,7 @@ export default function OrdersClient({
               <tbody className="divide-y divide-black/[0.04]">
                 {filteredOrders.map((order) => {
                   const style = statusColors[order.status] || { bg: "bg-gray-100", text: "text-gray-700" };
+                  const isNew = newOrderIds.has(order.id);
                   const dateStr = new Date(order.createdAt).toLocaleDateString("en-LK", {
                     month: "short",
                     day: "numeric",
@@ -246,11 +256,25 @@ export default function OrdersClient({
                   });
 
                   return (
-                    <tr key={order.id} className="hover:bg-[#F5F5F7]/50 transition-colors">
+                    <tr
+                      key={order.id}
+                      className={`transition-colors ${
+                        isNew
+                          ? "bg-emerald-50/80 hover:bg-emerald-100/70 border-l-4 border-l-emerald-500"
+                          : "hover:bg-[#F5F5F7]/50"
+                      }`}
+                    >
                       <td className="py-3.5 px-4 font-mono font-bold text-[#1E88E5]">
-                        <Link href={`/admin/orders/${order.id}`} className="hover:underline">
-                          {order.orderNo}
-                        </Link>
+                        <div className="flex items-center gap-1.5">
+                          <Link href={`/admin/orders/${order.id}`} className="hover:underline">
+                            {order.orderNo}
+                          </Link>
+                          {isNew && (
+                            <span className="px-1.5 py-0.5 text-[10px] font-extrabold uppercase bg-emerald-600 text-white rounded-md tracking-wider animate-pulse">
+                              NEW
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3.5 px-4">
                         <div className="font-semibold text-[#1D1D1F]">{order.customerName}</div>

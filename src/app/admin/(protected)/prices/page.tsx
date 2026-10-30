@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import useSWR from "swr";
 import { formatMoney } from "@/lib/money";
 import { updateProductPriceAndStock, bulkUpdateAvailability, updateProductOffer } from "@/actions/prices";
 import {
@@ -26,9 +27,12 @@ export interface ProductPriceItem {
   offerPercent?: number | null;
 }
 
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
 export default function AdminPricesPage() {
   const [products, setProducts] = useState<ProductPriceItem[]>([]);
   const [modifiedIds, setModifiedIds] = useState<Set<string>>(new Set());
+  const [conflictNotices, setConflictNotices] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(true);
@@ -48,23 +52,42 @@ export default function AdminPricesPage() {
     isAvailable: boolean;
   } | null>(null);
 
-  // Load products on mount
-  useEffect(() => {
-    async function loadCatalogue() {
-      try {
-        const res = await fetch("/api/admin/prices-data");
-        if (res.ok) {
-          const data = await res.json();
-          setProducts(data.products || []);
-        }
-      } catch {
-        // Fallback
-      } finally {
-        setIsLoading(false);
-      }
+  // SWR Real-time polling every 10 seconds (pause when hidden, revalidate on focus)
+  const { data: polledData } = useSWR<{ products: ProductPriceItem[] }>(
+    "/api/admin/prices-data",
+    fetcher,
+    {
+      refreshInterval: 10000,
+      revalidateOnFocus: true,
+      dedupingInterval: 4000,
     }
-    loadCatalogue();
-  }, []);
+  );
+
+  useEffect(() => {
+    if (!polledData?.products) return;
+    setProducts((prev) => {
+      if (prev.length === 0) return polledData.products;
+      return polledData.products.map((fresh) => {
+        const local = prev.find((p) => p.id === fresh.id);
+        if (!local) return fresh;
+        // If actively being edited locally
+        if (modifiedIds.has(fresh.id)) {
+          if (
+            fresh.priceUpdatedAt !== local.priceUpdatedAt &&
+            fresh.pricePerKgCents !== local.pricePerKgCents
+          ) {
+            setConflictNotices((prevNotices) => ({
+              ...prevNotices,
+              [fresh.id]: `Updated by someone else to Rs. ${(fresh.pricePerKgCents / 100).toFixed(0)}. Last write wins upon saving.`,
+            }));
+          }
+          return local;
+        }
+        return fresh;
+      });
+    });
+    setIsLoading(false);
+  }, [polledData?.products, modifiedIds]);
 
   const categories = ["All", ...Array.from(new Set(products.map((p) => p.categoryName)))];
 
@@ -135,6 +158,11 @@ export default function AdminPricesPage() {
 
     if (result.status === "SUCCESS") {
       setSavedStatus((prev) => ({ ...prev, [id]: "saved" }));
+      setConflictNotices((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
       setModifiedIds((prev) => {
         const next = new Set(prev);
         next.delete(id);
@@ -386,7 +414,7 @@ export default function AdminPricesPage() {
                               {isModified && (
                                 <span
                                   className="w-2 h-2 rounded-full bg-[#1E88E5]"
-                                  title="Modified — blur input or press Enter to save"
+                                  title="Modified â€” blur input or press Enter to save"
                                 />
                               )}
                             </div>
@@ -428,6 +456,11 @@ export default function AdminPricesPage() {
                             className="w-32 px-3 py-2 bg-[#F5F5F7]/80 border border-black/[0.08] rounded-xl text-[#1D1D1F] font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-[#1E88E5]/40 focus:bg-white text-sm transition-all"
                           />
                         </div>
+                        {conflictNotices[product.id] && (
+                          <div className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200/80 rounded-md px-2 py-0.5 mt-1 font-medium max-w-[200px] leading-tight shadow-2xs">
+                            {conflictNotices[product.id]}
+                          </div>
+                        )}
                       </td>
 
                       {/* Offer % Input */}
