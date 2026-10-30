@@ -28,10 +28,15 @@ export default function PrivacyPage() {
           </p>
         </section>
 
+        {/* [CLIENT/LEGAL REVIEW REQUIRED — DRAFT TERMS] */}
+        <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-medium">
+          Note: This policy document is currently in draft format and undergoing client legal review prior to final commercial ratification.
+        </div>
+
         <section className="space-y-2">
           <h2 className="text-lg font-bold text-[#0D2137]">3. Payment Data Security</h2>
           <p>
-            Online card transactions are processed securely through Central Bank of Sri Lanka approved payment gateway partners (PayHere). Freshy.lk never stores your credit or debit card numbers on our servers.
+            When online card transactions are activated, transactions are processed securely through Central Bank of Sri Lanka approved payment gateway partners (PayHere). Freshy.lk never stores credit or debit card numbers on our servers.
           </p>
         </section>
 

@@ -4,6 +4,8 @@ import { formatMoney } from "@/lib/money";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
 import { Truck, MessageCircle, Calendar, Download, CreditCard } from "lucide-react";
 import { buildPayHereCheckoutForm, getPayHereActionUrl, isPayHereConfigured } from "@/lib/payhere";
+import { getSiteSettings, isCardPaymentActive } from "@/lib/settings";
+import SlipUploadBox from "./SlipUploadBox";
 
 
 export interface OrderPageProps {
@@ -13,6 +15,7 @@ export interface OrderPageProps {
 export const dynamic = "force-dynamic";
 
 interface RenderableOrder {
+  id: string;
   orderNo: string;
   status: string;
   paymentStatus: string;
@@ -72,22 +75,12 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
     console.error("DB query failed in OrderTokenPage:", err);
   }
 
-  let bankName = "Commercial Bank of Ceylon";
-  let bankAccountName = "Freshy LK (Pvt) Ltd";
-  let bankAccountNumber = "1000200300";
-  let bankBranch = "Colombo Main Branch";
-
-  try {
-    const sRows = await db.setting.findMany();
-    for (const r of sRows) {
-      if (r.key === "bankName" && r.value) bankName = String(r.value);
-      if (r.key === "bankAccountName" && r.value) bankAccountName = String(r.value);
-      if (r.key === "bankAccountNumber" && r.value) bankAccountNumber = String(r.value);
-      if (r.key === "bankBranch" && r.value) bankBranch = String(r.value);
-    }
-  } catch {
-    // fallback
-  }
+  const settings = await getSiteSettings();
+  const cardActive = isCardPaymentActive(settings);
+  const bankName = settings.bankName || "Commercial Bank of Ceylon";
+  const bankAccountName = settings.bankAccountName || "Freshy LK (Pvt) Ltd";
+  const bankAccountNumber = settings.bankAccountNumber || "1000200300";
+  const bankBranch = settings.bankBranch || "Colombo Main Branch";
 
 
   if (!order) {
@@ -296,8 +289,8 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
             </div>
           )}
 
-          {/* PayHere Card Payment Section (Available for PENDING_PAYMENT or CARD_ONLINE orders) */}
-          {order.paymentStatus !== "PAID" && (
+          {/* PayHere Card Payment Section (Rendered ONLY when Card is active via Admin Setting AND env vars) */}
+          {cardActive && isPayHereConfigured() && order.paymentStatus !== "PAID" && (
             <div className="bg-white border border-[#DDE8F0] p-6 rounded-2xl shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-[#DDE8F0] pb-3">
                 <div className="flex items-center gap-2 font-bold text-base text-[#0D2137]">
@@ -309,43 +302,37 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
                 </span>
               </div>
 
-              {isPayHereConfigured() ? (
-                <form method="POST" action={getPayHereActionUrl()} className="space-y-3">
-                  {Object.entries(
-                    buildPayHereCheckoutForm({
-                      orderNo: order.orderNo,
-                      trackingToken: token,
-                      amountCents: order.totalCents,
-                      customerName: order.customerName,
-                      email: order.email || "customer@freshy.lk",
-                      phone: order.phone,
-                      addressLine1: order.addressLine1,
-                      city: order.city,
-                      itemsSummary: order.items
-                        .map((it) => `${it.productName} (${it.packLabel}) x ${it.quantity}`)
-                        .join(", "),
-                    })
-                  ).map(([k, v]) => (
-                    <input key={k} type="hidden" name={k} value={v} />
-                  ))}
+              <form method="POST" action={getPayHereActionUrl()} className="space-y-3">
+                {Object.entries(
+                  buildPayHereCheckoutForm({
+                    orderNo: order.orderNo,
+                    trackingToken: token,
+                    amountCents: order.totalCents,
+                    customerName: order.customerName,
+                    email: order.email || "customer@freshy.lk",
+                    phone: order.phone,
+                    addressLine1: order.addressLine1,
+                    city: order.city,
+                    itemsSummary: order.items
+                      .map((it) => `${it.productName} (${it.packLabel}) x ${it.quantity}`)
+                      .join(", "),
+                  })
+                ).map(([k, v]) => (
+                  <input key={k} type="hidden" name={k} value={v} />
+                ))}
 
-                  <p className="text-xs text-[#0D2137]/70">
-                    Pay securely with Visa, MasterCard, or online banking via PayHere.
-                  </p>
+                <p className="text-xs text-[#0D2137]/70">
+                  Pay securely with Visa, MasterCard, or online banking via PayHere.
+                </p>
 
-                  <button
-                    type="submit"
-                    className="w-full bg-[#1B9AE4] hover:bg-[#1580C2] text-white font-bold py-3 px-4 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 text-sm cursor-pointer"
-                  >
-                    <CreditCard className="w-4 h-4" />
-                    <span>Pay now by card ({formatMoney(order.totalCents)})</span>
-                  </button>
-                </form>
-              ) : (
-                <div className="text-xs text-[#0D2137]/60 italic p-3 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                  Card payments are not available yet.
-                </div>
-              )}
+                <button
+                  type="submit"
+                  className="w-full bg-[#1B9AE4] hover:bg-[#1580C2] text-white font-bold py-3 px-4 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 text-sm cursor-pointer"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  <span>Pay now by card ({formatMoney(order.totalCents)})</span>
+                </button>
+              </form>
             </div>
           )}
 
@@ -355,7 +342,7 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
               {order.paymentStatus !== "PAID" && (
                 <div className="bg-amber-50 border border-amber-300 p-6 rounded-2xl shadow-xs text-amber-950 space-y-3">
                   <div className="flex items-center gap-2 font-bold text-base text-amber-900">
-                    <span>🏦</span> Bank Transfer Details
+                    <span>🏦</span> Bank Transfer Payment
                   </div>
                   <p className="text-xs leading-relaxed">
                     Please transfer <strong>{formatMoney(order.totalCents)}</strong> using Order Number{" "}
@@ -380,6 +367,15 @@ export default async function OrderTokenPage({ params }: OrderPageProps) {
                     Your payment receipt was attached with your order. Our team will verify the transfer shortly.
                   </p>
                 </div>
+              )}
+
+              {/* Slip upload — shown when unpaid (even if a slip was already submitted, allow re-upload) */}
+              {order.paymentStatus !== "PAID" && (
+                <SlipUploadBox
+                  token={token}
+                  orderId={order.id}
+                  hasExistingSlip={order.slips.length > 0}
+                />
               )}
             </>
           )}

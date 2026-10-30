@@ -12,6 +12,7 @@ interface FieldDef {
   icon: LucideIcon;
   placeholder: string;
   type: string;
+  description?: string;
 }
 
 interface SectionDef {
@@ -23,6 +24,29 @@ interface SectionDef {
 }
 
 const DEFAULT_SECTIONS: SectionDef[] = [
+  {
+    id: "paymentMethods",
+    title: "Payment Methods & Launch Scope",
+    description: "Control which payment methods are accepted at checkout. Inactive or unconfigured methods are completely hidden across the storefront.",
+    icon: CreditCard,
+    fields: [
+      { key: "paymentBankTransferEnabled", label: "Direct Bank Transfer (Slip Upload)", icon: Building2, placeholder: "true", type: "toggle", description: "Primary launch payment method. Customers place orders, view bank transfer details, and upload payment slips for admin verification." },
+      { key: "paymentCardPayHereEnabled", label: "Online Card Payments (PayHere Gateway)", icon: CreditCard, placeholder: "false", type: "toggle", description: "Kept OFF for launch. Requires both this toggle ON and PAYHERE_MERCHANT_ID + PAYHERE_MERCHANT_SECRET configured in environment variables." },
+      { key: "paymentCodEnabled", label: "Cash on Delivery (COD)", icon: Receipt, placeholder: "false", type: "toggle", description: "Kept OFF for launch." },
+    ],
+  },
+  {
+    id: "bank",
+    title: "Bank Transfer Payment Details",
+    description: "Bank account details presented to customers choosing Direct Bank Transfer payment method.",
+    icon: CreditCard,
+    fields: [
+      { key: "bankName", label: "Bank Name", icon: CreditCard, placeholder: "e.g. Commercial Bank of Ceylon", type: "text" },
+      { key: "bankAccountName", label: "Account Name", icon: Building2, placeholder: "e.g. Freshy LK (Pvt) Ltd", type: "text" },
+      { key: "bankAccountNumber", label: "Account Number", icon: CreditCard, placeholder: "e.g. 1000200300", type: "text" },
+      { key: "bankBranch", label: "Branch Name", icon: Building2, placeholder: "e.g. Colombo Main Branch", type: "text" },
+    ],
+  },
   {
     id: "general",
     title: "Store & Brand Information",
@@ -45,18 +69,6 @@ const DEFAULT_SECTIONS: SectionDef[] = [
       { key: "supportEmail", label: "Support Email", icon: Mail, placeholder: "e.g. orders@freshy.lk", type: "email" },
       { key: "supportHours", label: "Support Hours Text", icon: Clock, placeholder: "e.g. Mon–Sat: 6:00 AM – 8:00 PM | Sun: 6:00 AM – 2:00 PM", type: "text" },
       { key: "responseTimeText", label: "Response-Time Note (optional)", icon: Clock, placeholder: "e.g. Response within 2 hours", type: "text" },
-    ],
-  },
-  {
-    id: "bank",
-    title: "Bank Transfer Payment Details",
-    description: "Bank details provided to customers choosing Direct Bank Transfer payment method.",
-    icon: CreditCard,
-    fields: [
-      { key: "bankName", label: "Bank Name", icon: CreditCard, placeholder: "e.g. Commercial Bank of Ceylon", type: "text" },
-      { key: "bankAccountName", label: "Account Name", icon: Building2, placeholder: "e.g. Freshy LK (Pvt) Ltd", type: "text" },
-      { key: "bankAccountNumber", label: "Account Number", icon: CreditCard, placeholder: "e.g. 1000200300", type: "text" },
-      { key: "bankBranch", label: "Branch Name", icon: Building2, placeholder: "e.g. Colombo Main Branch", type: "text" },
     ],
   },
   {
@@ -245,53 +257,149 @@ export default function SettingsForm({ sections = DEFAULT_SECTIONS, settings }: 
 
             {/* Fields */}
             <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-              {section.fields.map(({ key, label, icon: FieldIcon, placeholder, type }) => (
-                <div key={key}>
-                  <label
-                    htmlFor={`field-${key}`}
-                    style={{
-                      display: "block",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      color: "#1D1D1F",
-                      marginBottom: "6px",
-                      fontFamily: "-apple-system, 'SF Pro Text', Inter, system-ui, sans-serif",
-                    }}
-                  >
-                    {label}
-                  </label>
-                  <div style={{ position: "relative" }}>
-                    <FieldIcon
+              {section.fields.map(({ key, label, icon: FieldIcon, placeholder, type, description }) => {
+                if (type === "toggle") {
+                  const isChecked =
+                    key === "paymentBankTransferEnabled"
+                      ? values[key] !== "false" // default enabled
+                      : values[key] === "true";  // default disabled
+
+                  return (
+                    <div
+                      key={key}
                       style={{
-                        position: "absolute",
-                        left: "12px",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        width: 15,
-                        height: 15,
-                        color: focusedField === key ? "#1E88E5" : "#6E6E73",
-                        strokeWidth: 1.75,
-                        pointerEvents: "none",
-                        transition: "color 0.15s",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "12px 14px",
+                        background: "#F5F5F7",
+                        borderRadius: "12px",
+                        gap: "14px",
                       }}
-                    />
-                    <input
-                      id={`field-${key}`}
-                      type={type}
-                      value={values[key] ?? ""}
-                      placeholder={placeholder}
-                      onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
-                      onFocus={() => setFocusedField(key)}
-                      onBlur={() => setFocusedField(null)}
+                    >
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+                        <div
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: "8px",
+                            background: isChecked ? "#E3F2FD" : "#E5E5EA",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                            marginTop: 2,
+                          }}
+                        >
+                          <FieldIcon
+                            style={{
+                              width: 16,
+                              height: 16,
+                              color: isChecked ? "#1E88E5" : "#8E8E93",
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "13px", fontWeight: 600, color: "#1D1D1F" }}>
+                            {label}
+                          </div>
+                          {description && (
+                            <p style={{ fontSize: "11px", color: "#6E6E73", margin: "2px 0 0", lineHeight: 1.4 }}>
+                              {description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={isChecked}
+                        aria-label={`Toggle ${label}`}
+                        onClick={() =>
+                          setValues((v) => ({
+                            ...v,
+                            [key]: isChecked ? "false" : "true",
+                          }))
+                        }
+                        style={{
+                          width: "44px",
+                          height: "26px",
+                          borderRadius: "13px",
+                          background: isChecked ? "#34C759" : "#D1D1D6",
+                          border: "none",
+                          padding: "2px",
+                          display: "flex",
+                          alignItems: "center",
+                          cursor: "pointer",
+                          transition: "background-color 0.2s",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: "22px",
+                            height: "22px",
+                            borderRadius: "50%",
+                            background: "#fff",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                            transform: isChecked ? "translateX(18px)" : "translateX(0)",
+                            transition: "transform 0.2s",
+                          }}
+                        />
+                      </button>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={key}>
+                    <label
+                      htmlFor={`field-${key}`}
                       style={{
-                        ...inputStyle,
-                        borderColor: focusedField === key ? "#1E88E5" : "rgba(0,0,0,0.12)",
-                        boxShadow: focusedField === key ? "0 0 0 3px rgba(30,136,229,0.1)" : "none",
+                        display: "block",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        color: "#1D1D1F",
+                        marginBottom: "6px",
+                        fontFamily: "-apple-system, 'SF Pro Text', Inter, system-ui, sans-serif",
                       }}
-                    />
+                    >
+                      {label}
+                    </label>
+                    <div style={{ position: "relative" }}>
+                      <FieldIcon
+                        style={{
+                          position: "absolute",
+                          left: "12px",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          width: 15,
+                          height: 15,
+                          color: focusedField === key ? "#1E88E5" : "#6E6E73",
+                          strokeWidth: 1.75,
+                          pointerEvents: "none",
+                          transition: "color 0.15s",
+                        }}
+                      />
+                      <input
+                        id={`field-${key}`}
+                        type={type}
+                        value={values[key] ?? ""}
+                        placeholder={placeholder}
+                        onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
+                        onFocus={() => setFocusedField(key)}
+                        onBlur={() => setFocusedField(null)}
+                        style={{
+                          ...inputStyle,
+                          borderColor: focusedField === key ? "#1E88E5" : "rgba(0,0,0,0.12)",
+                          boxShadow: focusedField === key ? "0 0 0 3px rgba(30,136,229,0.1)" : "none",
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         );

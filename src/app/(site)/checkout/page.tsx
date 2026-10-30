@@ -887,8 +887,8 @@ export default function CheckoutPage() {
                   </div>
                 </label>
 
-                {/* Card Payment Option */}
-                {hasPayHere ? (
+                {/* Card Payment Option (Rendered ONLY when Card is active via Admin Setting AND env vars) */}
+                {hasPayHere && (
                   <label
                     className={`block p-4 rounded-xl border cursor-pointer transition-all ${
                       paymentMethod === "CARD_ONLINE"
@@ -908,15 +908,11 @@ export default function CheckoutPage() {
                       <div>
                         <div className="font-bold text-sm text-[#0D2137]">Visa / MasterCard / PayHere</div>
                         <p className="text-xs text-[#0D2137]/70 mt-0.5">
-                          Instant secure card payment processing gateway.
+                          Instant card payment processing gateway.
                         </p>
                       </div>
                     </div>
                   </label>
-                ) : (
-                  <div className="text-xs text-[#0D2137]/60 italic p-3 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    Card payments currently undergoing scheduled gateway maintenance.
-                  </div>
                 )}
               </div>
 

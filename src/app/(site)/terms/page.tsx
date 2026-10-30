@@ -13,6 +13,11 @@ export default function TermsPage() {
         <p className="text-xs text-[#0D2137]/60">Last updated: October 2026</p>
       </div>
 
+      {/* [CLIENT/LEGAL REVIEW REQUIRED — DRAFT TERMS] */}
+      <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs font-medium">
+        Note: This terms document is currently in draft format and undergoing client legal review prior to final commercial ratification.
+      </div>
+
       <div className="prose prose-sm text-[#0D2137]/80 space-y-6 leading-relaxed">
         <section className="space-y-2">
           <h2 className="text-lg font-bold text-[#0D2137]">1. General</h2>

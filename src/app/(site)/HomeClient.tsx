@@ -155,7 +155,7 @@ function resolveCategoryDisplay(cat: HomeCategoryItem): CategoryDisplayInfo {
 
 const TRUST_ITEMS = [
   { icon: Truck, label: "Fast Delivery", sub: "Islandwide courier", color: "#1E88E5" },
-  { icon: ShieldCheck, label: "Secure Payment", sub: "Safe checkout", color: "#1E88E5" },
+  { icon: ShieldCheck, label: "Direct Transfer", sub: "Verified bank slip", color: "#1E88E5" },
   { icon: Fish, label: "Daily Updates", sub: "Prices updated daily", color: "#2E7D32" },
   { icon: Headphones, label: "WhatsApp Support", sub: "Quick assistance", color: "#25D366" },
 ];

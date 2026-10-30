@@ -20,7 +20,37 @@ export interface SiteSettings {
   invoicePrefix?: string;
   vatNumber?: string;
   invoiceFooter?: string;
+  paymentBankTransferEnabled?: string;
+  paymentCardPayHereEnabled?: string;
+  paymentCodEnabled?: string;
   [key: string]: string | undefined;
+}
+
+/**
+ * Returns true if Card Payments (PayHere) are BOTH enabled via Admin Settings AND configured in env vars.
+ * When either is false/missing, Card Payments are completely inactive across the platform.
+ */
+export function isCardPaymentActive(settings?: SiteSettings): boolean {
+  const toggleEnabled = settings?.paymentCardPayHereEnabled === "true";
+  const envConfigured = Boolean(
+    (process.env.PAYHERE_MERCHANT_ID || process.env.NEXT_PUBLIC_PAYHERE_MERCHANT_ID) &&
+    (process.env.PAYHERE_MERCHANT_SECRET)
+  );
+  return toggleEnabled && envConfigured;
+}
+
+/**
+ * Returns true if Direct Bank Transfer is enabled (default true).
+ */
+export function isBankTransferActive(settings?: SiteSettings): boolean {
+  return settings?.paymentBankTransferEnabled !== "false";
+}
+
+/**
+ * Returns true if Cash on Delivery is enabled (default false).
+ */
+export function isCodActive(settings?: SiteSettings): boolean {
+  return settings?.paymentCodEnabled === "true";
 }
 
 /**

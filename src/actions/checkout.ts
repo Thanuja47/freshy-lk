@@ -11,6 +11,7 @@ import { reserveStock } from "@/lib/stock";
 import { normalizePhone } from "@/lib/constants";
 import type { StorageType, CustomerType, PaymentMethod } from "@prisma/client";
 import { randomBytes } from "crypto";
+import { getSiteSettings, isCardPaymentActive, isBankTransferActive, isCodActive } from "@/lib/settings";
 
 function generateErrorId(): string {
   return `ERR-${Date.now().toString(36)}-${randomBytes(3).toString("hex")}`;
@@ -91,9 +92,16 @@ function generateTrackingToken(): string {
   return token;
 }
 
-export async function getPaymentGatewayConfig(): Promise<{ hasPayHere: boolean }> {
+export async function getPaymentGatewayConfig(): Promise<{
+  hasPayHere: boolean;
+  bankTransferEnabled: boolean;
+  codEnabled: boolean;
+}> {
+  const settings = await getSiteSettings();
   return {
-    hasPayHere: Boolean(process.env.PAYHERE_MERCHANT_ID && process.env.PAYHERE_MERCHANT_SECRET),
+    hasPayHere: isCardPaymentActive(settings),
+    bankTransferEnabled: isBankTransferActive(settings),
+    codEnabled: isCodActive(settings),
   };
 }
 
@@ -123,6 +131,21 @@ export async function createOrder(input: CheckoutInput): Promise<CheckoutActionR
       return {
         status: "ERROR",
         message: `Delivery is not available in ${parsed.district} district.`,
+      };
+    }
+
+    // 3a. Validate Payment Method Active Status
+    const siteSettings = await getSiteSettings();
+    if (parsed.paymentMethod === "CARD_ONLINE" && !isCardPaymentActive(siteSettings)) {
+      return {
+        status: "ERROR",
+        message: "Card payments are currently offline. Please choose Direct Bank Transfer to complete your order.",
+      };
+    }
+    if (parsed.paymentMethod === "COD" && !isCodActive(siteSettings)) {
+      return {
+        status: "ERROR",
+        message: "Cash on delivery is currently unavailable. Please choose Direct Bank Transfer.",
       };
     }
 

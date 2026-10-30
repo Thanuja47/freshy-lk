@@ -457,7 +457,7 @@ export async function markOrderAsPaid(orderId: string, note?: string) {
       });
 
       return { invoiceNo: inv.invoiceNo, invoiceSnapshot: inv.snapshot as unknown as InvoiceSnapshot, nextStatus };
-    });
+    }, { timeout: 30000, maxWait: 10000 });
 
     // 6. Generate real PDF binary and save to private storage
     try {

@@ -14,7 +14,7 @@ const FAQS = [
   },
   {
     q: "What payment methods are supported?",
-    a: "We accept Direct Bank Transfer with slip verification, online card payments via PayHere (Visa, MasterCard), and Cash on Delivery (COD) for eligible delivery zones.",
+    a: "We currently accept Direct Bank Transfer with bank slip verification upon order placement or via your order tracking page. Your order is confirmed once payment is verified.",
   },
   {
     q: "Can I request custom fish preparation (e.g. curry pieces, steaks)?",
