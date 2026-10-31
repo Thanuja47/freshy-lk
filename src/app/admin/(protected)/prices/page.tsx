@@ -414,7 +414,7 @@ export default function AdminPricesPage() {
                               {isModified && (
                                 <span
                                   className="w-2 h-2 rounded-full bg-[#1E88E5]"
-                                  title="Modified â€” blur input or press Enter to save"
+                                  title="Modified — blur input or press Enter to save"
                                 />
                               )}
                             </div>

@@ -102,13 +102,22 @@ async function fetchSiteSettingsFromDb(): Promise<SiteSettings> {
   }
 }
 
-/**
- * Returns all configured site settings from DB.
- * Uses tag-based revalidation (tag: 'settings') with a 60-second fallback.
- * Strictly returns NO invented data — values not in DB are undefined.
- */
-export const getSiteSettings = unstable_cache(
+const cachedSiteSettings = unstable_cache(
   fetchSiteSettingsFromDb,
   ["site-settings"],
   { tags: [CACHE_TAGS.SETTINGS], revalidate: 60 }
 );
+
+/**
+ * Returns all configured site settings from DB.
+ * Uses tag-based revalidation (tag: 'settings') with a 60-second fallback.
+ * Falls back to direct DB fetch if unstable_cache is unavailable (e.g. Vitest runners).
+ * Strictly returns NO invented data — values not in DB are undefined.
+ */
+export async function getSiteSettings(): Promise<SiteSettings> {
+  try {
+    return await cachedSiteSettings();
+  } catch {
+    return await fetchSiteSettingsFromDb();
+  }
+}
