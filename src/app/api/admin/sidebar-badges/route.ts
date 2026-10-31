@@ -28,7 +28,11 @@ export async function GET() {
       orders: unreadOrdersCount,
       messages: unreadMessagesCount,
     });
-  } catch {
-    return NextResponse.json({ orders: 0, messages: 0 }, { status: 200 });
+  } catch (err: unknown) {
+    console.error("Sidebar badges auth or fetch error:", err);
+    return NextResponse.json(
+      { error: "Unauthorized", orders: 0, messages: 0 },
+      { status: 401 }
+    );
   }
 }
