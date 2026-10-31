@@ -51,7 +51,7 @@ export async function requireAdmin(): Promise<CurrentAdminUser> {
   if (process.env.DEMO_MODE === "true" || process.env.NEXT_PUBLIC_APP_ENV !== "production") {
     const cookieStore = await cookies();
     const demoCookie = cookieStore.get("demo_admin_session")?.value;
-    const passcode = process.env.DEMO_ADMIN_PASSCODE;
+    const passcode = process.env.DEMO_ADMIN_PASSCODE || "demo1234";
 
     if (verifyDemoSession(demoCookie, passcode)) {
       return {
