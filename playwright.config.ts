@@ -1,9 +1,32 @@
 import { defineConfig, devices } from "@playwright/test";
-import dotenv from "dotenv";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 
-dotenv.config({ path: path.resolve(__dirname, ".env.local") });
-dotenv.config({ path: path.resolve(__dirname, ".env") });
+function loadEnvFile(filename: string) {
+  try {
+    const fullPath = path.resolve(__dirname, filename);
+    if (fs.existsSync(fullPath)) {
+      const content = fs.readFileSync(fullPath, "utf8");
+      for (const line of content.split("\n")) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) continue;
+        const eqIdx = trimmed.indexOf("=");
+        if (eqIdx !== -1) {
+          const key = trimmed.slice(0, eqIdx).trim();
+          const val = trimmed.slice(eqIdx + 1).trim().replace(/^["']|["']$/g, "");
+          if (!process.env[key]) {
+            process.env[key] = val;
+          }
+        }
+      }
+    }
+  } catch {
+    // Ignore in CI/Vercel
+  }
+}
+
+loadEnvFile(".env.local");
+loadEnvFile(".env");
 
 const bypassToken = process.env.PLAYWRIGHT_PROTECTION_BYPASS;
 
